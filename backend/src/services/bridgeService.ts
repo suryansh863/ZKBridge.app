@@ -4,7 +4,7 @@ import { EthereumService } from './ethereumService';
 import { ZKProofService } from './zkProofService';
 import { BridgeDirection, TransactionStatus } from '@prisma/client';
 import { logger } from '../utils/logger';
-import { generateNonce } from '@zkbridge/shared';
+import { generateNonce } from '../types';
 
 export interface BridgeInitiationData {
   fromChain: 'bitcoin' | 'ethereum';

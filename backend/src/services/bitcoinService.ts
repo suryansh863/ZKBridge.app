@@ -1,8 +1,8 @@
 import Client from 'bitcoin-core';
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
-import { BitcoinTransaction, MerkleProof } from '@zkbridge/shared';
-import { generateMerkleProof, verifyMerkleProof } from '@zkbridge/shared';
+import { BitcoinTransaction, MerkleProof } from '../types';
+import { generateMerkleProof, verifyMerkleProof } from '../types';
 import { logger } from '../utils/logger';
 
 // Bitcoin testnet configuration

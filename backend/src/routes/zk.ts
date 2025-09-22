@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
-import { ApiResponse, ZKProof } from '@zkbridge/shared';
+import { ApiResponse, ZKProof } from '../types';
 import { ZKProofService } from '../services/zkProofService';
 import { rateLimit } from 'express-rate-limit';
 import { logger } from '../utils/logger';

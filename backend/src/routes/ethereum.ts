@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
-import { ApiResponse, EthereumTransaction } from '@zkbridge/shared';
+import { ApiResponse, EthereumTransaction } from '../types';
 import { EthereumService } from '../services/ethereumService';
 
 const router = Router();

@@ -1,7 +1,7 @@
 import { groth16 } from 'snarkjs';
-import { ZKProof } from '@zkbridge/shared';
+import { ZKProof } from '../types';
 import { logger } from '../utils/logger';
-import { generateNonce, sha256 } from '@zkbridge/shared';
+import { generateNonce, sha256 } from '../types';
 import * as fs from 'fs';
 import * as path from 'path';
 

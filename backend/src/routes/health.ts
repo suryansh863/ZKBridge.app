@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getPrismaClient } from '../config/database';
 import { asyncHandler } from '../middleware/errorHandler';
-import { ApiResponse } from '@zkbridge/shared';
+import { ApiResponse } from '../types';
 
 const router = Router();
 

@@ -1,7 +1,7 @@
 import { groth16 } from 'snarkjs';
-import { ZKProof } from '@zkbridge/shared';
+import { ZKProof } from '../types';
 import { logger } from '../utils/logger';
-import { generateNonce } from '@zkbridge/shared';
+import { generateNonce } from '../types';
 
 export class ZKService {
   private circuitPath: string;

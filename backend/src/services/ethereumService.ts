@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { EthereumTransaction } from '@zkbridge/shared';
+import { EthereumTransaction } from '../types';
 import { logger } from '../utils/logger';
 
 export class EthereumService {
@@ -10,8 +10,12 @@ export class EthereumService {
     const rpcUrl = process.env.ETHEREUM_RPC_URL || 'http://localhost:8545';
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
     
-    if (process.env.ETHEREUM_PRIVATE_KEY) {
-      this.wallet = new ethers.Wallet(process.env.ETHEREUM_PRIVATE_KEY, this.provider);
+    if (process.env.ETHEREUM_PRIVATE_KEY && process.env.ETHEREUM_PRIVATE_KEY !== 'your_private_key_here') {
+      try {
+        this.wallet = new ethers.Wallet(process.env.ETHEREUM_PRIVATE_KEY, this.provider);
+      } catch (error) {
+        logger.warn('Invalid ETHEREUM_PRIVATE_KEY, wallet not initialized');
+      }
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Menu, X, Sun, Moon, Wallet, Settings, User } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -10,6 +11,7 @@ import { cn } from '@/lib/utils';
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const pathname = usePathname();
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -36,22 +38,33 @@ export function Header() {
         <nav className="hidden md:flex items-center space-x-8">
           <Link href="/" className={cn(
             "relative text-foreground/60 hover:text-foreground transition-all duration-300",
-            "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-bitcoin after:to-ethereum",
-            "hover:after:w-full after:transition-all after:duration-300"
+            "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500",
+            "hover:after:w-full after:transition-all after:duration-300",
+            pathname === "/" && "text-foreground after:w-full"
+          )}>
+            Home
+          </Link>
+          <Link href="/bridge" className={cn(
+            "relative text-foreground/60 hover:text-foreground transition-all duration-300",
+            "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500",
+            "hover:after:w-full after:transition-all after:duration-300",
+            pathname === "/bridge" && "text-foreground after:w-full"
           )}>
             Bridge
           </Link>
           <Link href="/transactions" className={cn(
             "relative text-foreground/60 hover:text-foreground transition-all duration-300",
-            "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-bitcoin after:to-ethereum",
-            "hover:after:w-full after:transition-all after:duration-300"
+            "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500",
+            "hover:after:w-full after:transition-all after:duration-300",
+            pathname === "/transactions" && "text-foreground after:w-full"
           )}>
             Transactions
           </Link>
           <Link href="/docs" className={cn(
             "relative text-foreground/60 hover:text-foreground transition-all duration-300",
-            "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-bitcoin after:to-ethereum",
-            "hover:after:w-full after:transition-all after:duration-300"
+            "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500",
+            "hover:after:w-full after:transition-all after:duration-300",
+            pathname === "/docs" && "text-foreground after:w-full"
           )}>
             Docs
           </Link>
@@ -118,7 +131,19 @@ export function Header() {
                 href="/" 
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
-                  "py-2 px-4 rounded-lg hover:bg-muted/50"
+                  "py-2 px-4 rounded-lg hover:bg-muted/50",
+                  pathname === "/" && "text-foreground bg-muted/30"
+                )}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link 
+                href="/bridge" 
+                className={cn(
+                  "text-foreground/60 hover:text-foreground transition-all duration-300",
+                  "py-2 px-4 rounded-lg hover:bg-muted/50",
+                  pathname === "/bridge" && "text-foreground bg-muted/30"
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -128,7 +153,8 @@ export function Header() {
                 href="/transactions" 
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
-                  "py-2 px-4 rounded-lg hover:bg-muted/50"
+                  "py-2 px-4 rounded-lg hover:bg-muted/50",
+                  pathname === "/transactions" && "text-foreground bg-muted/30"
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -138,7 +164,8 @@ export function Header() {
                 href="/docs" 
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
-                  "py-2 px-4 rounded-lg hover:bg-muted/50"
+                  "py-2 px-4 rounded-lg hover:bg-muted/50",
+                  pathname === "/docs" && "text-foreground bg-muted/30"
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >

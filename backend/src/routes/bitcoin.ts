@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
-import { ApiResponse, BitcoinTransaction, MerkleProof } from '@zkbridge/shared';
+import { ApiResponse, BitcoinTransaction, MerkleProof } from '../types';
 import { BitcoinService } from '../services/bitcoinService';
 import { rateLimit } from 'express-rate-limit';
 import { logger } from '../utils/logger';

@@ -57,8 +57,8 @@ export async function connectDatabase(): Promise<void> {
     await client.$connect();
     logger.info('Successfully connected to database');
   } catch (error) {
-    logger.error('Failed to connect to database:', error);
-    throw error;
+    logger.warn('Failed to connect to database, running without database:', error);
+    // Don't throw error, allow server to start without database
   }
 }
 

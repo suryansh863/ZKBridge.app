@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
-import { ApiResponse, BridgeTransaction, BridgeDirection, TransactionStatus } from '@zkbridge/shared';
+import { ApiResponse, BridgeTransaction, BridgeDirection, TransactionStatus } from '../types';
 import { BridgeService } from '../services/bridgeService';
 import { rateLimit } from 'express-rate-limit';
 import { logger } from '../utils/logger';

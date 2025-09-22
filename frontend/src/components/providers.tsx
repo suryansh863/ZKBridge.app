@@ -1,15 +1,16 @@
 "use client"
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider } from 'wagmi';
+import { WagmiConfig } from 'wagmi';
 import { RainbowKitProvider, darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 import { ThemeProvider as NextThemeProvider } from 'next-themes';
-import { config } from '@/lib/wagmi';
-import { useState } from 'react';
+import { config, chains } from '@/lib/wagmi';
+import { useState, useEffect } from 'react';
 
 import '@rainbow-me/rainbowkit/styles.css';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -27,8 +28,29 @@ export function Providers({ children }: { children: React.ReactNode }) {
     },
   }));
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <WagmiConfig config={config}>
+        <QueryClientProvider client={queryClient}>
+          <NextThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </NextThemeProvider>
+        </QueryClientProvider>
+      </WagmiConfig>
+    );
+  }
+
   return (
-    <WagmiProvider config={config}>
+    <WagmiConfig config={config}>
       <QueryClientProvider client={queryClient}>
         <NextThemeProvider
           attribute="class"
@@ -37,6 +59,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           disableTransitionOnChange
         >
           <RainbowKitProvider
+            chains={chains}
             theme={{
               lightMode: lightTheme({
                 accentColor: '#6366f1',
@@ -64,7 +87,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </RainbowKitProvider>
         </NextThemeProvider>
       </QueryClientProvider>
-    </WagmiProvider>
+    </WagmiConfig>
   );
 }
 
