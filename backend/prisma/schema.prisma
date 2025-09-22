@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  address   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  transactions BridgeTransaction[]
+
+  @@map("users")
+}
+
+model BridgeTransaction {
+  id                String            @id @default(cuid())
+  direction         BridgeDirection
+  status            TransactionStatus @default(PENDING)
+  sourceTxHash      String
+  sourceAmount      String
+  sourceAddress     String
+  targetTxHash      String?
+  targetAmount      String?
+  targetAddress     String?
+  zkProof           String?
+  merkleProof       String?
+  merkleRoot        String?
+  blockHeight       Int?
+  confirmations     Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  userId            String?
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("bridge_transactions")
+}
+
+enum BridgeDirection {
+  BITCOIN_TO_ETHEREUM
+  ETHEREUM_TO_BITCOIN
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  COMPLETED
+}
+
