@@ -4,6 +4,7 @@ import axios from 'axios';
 import { BitcoinTransaction, MerkleProof } from '../types';
 import { generateMerkleProof, verifyMerkleProof } from '../types';
 import { logger } from '../utils/logger';
+import { bitcoinTestnetService, BitcoinTransaction as TestnetTransaction, MerkleProof as TestnetMerkleProof } from './bitcoinTestnetService';
 
 // Bitcoin testnet configuration
 const TESTNET_CONFIG = {
@@ -42,34 +43,28 @@ export class BitcoinService {
 
   async getTransaction(txid: string): Promise<BitcoinTransaction> {
     try {
-      // First try to get from local Bitcoin Core
-      let tx, block;
-      try {
-        tx = await this.client.getTransaction(txid);
-        const blockHash = tx.blockhash;
-        block = blockHash ? await this.client.getBlock(blockHash) : null;
-      } catch (coreError) {
-        logger.warn('Bitcoin Core unavailable, using Blockstream API:', coreError.message);
-        // Fallback to Blockstream API
-        const response = await axios.get(`${this.blockstreamApiUrl}/tx/${txid}`);
-        tx = response.data;
-        
-        if (tx.status?.block_hash) {
-          const blockResponse = await axios.get(`${this.blockstreamApiUrl}/block/${tx.status.block_hash}`);
-          block = blockResponse.data;
-        }
-      }
-
+      // Use the new testnet service for real Bitcoin data
+      const testnetTx = await bitcoinTestnetService.getTransaction(txid);
+      const confirmations = await bitcoinTestnetService.getConfirmationCount(txid);
+      
+      // Calculate amount from outputs
+      const totalOutputValue = testnetTx.vout.reduce((sum, output) => sum + output.value, 0);
+      const amountInBTC = totalOutputValue / 100000000; // Convert satoshis to BTC
+      
+      // Get input and output addresses
+      const inputAddresses = testnetTx.vin.map(input => input.prevout.scriptpubkey_address);
+      const outputAddresses = testnetTx.vout.map(output => output.scriptpubkey_address);
+      
       return {
-        txid: tx.txid || txid,
-        amount: this.calculateTransactionAmount(tx),
-        fromAddress: this.extractInputAddresses(tx)[0] || '',
-        toAddress: this.extractOutputAddresses(tx)[0] || '',
-        blockHeight: block?.height || tx.status?.block_height,
-        confirmations: tx.confirmations || tx.status?.confirmations || 0,
-        timestamp: tx.time || block?.timestamp || Math.floor(Date.now() / 1000),
+        txid: testnetTx.txid,
+        amount: amountInBTC,
+        fromAddress: inputAddresses[0] || '',
+        toAddress: outputAddresses[0] || '',
+        blockHeight: testnetTx.status.block_height,
+        confirmations,
+        timestamp: testnetTx.status.block_time || Math.floor(Date.now() / 1000),
         merkleProof: undefined, // Will be generated separately
-        merkleRoot: block?.merkle_root
+        merkleRoot: undefined // Will be set when generating proof
       };
     } catch (error) {
       logger.error('Error getting Bitcoin transaction:', error);
@@ -204,44 +199,14 @@ export class BitcoinService {
 
   async generateMerkleProof(txid: string, blockHash?: string): Promise<MerkleProof> {
     try {
-      let block;
-      
-      if (blockHash) {
-        // Get block by hash
-        try {
-          block = await this.client.getBlock(blockHash);
-        } catch (coreError) {
-          logger.warn('Bitcoin Core unavailable for block, using Blockstream API');
-          const response = await axios.get(`${this.blockstreamApiUrl}/block/${blockHash}`);
-          block = response.data;
-        }
-      } else {
-        // Get block from transaction
-        const tx = await this.getTransaction(txid);
-        if (!tx.blockHeight) {
-          throw new Error('Transaction not yet confirmed in a block');
-        }
-        
-        try {
-          block = await this.client.getBlockByHeight(tx.blockHeight);
-        } catch (coreError) {
-          logger.warn('Bitcoin Core unavailable for block height, using Blockstream API');
-          const response = await axios.get(`${this.blockstreamApiUrl}/block-height/${tx.blockHeight}`);
-          block = response.data;
-        }
-      }
-      
-      // Get transaction hashes from block
-      const txHashes = block.tx ? block.tx : block.txids || [];
-      
-      // Generate Merkle proof
-      const proof = generateMerkleProof(txHashes, txid);
+      // Use the new testnet service for real Merkle proof generation
+      const testnetProof = await bitcoinTestnetService.generateMerkleProof(txid);
       
       return {
-        leaf: txid,
-        path: proof.path,
-        indices: proof.indices,
-        root: proof.root
+        leaf: testnetProof.transactionHash,
+        path: testnetProof.proofPath,
+        indices: [testnetProof.proofIndex], // Convert to array format expected by existing code
+        root: testnetProof.merkleRoot
       };
     } catch (error) {
       logger.error('Error generating Merkle proof:', error);
@@ -304,5 +269,40 @@ export class BitcoinService {
       logger.error('Error getting block hash:', error);
       throw new Error(`Failed to get block hash: ${error.message}`);
     }
+  }
+
+  /**
+   * Validate Bitcoin testnet address
+   */
+  validateAddress(address: string): boolean {
+    return bitcoinTestnetService.validateAddress(address);
+  }
+
+  /**
+   * Validate Bitcoin transaction hash
+   */
+  validateTransactionHash(txHash: string): boolean {
+    return bitcoinTestnetService.validateTransactionHash(txHash);
+  }
+
+  /**
+   * Get sample transactions for demo
+   */
+  async getSampleTransactions(): Promise<Array<{txHash: string, description: string}>> {
+    return await bitcoinTestnetService.getSampleTransactions();
+  }
+
+  /**
+   * Get detailed transaction information with all inputs/outputs
+   */
+  async getDetailedTransaction(txid: string): Promise<TestnetTransaction> {
+    return await bitcoinTestnetService.getTransaction(txid);
+  }
+
+  /**
+   * Generate detailed Merkle proof with block information
+   */
+  async getDetailedMerkleProof(txid: string): Promise<TestnetMerkleProof> {
+    return await bitcoinTestnetService.generateMerkleProof(txid);
   }
 }

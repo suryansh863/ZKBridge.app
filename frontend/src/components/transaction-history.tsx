@@ -41,7 +41,11 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
 
   // Mock data - in real app, this would come from API
   useEffect(() => {
-    const mockTransactions: Transaction[] = [
+    // Add a small delay to prevent blocking the initial page load
+    const loadData = async () => {
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+      
+      const mockTransactions: Transaction[] = [
       {
         id: '1',
         from: 'Bitcoin',
@@ -86,13 +90,14 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
         recipientAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
         bridgeFee: '0.016',
       },
-    ];
+      ];
 
-    setTimeout(() => {
       setTransactions(mockTransactions);
       setFilteredTransactions(mockTransactions);
       setIsLoading(false);
-    }, 1000);
+    };
+    
+    loadData();
   }, []);
 
   // Filter transactions based on search and status

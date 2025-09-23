@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -23,9 +23,9 @@ model User {
 }
 
 model BridgeTransaction {
-  id                String            @id @default(cuid())
-  direction         BridgeDirection
-  status            TransactionStatus @default(PENDING)
+  id                String   @id @default(cuid())
+  direction         String   // BITCOIN_TO_ETHEREUM or ETHEREUM_TO_BITCOIN
+  status            String   @default("PENDING") // PENDING, CONFIRMED, FAILED, COMPLETED
   sourceTxHash      String
   sourceAmount      String
   sourceAddress     String
@@ -36,26 +36,14 @@ model BridgeTransaction {
   merkleProof       String?
   merkleRoot        String?
   blockHeight       Int?
-  confirmations     Int              @default(0)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  confirmations     Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
   userId            String?
 
   // Relations
   user User? @relation(fields: [userId], references: [id])
 
   @@map("bridge_transactions")
-}
-
-enum BridgeDirection {
-  BITCOIN_TO_ETHEREUM
-  ETHEREUM_TO_BITCOIN
-}
-
-enum TransactionStatus {
-  PENDING
-  CONFIRMED
-  FAILED
-  COMPLETED
 }
 

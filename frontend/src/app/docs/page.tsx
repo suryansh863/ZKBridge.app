@@ -125,7 +125,7 @@ export default function DocsPage() {
               <li>The transaction exists on the Bitcoin blockchain</li>
               <li>The transaction has sufficient confirmations</li>
               <li>The transaction amount matches the claimed amount</li>
-              <li>The transaction hasn't been used in a previous bridge</li>
+              <li>The transaction hasn&apos;t been used in a previous bridge</li>
             </ul>
 
             <h4 className="text-white font-semibold mb-3">Technical Implementation</h4>
@@ -389,7 +389,7 @@ Hash(A)   Hash(B)    Hash(C)   Hash(D)
             <div className="border border-gray-700 rounded-lg p-4">
               <h4 className="text-white font-semibold mb-2">Trustless</h4>
               <p className="text-gray-300 text-sm">
-                System that doesn't require trusted third parties or intermediaries.
+                System that doesn&apos;t require trusted third parties or intermediaries.
               </p>
             </div>
           </div>
@@ -474,7 +474,7 @@ Hash(A)   Hash(B)    Hash(C)   Hash(D)
         >
           <h2 className="text-2xl font-bold text-white mb-4">Need Help?</h2>
           <p className="text-gray-300 mb-6">
-            Can't find what you're looking for? Our team is here to help.
+            Can&apos;t find what you&apos;re looking for? Our team is here to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

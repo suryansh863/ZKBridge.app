@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -10,8 +10,13 @@ import { cn } from '@/lib/utils';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -81,7 +86,7 @@ export function Header() {
             )}
             aria-label="Toggle theme"
           >
-            {theme === 'dark' ? (
+            {mounted && theme === 'dark' ? (
               <Sun className="h-5 w-5 text-yellow-500" />
             ) : (
               <Moon className="h-5 w-5 text-slate-600" />
@@ -184,7 +189,7 @@ export function Header() {
                   )}
                   aria-label="Toggle theme"
                 >
-                  {theme === 'dark' ? (
+                  {mounted && theme === 'dark' ? (
                     <Sun className="h-5 w-5 text-yellow-500" />
                   ) : (
                     <Moon className="h-5 w-5 text-slate-600" />

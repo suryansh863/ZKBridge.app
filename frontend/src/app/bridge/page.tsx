@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount, useConnect } from 'wagmi'
 import { motion } from 'framer-motion'
-import { CheckCircle, AlertCircle, Clock, ArrowRight, ExternalLink, Copy } from 'lucide-react'
+import { CheckCircle, AlertCircle, Clock, ArrowRight, ExternalLink, Copy, Hash, Eye } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { MerkleTreeVisualizer } from '@/components/merkle-tree-visualizer'
 
 interface BridgeStep {
   id: number
@@ -21,9 +22,31 @@ interface BitcoinTransaction {
   amount: number
   confirmations: number
   status: 'pending' | 'confirmed'
+  blockHeight?: number
+  blockHash?: string
+  inputs: Array<{
+    address: string
+    value: number
+  }>
+  outputs: Array<{
+    address: string
+    value: number
+  }>
+  fee: number
+  size: number
+}
+
+interface MerkleProof {
+  merkleRoot: string
+  proofPath: string[]
+  proofIndex: number
+  transactionHash: string
+  blockHeight: number
+  blockHash: string
 }
 
 export default function BridgePage() {
+  const [mounted, setMounted] = useState(false)
   const { address, isConnected } = useAccount()
   const [currentStep, setCurrentStep] = useState(1)
   const [bitcoinTx, setBitcoinTx] = useState('')
@@ -33,6 +56,35 @@ export default function BridgePage() {
   const [transaction, setTransaction] = useState<BitcoinTransaction | null>(null)
   const [proofGenerated, setProofGenerated] = useState(false)
   const [bridgeTxHash, setBridgeTxHash] = useState('')
+  const [merkleProof, setMerkleProof] = useState<MerkleProof | null>(null)
+  const [sampleTransactions, setSampleTransactions] = useState<Array<{txHash: string, description: string}>>([])
+  const [showSampleTransactions, setShowSampleTransactions] = useState(false)
+  const [loadingSamples, setLoadingSamples] = useState(true)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    // Load sample transactions for demo
+    const loadSampleTransactions = async () => {
+      try {
+        const response = await fetch('/api/bitcoin/sample-transactions')
+        if (response.ok) {
+          const data = await response.json()
+          setSampleTransactions(data.data || [])
+        }
+      } catch (error) {
+        console.error('Failed to load sample transactions:', error)
+      } finally {
+        setLoadingSamples(false)
+      }
+    }
+    
+    if (mounted) {
+      loadSampleTransactions()
+    }
+  }, [mounted])
 
   const steps: BridgeStep[] = [
     {
@@ -78,39 +130,94 @@ export default function BridgePage() {
 
     setIsLoading(true)
     try {
-      // Simulate API call to verify Bitcoin transaction
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Get real Bitcoin transaction data
+      const response = await fetch(`/api/bitcoin/detailed-transaction/${bitcoinTx}`)
       
-      // Mock transaction data
-      setTransaction({
-        txid: bitcoinTx,
-        amount: parseFloat(amount) || 0.001,
-        confirmations: 6,
-        status: 'confirmed'
-      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to fetch transaction')
+      }
       
+      const data = await response.json()
+      const txData = data.data
+      
+      // Convert to our interface format
+      const transactionInfo: BitcoinTransaction = {
+        txid: txData.txid,
+        amount: txData.vout.reduce((sum: number, output: any) => sum + output.value, 0) / 100000000,
+        confirmations: 0, // Will be calculated separately
+        status: txData.status.confirmed ? 'confirmed' : 'pending',
+        blockHeight: txData.status.block_height,
+        blockHash: txData.status.block_hash,
+        inputs: txData.vin.map((input: any) => ({
+          address: input.prevout.scriptpubkey_address,
+          value: input.prevout.value / 100000000
+        })),
+        outputs: txData.vout.map((output: any) => ({
+          address: output.scriptpubkey_address,
+          value: output.value / 100000000
+        })),
+        fee: txData.fee / 100000000,
+        size: txData.size
+      }
+      
+      // Get confirmation count
+      const confirmResponse = await fetch(`/api/bitcoin/transaction/${bitcoinTx}`)
+      if (confirmResponse.ok) {
+        const confirmData = await confirmResponse.json()
+        transactionInfo.confirmations = confirmData.data.confirmations
+      }
+      
+      setTransaction(transactionInfo)
       setCurrentStep(2)
     } catch (error) {
       console.error('Error verifying transaction:', error)
-      alert('Failed to verify transaction')
+      alert(`Failed to verify transaction: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleGenerateProof = async () => {
+    if (!transaction) return
+    
     setIsLoading(true)
     try {
-      // Simulate ZK proof generation
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      // Generate real Merkle proof
+      const response = await fetch(`/api/bitcoin/detailed-merkle-proof/${transaction.txid}`)
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to generate Merkle proof')
+      }
+      
+      const data = await response.json()
+      const proofData = data.data
+      
+      // Convert to our interface format
+      const merkleProofInfo: MerkleProof = {
+        merkleRoot: proofData.merkleRoot,
+        proofPath: proofData.proofPath,
+        proofIndex: proofData.proofIndex,
+        transactionHash: proofData.transactionHash,
+        blockHeight: proofData.blockHeight,
+        blockHash: proofData.blockHash
+      }
+      
+      setMerkleProof(merkleProofInfo)
       setProofGenerated(true)
       setCurrentStep(3)
     } catch (error) {
       console.error('Error generating proof:', error)
-      alert('Failed to generate proof')
+      alert(`Failed to generate proof: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSampleTransaction = (txHash: string) => {
+    setBitcoinTx(txHash)
+    setShowSampleTransactions(false)
   }
 
   const handleBridgeToEthereum = async () => {
@@ -119,9 +226,34 @@ export default function BridgePage() {
       return
     }
 
+    if (!transaction || !merkleProof) {
+      alert('Missing transaction or proof data')
+      return
+    }
+
     setIsLoading(true)
     try {
-      // Simulate bridge transaction
+      // Store bridge attempt in database
+      const storeResponse = await fetch('/api/bridge/store-attempt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bitcoinTxId: transaction.txid,
+          ethereumAddress: address,
+          userId: address // Using wallet address as user ID for now
+        })
+      })
+
+      if (!storeResponse.ok) {
+        throw new Error('Failed to store bridge attempt')
+      }
+
+      const storeData = await storeResponse.json()
+      console.log('Bridge attempt stored:', storeData.data.bridgeId)
+      
+      // Simulate bridge transaction (in real implementation, this would interact with smart contracts)
       await new Promise(resolve => setTimeout(resolve, 2000))
       
       // Mock bridge transaction hash
@@ -130,7 +262,7 @@ export default function BridgePage() {
       setCurrentStep(4)
     } catch (error) {
       console.error('Error bridging to Ethereum:', error)
-      alert('Failed to bridge to Ethereum')
+      alert(`Failed to bridge to Ethereum: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsLoading(false)
     }
@@ -138,6 +270,35 @@ export default function BridgePage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
+  }
+
+  // Remove the loading state to prevent hydration issues
+  // if (!mounted) {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+  //       <Header />
+  //       <main className="container mx-auto px-4 py-16">
+  //         <div className="flex items-center justify-center min-h-[400px]">
+  //           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+  //         </div>
+  //       </main>
+  //       <Footer />
+  //     </div>
+  //   )
+  // }
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <Header />
+        <main className="container mx-auto px-4 py-16">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -215,23 +376,55 @@ export default function BridgePage() {
                 >
                   <h2 className="text-2xl font-bold text-white mb-6">Verify Bitcoin Transaction</h2>
                   
+                  {/* Sample Transactions */}
+                  {mounted && (
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-blue-400">Try Sample Transactions</h3>
+                        {!loadingSamples && sampleTransactions.length > 0 && (
+                          <button
+                            onClick={() => setShowSampleTransactions(!showSampleTransactions)}
+                            className="text-blue-400 hover:text-blue-300 text-sm"
+                          >
+                            {showSampleTransactions ? 'Hide' : 'Show'} Samples
+                          </button>
+                        )}
+                      </div>
+                      
+                      {loadingSamples ? (
+                        <div className="flex items-center justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                          <span className="ml-2 text-blue-400 text-sm">Loading sample transactions...</span>
+                        </div>
+                      ) : showSampleTransactions && sampleTransactions.length > 0 ? (
+                        <div className="space-y-2">
+                          {sampleTransactions.map((sample, index) => (
+                            <div key={index} className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3">
+                              <div className="flex-1">
+                                <p className="text-sm text-gray-300">{sample.description}</p>
+                                <code className="text-xs text-blue-400 font-mono">
+                                  {sample.txHash.substring(0, 16)}...{sample.txHash.substring(sample.txHash.length - 16)}
+                                </code>
+                              </div>
+                              <button
+                                onClick={() => handleSampleTransaction(sample.txHash)}
+                                className="ml-3 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded transition-colors"
+                              >
+                                Use
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : !loadingSamples && sampleTransactions.length === 0 ? (
+                        <p className="text-gray-400 text-sm">No sample transactions available</p>
+                      ) : null}
+                    </div>
+                  )}
+
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Bitcoin Address
-                      </label>
-                      <input
-                        type="text"
-                        value={bitcoinAddress}
-                        onChange={(e) => setBitcoinAddress(e.target.value)}
-                        placeholder="Enter your Bitcoin address"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Transaction ID
+                        Bitcoin Transaction ID (Testnet)
                       </label>
                       <input
                         type="text"
@@ -304,13 +497,59 @@ export default function BridgePage() {
                           >
                             <Copy className="w-4 h-4 text-gray-400" />
                           </button>
+                          <a
+                            href={`https://blockstream.info/testnet/tx/${transaction.txid}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 hover:bg-gray-700 rounded"
+                          >
+                            <ExternalLink className="w-4 h-4 text-gray-400" />
+                          </a>
                         </div>
                       </div>
 
+                      {transaction.blockHeight && (
+                        <div>
+                          <label className="text-sm text-gray-400">Block Height</label>
+                          <p className="text-white font-mono">{transaction.blockHeight}</p>
+                        </div>
+                      )}
+
+                      {transaction.blockHash && (
+                        <div>
+                          <label className="text-sm text-gray-400">Block Hash</label>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <code className="text-xs bg-gray-800 px-2 py-1 rounded text-green-400 flex-1">
+                              {transaction.blockHash.substring(0, 16)}...{transaction.blockHash.substring(transaction.blockHash.length - 16)}
+                            </code>
+                            <button
+                              onClick={() => copyToClipboard(transaction.blockHash!)}
+                              className="p-1 hover:bg-gray-700 rounded"
+                            >
+                              <Copy className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <div>
                         <label className="text-sm text-gray-400">Amount</label>
-                        <p className="text-white font-medium">{transaction.amount} BTC</p>
+                        <p className="text-white font-medium">{transaction.amount.toFixed(8)} BTC</p>
                       </div>
+
+                      {transaction.fee > 0 && (
+                        <div>
+                          <label className="text-sm text-gray-400">Transaction Fee</label>
+                          <p className="text-white font-medium">{transaction.fee.toFixed(8)} BTC</p>
+                        </div>
+                      )}
+
+                      {transaction.size > 0 && (
+                        <div>
+                          <label className="text-sm text-gray-400">Transaction Size</label>
+                          <p className="text-white font-medium">{transaction.size} bytes</p>
+                        </div>
+                      )}
 
                       <div>
                         <label className="text-sm text-gray-400">Confirmations</label>
@@ -319,23 +558,53 @@ export default function BridgePage() {
                     </div>
 
                     <div className="space-y-4">
-                      <div className="bg-gray-800/50 rounded-lg p-4">
-                        <h3 className="text-white font-medium mb-2">Fee Estimation</h3>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Network Fee:</span>
-                            <span className="text-white">~$2.50</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Bridge Fee:</span>
-                            <span className="text-white">0.1%</span>
-                          </div>
-                          <div className="border-t border-gray-600 pt-2 flex justify-between font-medium">
-                            <span className="text-gray-300">Total:</span>
-                            <span className="text-white">~$3.00</span>
+                      {/* Inputs */}
+                      {transaction.inputs && transaction.inputs.length > 0 && (
+                        <div className="bg-gray-800/50 rounded-lg p-4">
+                          <h3 className="text-white font-medium mb-3">Inputs ({transaction.inputs.length})</h3>
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {transaction.inputs.map((input, index) => (
+                              <div key={index} className="text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">Address:</span>
+                                  <code className="text-blue-400 text-xs">
+                                    {input.address.substring(0, 12)}...{input.address.substring(input.address.length - 8)}
+                                  </code>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">Value:</span>
+                                  <span className="text-white">{input.value.toFixed(8)} BTC</span>
+                                </div>
+                                {index < transaction.inputs.length - 1 && <hr className="border-gray-600 my-2" />}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      {/* Outputs */}
+                      {transaction.outputs && transaction.outputs.length > 0 && (
+                        <div className="bg-gray-800/50 rounded-lg p-4">
+                          <h3 className="text-white font-medium mb-3">Outputs ({transaction.outputs.length})</h3>
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {transaction.outputs.map((output, index) => (
+                              <div key={index} className="text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">Address:</span>
+                                  <code className="text-green-400 text-xs">
+                                    {output.address.substring(0, 12)}...{output.address.substring(output.address.length - 8)}
+                                  </code>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">Value:</span>
+                                  <span className="text-white">{output.value.toFixed(8)} BTC</span>
+                                </div>
+                                {index < transaction.outputs.length - 1 && <hr className="border-gray-600 my-2" />}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -367,10 +636,24 @@ export default function BridgePage() {
                   
                   <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4 mb-6">
                     <div className="flex items-center space-x-2">
-                      <AlertCircle className="w-5 h-5 text-purple-400" />
-                      <span className="text-purple-400 font-medium">ZK Proof Generated</span>
+                      <CheckCircle className="w-5 h-5 text-purple-400" />
+                      <span className="text-purple-400 font-medium">Merkle Proof Generated</span>
                     </div>
                   </div>
+
+                  {/* Merkle Tree Visualizer */}
+                  {merkleProof && (
+                    <div className="mb-6">
+                      <MerkleTreeVisualizer
+                        merkleRoot={merkleProof.merkleRoot}
+                        proofPath={merkleProof.proofPath}
+                        proofIndex={merkleProof.proofIndex}
+                        transactionHash={merkleProof.transactionHash}
+                        blockHeight={merkleProof.blockHeight}
+                        blockHash={merkleProof.blockHash}
+                      />
+                    </div>
+                  )}
 
                   {!isConnected ? (
                     <div className="text-center py-8">
@@ -483,3 +766,5 @@ export default function BridgePage() {
     </div>
   )
 }
+
+

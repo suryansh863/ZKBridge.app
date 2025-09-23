@@ -206,14 +206,13 @@ router.post('/validate-address', [
   logger.info('Bitcoin address validation requested', { address });
 
   try {
-    // Basic validation - in a real implementation, you might want more sophisticated validation
-    const isValid = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^3[a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$|^[mn2][a-km-zA-HJ-NP-Z1-9]{25,34}$|^tb1[a-z0-9]{39,59}$/.test(address);
+    const isValid = bitcoinService.validateAddress(address);
 
     const response: ApiResponse<{ isValid: boolean; type?: string }> = {
       success: true,
       data: { 
         isValid,
-        type: isValid ? this.getAddressType(address) : undefined
+        type: isValid ? getAddressType(address) : undefined
       },
       message: isValid ? 'Address is valid' : 'Address is invalid'
     };
@@ -222,6 +221,71 @@ router.post('/validate-address', [
   } catch (error) {
     logger.error('Bitcoin address validation error:', error);
     throw new CustomError('Failed to validate Bitcoin address', 500);
+  }
+}));
+
+// GET /api/bitcoin/sample-transactions - Get sample transactions for demo
+router.get('/sample-transactions', asyncHandler(async (req, res) => {
+  logger.info('Sample transactions requested');
+
+  try {
+    const sampleTransactions = await bitcoinService.getSampleTransactions();
+
+    const response: ApiResponse<Array<{txHash: string, description: string}>> = {
+      success: true,
+      data: sampleTransactions
+    };
+
+    res.json(response);
+  } catch (error) {
+    logger.error('Sample transactions error:', error);
+    throw new CustomError('Failed to get sample transactions', 500);
+  }
+}));
+
+// GET /api/bitcoin/detailed-transaction/:txid - Get detailed transaction information
+router.get('/detailed-transaction/:txid', [
+  param('txid').isString().notEmpty().withMessage('Transaction ID is required'),
+], validateRequest, asyncHandler(async (req, res) => {
+  const { txid } = req.params;
+
+  logger.info('Detailed Bitcoin transaction requested', { txid });
+
+  try {
+    const detailedTransaction = await bitcoinService.getDetailedTransaction(txid);
+
+    const response: ApiResponse = {
+      success: true,
+      data: detailedTransaction
+    };
+
+    res.json(response);
+  } catch (error) {
+    logger.error('Detailed Bitcoin transaction error:', error);
+    throw new CustomError('Failed to get detailed Bitcoin transaction', 500);
+  }
+}));
+
+// GET /api/bitcoin/detailed-merkle-proof/:txid - Get detailed Merkle proof
+router.get('/detailed-merkle-proof/:txid', [
+  param('txid').isString().notEmpty().withMessage('Transaction ID is required'),
+], validateRequest, asyncHandler(async (req, res) => {
+  const { txid } = req.params;
+
+  logger.info('Detailed Merkle proof requested', { txid });
+
+  try {
+    const detailedProof = await bitcoinService.getDetailedMerkleProof(txid);
+
+    const response: ApiResponse = {
+      success: true,
+      data: detailedProof
+    };
+
+    res.json(response);
+  } catch (error) {
+    logger.error('Detailed Merkle proof error:', error);
+    throw new CustomError('Failed to get detailed Merkle proof', 500);
   }
 }));
 

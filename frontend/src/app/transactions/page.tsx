@@ -63,6 +63,7 @@ const mockTransactions: Transaction[] = [
 ]
 
 export default function TransactionsPage() {
+  const [mounted, setMounted] = useState(false)
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions)
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>(mockTransactions)
   const [searchTerm, setSearchTerm] = useState('')
@@ -71,6 +72,10 @@ export default function TransactionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     let filtered = transactions
@@ -138,6 +143,7 @@ export default function TransactionsPage() {
   }
 
   const formatDate = (date: Date) => {
+    if (!mounted) return 'Loading...'
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
@@ -178,6 +184,20 @@ export default function TransactionsPage() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentTransactions = filteredTransactions.slice(startIndex, endIndex)
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <Header />
+        <main className="container mx-auto px-4 py-16">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
@@ -489,3 +509,4 @@ export default function TransactionsPage() {
     </div>
   )
 }
+

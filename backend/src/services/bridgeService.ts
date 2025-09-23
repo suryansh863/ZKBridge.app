@@ -5,6 +5,7 @@ import { ZKProofService } from './zkProofService';
 import { BridgeDirection, TransactionStatus } from '@prisma/client';
 import { logger } from '../utils/logger';
 import { generateNonce } from '../types';
+import { BitcoinTransaction, MerkleProof } from './bitcoinTestnetService';
 
 export interface BridgeInitiationData {
   fromChain: 'bitcoin' | 'ethereum';
@@ -359,6 +360,70 @@ export class BridgeService {
     } catch (error) {
       logger.error('Error getting bridge transactions:', error);
       throw new Error(`Failed to get bridge transactions: ${error.message}`);
+    }
+  }
+
+  /**
+   * Store a bridge attempt with real Bitcoin transaction data
+   */
+  async storeBridgeAttempt(
+    bitcoinTx: BitcoinTransaction,
+    merkleProof: MerkleProof,
+    ethereumAddress: string,
+    userId?: string
+  ): Promise<string> {
+    try {
+      const bridge = await this.prisma.bridgeTransaction.create({
+        data: {
+          direction: 'BITCOIN_TO_ETHEREUM',
+          status: 'PENDING',
+          sourceTxHash: bitcoinTx.txid,
+          sourceAmount: bitcoinTx.amount.toString(),
+          sourceAddress: bitcoinTx.inputs[0]?.address || '',
+          targetAddress: ethereumAddress,
+          merkleProof: JSON.stringify(merkleProof),
+          blockHeight: bitcoinTx.blockHeight?.toString(),
+          blockHash: bitcoinTx.blockHash,
+          confirmations: bitcoinTx.confirmations,
+          userId: userId || null,
+          metadata: JSON.stringify({
+            inputs: bitcoinTx.inputs,
+            outputs: bitcoinTx.outputs,
+            fee: bitcoinTx.fee,
+            size: bitcoinTx.size,
+            merkleRoot: merkleProof.merkleRoot,
+            proofPath: merkleProof.proofPath,
+            proofIndex: merkleProof.proofIndex
+          })
+        }
+      });
+
+      logger.info('Bridge attempt stored', { bridgeId: bridge.id, bitcoinTx: bitcoinTx.txid });
+      return bridge.id;
+    } catch (error) {
+      logger.error('Error storing bridge attempt:', error);
+      throw new Error('Failed to store bridge attempt');
+    }
+  }
+
+  /**
+   * Get bridge attempts for a user
+   */
+  async getBridgeAttempts(userId?: string, limit: number = 50): Promise<BridgeStatus[]> {
+    try {
+      const bridges = await this.prisma.bridgeTransaction.findMany({
+        where: userId ? { userId } : {},
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        include: {
+          user: true
+        }
+      });
+
+      return bridges.map(bridge => this.mapToBridgeStatus(bridge));
+    } catch (error) {
+      logger.error('Error getting bridge attempts:', error);
+      throw new Error('Failed to get bridge attempts');
     }
   }
 }

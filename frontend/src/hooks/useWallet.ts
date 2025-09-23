@@ -6,7 +6,7 @@ export function useWallet() {
   const { data: balance } = useBalance({
     address: address,
   });
-  const { connect, connectors, error: connectError, isPending: isConnecting } = useConnect();
+  const { connect, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
 
   // Get ENS name if available
@@ -30,7 +30,7 @@ export function useWallet() {
     disconnect,
     connectors,
     connectError,
-    isConnecting,
+    isConnecting: false,
   };
 }
 

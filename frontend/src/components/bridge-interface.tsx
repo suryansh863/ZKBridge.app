@@ -248,7 +248,7 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-muted-foreground">You'll receive</div>
+                      <div className="text-sm text-muted-foreground">You&apos;ll receive</div>
                       <div className="font-medium">
                         {estimatedAmount} {toChain === 'bitcoin' ? 'BTC' : 'ETH'}
                       </div>

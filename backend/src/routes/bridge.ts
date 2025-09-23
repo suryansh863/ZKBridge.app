@@ -3,11 +3,13 @@ import { body, param, query, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
 import { ApiResponse, BridgeTransaction, BridgeDirection, TransactionStatus } from '../types';
 import { BridgeService } from '../services/bridgeService';
+import { BitcoinService } from '../services/bitcoinService';
 import { rateLimit } from 'express-rate-limit';
 import { logger } from '../utils/logger';
 
 const router = Router();
 const bridgeService = new BridgeService();
+const bitcoinService = new BitcoinService();
 
 // Rate limiting for Bridge API
 const bridgeRateLimit = rateLimit({
@@ -282,6 +284,44 @@ router.get('/health', asyncHandler(async (req, res) => {
   } catch (error) {
     logger.error('Bridge health check error:', error);
     throw new CustomError('Bridge service health check failed', 500);
+  }
+}));
+
+// POST /api/bridge/store-attempt - Store a bridge attempt with real Bitcoin data
+router.post('/store-attempt', [
+  body('bitcoinTxId').isString().notEmpty().withMessage('Bitcoin transaction ID is required'),
+  body('ethereumAddress').isString().notEmpty().withMessage('Ethereum address is required'),
+  body('userId').optional().isString().withMessage('User ID must be a string'),
+], validateRequest, asyncHandler(async (req, res) => {
+  const { bitcoinTxId, ethereumAddress, userId } = req.body;
+
+  logger.info('Bridge attempt storage requested', { bitcoinTxId, ethereumAddress, userId });
+
+  try {
+    // Get detailed Bitcoin transaction
+    const bitcoinTx = await bitcoinService.getDetailedTransaction(bitcoinTxId);
+    
+    // Generate Merkle proof
+    const merkleProof = await bitcoinService.getDetailedMerkleProof(bitcoinTxId);
+    
+    // Store bridge attempt
+    const bridgeId = await bridgeService.storeBridgeAttempt(
+      bitcoinTx,
+      merkleProof,
+      ethereumAddress,
+      userId
+    );
+
+    const response: ApiResponse<{ bridgeId: string }> = {
+      success: true,
+      data: { bridgeId },
+      message: 'Bridge attempt stored successfully'
+    };
+
+    res.json(response);
+  } catch (error) {
+    logger.error('Bridge attempt storage error:', error);
+    throw new CustomError(`Failed to store bridge attempt: ${error.message}`, 500);
   }
 }));
 
