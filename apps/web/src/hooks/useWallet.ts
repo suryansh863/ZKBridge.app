@@ -46,12 +46,23 @@ export function useWallet() {
     isConnecting: false,
     // Additional functions for compatibility
     connectWallet: async (walletId: string) => {
-      // Find the connector by ID and connect
-      const targetConnector = connectors.find(c => c.id === walletId);
+      // Map wallet IDs to connector IDs
+      const walletToConnectorMap: { [key: string]: string } = {
+        'metaMask': 'metaMask',
+        'coinbaseWallet': 'coinbaseWallet',
+        'walletConnect': 'walletConnect',
+        'trustWallet': 'walletConnect', // Trust Wallet uses WalletConnect
+        'rainbow': 'walletConnect', // Rainbow uses WalletConnect
+        'exodus': 'metaMask', // Exodus uses MetaMask connector
+      };
+      
+      const connectorId = walletToConnectorMap[walletId] || walletId;
+      const targetConnector = connectors.find(c => c.id === connectorId);
+      
       if (targetConnector) {
         await connect({ connector: targetConnector });
       } else {
-        throw new Error(`Wallet ${walletId} not found`);
+        throw new Error(`Wallet ${walletId} not found. Available connectors: ${connectors.map(c => c.id).join(', ')}`);
       }
     },
     getSupportedWallets: () => getSupportedWalletsList(),
