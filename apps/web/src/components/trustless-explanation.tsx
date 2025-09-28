@@ -52,10 +52,10 @@ export function TrustlessExplanation() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            What Makes ZKBridge <span className="text-primary">Trustless</span>?
+            What Makes BridgeSpark <span className="text-primary">Trustless</span>?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Traditional bridges require you to trust a central authority. ZKBridge uses Zero-Knowledge proofs 
+            Traditional bridges require you to trust a central authority. BridgeSpark uses Zero-Knowledge proofs 
             to eliminate this trust requirement entirely.
           </p>
         </motion.div>
@@ -113,7 +113,7 @@ export function TrustlessExplanation() {
             className="space-y-6"
           >
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold mb-4 text-green-500">ZKBridge Solution</h3>
+              <h3 className="text-2xl font-bold mb-4 text-green-500">BridgeSpark Solution</h3>
               <p className="text-muted-foreground">How Zero-Knowledge proofs solve these problems</p>
             </div>
             
@@ -164,7 +164,7 @@ export function TrustlessExplanation() {
             The Key Insight: <span className="text-primary">Mathematical Proofs</span>
           </h3>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Instead of trusting a human or organization, ZKBridge uses cryptographic proofs that can be 
+            Instead of trusting a human or organization, BridgeSpark uses cryptographic proofs that can be 
             mathematically verified. These proofs demonstrate that a Bitcoin transaction occurred without 
             revealing any sensitive information about the transaction itself.
           </p>

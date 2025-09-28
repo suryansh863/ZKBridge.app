@@ -7,11 +7,18 @@ import { useTheme } from 'next-themes';
 import { Menu, X, Sun, Moon, Wallet, Settings, User } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { cn } from '@/lib/utils';
+import { WalletConnectModal } from '@/components/wallet/WalletConnectModal';
+import { CoinDCXConnectModal } from '@/components/wallet/CoinDCXConnectModal';
+import { WalletStatusCompact } from '@/components/wallet/WalletStatus';
+import { useWalletConnection } from '@/hooks/useWallet';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [isCoinDCXModalOpen, setIsCoinDCXModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
+  const { isConnected } = useWalletConnection();
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -27,10 +34,10 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="h-10 w-10 rounded-xl gradient-bridge flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-            <span className="text-white font-bold text-lg">ZK</span>
+            <span className="text-white font-bold text-lg">BS</span>
           </div>
           <span className="font-bold text-xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            ZKBridge
+            BridgeSpark
           </span>
         </Link>
 
@@ -85,17 +92,22 @@ export function Header() {
             <Moon className="h-5 w-5 text-slate-600 dark:hidden block" />
           </button>
           
-          <ConnectButton
-            accountStatus={{
-              smallScreen: 'avatar',
-              largeScreen: 'full',
-            }}
-            chainStatus="icon"
-            showBalance={{
-              smallScreen: false,
-              largeScreen: true,
-            }}
-          />
+          {/* Multi-Wallet Connect Button */}
+          {isConnected ? (
+            <WalletStatusCompact />
+          ) : (
+            <button
+              onClick={() => setIsWalletModalOpen(true)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300",
+                "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
+                "text-white font-medium shadow-lg hover:shadow-xl hover:scale-105"
+              )}
+            >
+              <Wallet className="h-4 w-4" />
+              Connect Wallet
+            </button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -187,16 +199,40 @@ export function Header() {
               </div>
               
               <div className="w-full">
-                <ConnectButton
-                  accountStatus="avatar"
-                  chainStatus="icon"
-                  showBalance={false}
-                />
+                {isConnected ? (
+                  <WalletStatusCompact />
+                ) : (
+                  <button
+                    onClick={() => setIsWalletModalOpen(true)}
+                    className={cn(
+                      "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-300",
+                      "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
+                      "text-white font-medium shadow-lg hover:shadow-xl"
+                    )}
+                  >
+                    <Wallet className="h-4 w-4" />
+                    Connect Wallet
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Wallet Connect Modal */}
+      <WalletConnectModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+        onConnect={() => setIsWalletModalOpen(false)}
+      />
+
+      {/* CoinDCX Connect Modal */}
+      <CoinDCXConnectModal
+        isOpen={isCoinDCXModalOpen}
+        onClose={() => setIsCoinDCXModalOpen(false)}
+        onConnect={() => setIsCoinDCXModalOpen(false)}
+      />
     </header>
   );
 }

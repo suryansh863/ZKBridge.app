@@ -93,8 +93,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
                   }),
                 }}
                 appInfo={{
-                  appName: 'ZKBridge',
-                  learnMoreUrl: 'https://docs.zkbridge.app',
+                  appName: 'BridgeSpark',
+                  learnMoreUrl: 'https://docs.bridgespark.app',
                 }}
                 showRecentTransactions={true}
                 modalSize="compact"

@@ -7,13 +7,11 @@ import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRightLeft, 
-  ArrowDown, 
   Wallet, 
   Info, 
   CheckCircle, 
   AlertCircle,
   Copy,
-  ExternalLink,
   Loader2
 } from 'lucide-react';
 import { cn, formatAddress, validateBitcoinAddress, validateEthereumAddress } from '@/lib/utils';
@@ -85,7 +83,7 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
         setIsProcessing(false);
       }, 3000);
     } catch (error) {
-      console.error('Bridge transaction failed:', error);
+      // Handle error silently in production
       setStep('input');
       setIsProcessing(false);
     }
