@@ -14,6 +14,14 @@ import {
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { WalletInfo } from '@/types/wallet';
+import { 
+  MetaMaskIcon, 
+  CoinbaseIcon, 
+  WalletConnectIcon, 
+  TrustWalletIcon, 
+  RainbowIcon, 
+  ExodusIcon 
+} from './WalletIcons';
 
 interface WalletConnectModalProps {
   isOpen: boolean;
@@ -27,16 +35,24 @@ export function WalletConnectModal({ isOpen, onClose, onConnect }: WalletConnect
   const [loadingWallet, setLoadingWallet] = useState<string | null>(null);
 
   const wallets = getSupportedWallets();
+  
+  // Debug: Log available wallets
+  console.log('📋 Available wallets:', wallets.map(w => ({ id: w.id, name: w.name, isInstalled: w.isInstalled })));
 
   const handleWalletSelect = async (walletId: string) => {
     try {
+      console.log('🎯 Wallet button clicked:', walletId);
       setConnectionError(null);
       setLoadingWallet(walletId);
+      
+      console.log('🔄 Starting wallet connection...');
       await connectWallet(walletId);
+      
+      console.log('✅ Wallet connected successfully!');
       onConnect?.(walletId);
       onClose();
     } catch (error) {
-      console.error('Failed to connect wallet:', error);
+      console.error('❌ Failed to connect wallet:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setConnectionError(errorMessage);
     } finally {
@@ -125,54 +141,63 @@ interface WalletButtonProps {
 
 function WalletGridButton({ wallet, onClick, isLoading }: WalletButtonProps) {
   const getWalletIcon = (walletId: string) => {
-    const iconMap: { [key: string]: { bg: string; icon: string; name: string } } = {
+    const iconMap: { [key: string]: { bg: string; name: string; component: React.ReactNode } } = {
       walletConnect: { 
         bg: 'bg-gradient-to-br from-blue-500 to-blue-600', 
-        icon: '🔗',
-        name: 'WalletConnect'
+        name: 'WalletConnect',
+        component: <WalletConnectIcon className="w-8 h-8" />
       },
       trustWallet: { 
         bg: 'bg-gradient-to-br from-blue-500 to-blue-700', 
-        icon: '🔷',
-        name: 'Trust Wallet'
+        name: 'Trust Wallet',
+        component: <TrustWalletIcon className="w-8 h-8" />
       },
       rainbow: { 
         bg: 'bg-gradient-to-br from-pink-500 to-purple-600', 
-        icon: '🌈',
-        name: 'Rainbow'
+        name: 'Rainbow',
+        component: <RainbowIcon className="w-8 h-8" />
       },
       exodus: { 
         bg: 'bg-gradient-to-br from-purple-500 to-purple-700', 
-        icon: '🔮',
-        name: 'Exodus'
+        name: 'Exodus',
+        component: <ExodusIcon className="w-8 h-8" />
       },
       metaMask: { 
         bg: 'bg-gradient-to-br from-orange-400 to-orange-600', 
-        icon: '🦊',
-        name: 'MetaMask'
+        name: 'MetaMask',
+        component: <MetaMaskIcon className="w-8 h-8" />
       },
       coinbaseWallet: { 
         bg: 'bg-gradient-to-br from-blue-600 to-blue-800', 
-        icon: '🔷',
-        name: 'Coinbase Wallet'
+        name: 'Coinbase Wallet',
+        component: <CoinbaseIcon className="w-8 h-8" />
       }
     };
-    return iconMap[walletId] || { bg: 'bg-gradient-to-br from-gray-500 to-gray-700', icon: '💳', name: wallet.name };
+    return iconMap[walletId] || { 
+      bg: 'bg-gradient-to-br from-gray-500 to-gray-700', 
+      name: wallet.name,
+      component: <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white font-bold">?</div>
+    };
   };
 
   const walletIcon = getWalletIcon(wallet.id);
+
+  const handleClick = () => {
+    console.log('🖱️ Wallet button clicked:', wallet.id, wallet.name);
+    onClick();
+  };
 
   return (
     <motion.button
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={isLoading}
       className="relative w-full flex flex-col items-center gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group cursor-pointer"
     >
       {/* Wallet Icon with official colors */}
-      <div className={`w-12 h-12 rounded-xl ${walletIcon.bg} flex items-center justify-center text-white text-2xl shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300`}>
-        {walletIcon.icon}
+      <div className={`w-12 h-12 rounded-xl ${walletIcon.bg} flex items-center justify-center text-white shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300`}>
+        {walletIcon.component}
       </div>
 
       {/* Wallet Name */}
