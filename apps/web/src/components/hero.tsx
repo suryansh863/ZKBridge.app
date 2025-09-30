@@ -7,11 +7,11 @@ import { cn } from '@/lib/utils';
 
 export function Hero() {
   return (
-    <section className="relative py-20 px-4 overflow-hidden">
-      {/* Background Effects */}
+    <section className="relative py-12 sm:py-16 md:py-20 px-4 overflow-hidden">
+      {/* Background Effects - Mobile optimized */}
       <div className="absolute inset-0 bg-gradient-to-br from-bitcoin/5 via-transparent to-ethereum/5" />
-      <div className="absolute top-20 left-10 w-72 h-72 bg-bitcoin/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-ethereum/10 rounded-full blur-3xl animate-pulse delay-1000" />
+      <div className="absolute top-10 sm:top-20 left-4 sm:left-10 w-48 sm:w-72 h-48 sm:h-72 bg-bitcoin/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-10 sm:bottom-20 right-4 sm:right-10 w-64 sm:w-96 h-64 sm:h-96 bg-ethereum/10 rounded-full blur-3xl animate-pulse delay-1000" />
       
       <div className="container mx-auto text-center relative z-10">
         <div className="max-w-5xl mx-auto">
@@ -35,20 +35,20 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl md:text-7xl font-bold mb-6 leading-tight"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight"
           >
             <span className="bg-gradient-to-r from-bitcoin via-primary to-ethereum bg-clip-text text-transparent">
               Trustless Bridge
             </span>
             <br />
-            <span className="text-foreground">Bitcoin ↔ Ethereum</span>
+            <span className="text-foreground text-2xl sm:text-3xl md:text-4xl lg:text-6xl">Bitcoin ↔ Ethereum</span>
           </motion.h1>
           
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed px-4"
           >
             Bridge your assets between Bitcoin and Ethereum using cryptographic proofs. 
             <span className="text-foreground font-medium"> Secure, fast, and completely trustless.</span>
@@ -58,47 +58,47 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-16 px-4"
           >
             <Link 
               href="/bridge"
               className={cn(
-                "group relative px-8 py-4 rounded-xl font-semibold text-lg",
+                "group relative px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg",
                 "bg-gradient-to-r from-primary to-primary/80 text-white",
                 "hover:from-primary/90 hover:to-primary/70 transition-all duration-300",
                 "shadow-lg hover:shadow-xl hover:scale-105",
-                "crypto-glow"
+                "crypto-glow w-full sm:w-auto"
               )}
             >
               <span className="flex items-center justify-center gap-2">
                 Start Bridge Demo
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
             <Link 
               href="/docs"
               className={cn(
-                "group relative px-8 py-4 rounded-xl font-semibold text-lg",
+                "group relative px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg",
                 "glass-card border border-white/20 text-foreground",
                 "hover:bg-white/5 transition-all duration-300",
-                "hover:scale-105"
+                "hover:scale-105 w-full sm:w-auto"
               )}
             >
               <span className="flex items-center justify-center gap-2">
                 Learn How It Works
-                <Eye className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                <Eye className="h-4 w-4 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform" />
               </span>
             </Link>
           </motion.div>
 
-          {/* Feature highlights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {/* Feature highlights - Mobile first */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto px-4">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
               className={cn(
-                "group flex flex-col items-center p-8 rounded-2xl",
+                "group flex flex-col items-center p-4 sm:p-6 md:p-8 rounded-2xl",
                 "glass-card border border-white/20",
                 "hover:border-white/30 transition-all duration-300",
                 "hover:scale-105 interactive"
@@ -122,7 +122,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.0 }}
               className={cn(
-                "group flex flex-col items-center p-8 rounded-2xl",
+                "group flex flex-col items-center p-4 sm:p-6 md:p-8 rounded-2xl",
                 "glass-card border border-white/20",
                 "hover:border-white/30 transition-all duration-300",
                 "hover:scale-105 interactive"
@@ -146,7 +146,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.2 }}
               className={cn(
-                "group flex flex-col items-center p-8 rounded-2xl",
+                "group flex flex-col items-center p-4 sm:p-6 md:p-8 rounded-2xl",
                 "glass-card border border-white/20",
                 "hover:border-white/30 transition-all duration-300",
                 "hover:scale-105 interactive"

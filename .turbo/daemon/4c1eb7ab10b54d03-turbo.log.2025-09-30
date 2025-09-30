@@ -83,3 +83,41 @@
 2025-09-30T20:15:21.549042Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/app/layout.tsx"), AnchoredSystemPathBuf("apps/web/src/lib/wagmi.ts"), AnchoredSystemPathBuf("apps/web/src/components/wallet/WalletConnectModal.tsx")}
 2025-09-30T20:15:21.549060Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
 2025-09-30T20:15:21.549112Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-09-30T20:18:58.245974Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/hero.tsx")}
+2025-09-30T20:18:58.246003Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:19:05.046129Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/hero.tsx")}
+2025-09-30T20:19:05.046138Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:19:11.446114Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/hero.tsx")}
+2025-09-30T20:19:11.446123Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:19:16.245426Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/hero.tsx")}
+2025-09-30T20:19:16.245444Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:19:25.845216Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/hero.tsx")}
+2025-09-30T20:19:25.845225Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:19:30.253926Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/hero.tsx")}
+2025-09-30T20:19:30.253948Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:19:39.744631Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/hero.tsx")}
+2025-09-30T20:19:39.744640Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:19:46.444819Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/wallet/WalletConnectModal.tsx")}
+2025-09-30T20:19:46.444827Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:19:53.345787Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/wallet/WalletConnectModal.tsx")}
+2025-09-30T20:19:53.345797Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:20:00.046771Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/wallet/WalletConnectModal.tsx")}
+2025-09-30T20:20:00.046789Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:20:07.846658Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/wallet/WalletConnectModal.tsx")}
+2025-09-30T20:20:07.846676Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:20:16.746311Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/wallet/WalletConnectModal.tsx")}
+2025-09-30T20:20:16.746323Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:20:24.144848Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/wallet/WalletConnectModal.tsx")}
+2025-09-30T20:20:24.144858Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:22:04.060473Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/app/page.tsx")}
+2025-09-30T20:22:04.060501Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:22:09.864856Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/app/layout.tsx")}
+2025-09-30T20:22:09.864864Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:22:29.871869Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/app/globals.css")}
+2025-09-30T20:22:29.871913Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:22:45.772645Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/hero.tsx"), AnchoredSystemPathBuf("apps/web/src/app/layout.tsx"), AnchoredSystemPathBuf("apps/web/src/components/wallet/WalletConnectModal.tsx"), AnchoredSystemPathBuf("apps/web/src/app/page.tsx"), AnchoredSystemPathBuf("apps/web/src/app/globals.css")}
+2025-09-30T20:22:45.772654Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:22:45.819856Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-09-30T20:22:45.872483Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/app/layout.tsx"), AnchoredSystemPathBuf("apps/web/src/app/globals.css")}
+2025-09-30T20:22:45.872495Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-30T20:22:45.872524Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun

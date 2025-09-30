@@ -56,25 +56,25 @@ export default function Home() {
           </Suspense>
         </LazySection>
 
-        {/* Call to Action */}
-        <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-transparent to-ethereum/5">
+        {/* Call to Action - Mobile first */}
+        <section className="py-12 sm:py-16 md:py-20 px-4 bg-gradient-to-br from-primary/5 via-transparent to-ethereum/5">
           <div className="container mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">
               Ready to Experience Trustless Bridging?
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
               Try our demo with Bitcoin testnet transactions and see how SNARKs make cross-chain bridging secure and private.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
               <Link 
                 href="/bridge"
-                className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 w-full sm:w-auto"
               >
                 Start Bridge Demo
               </Link>
               <Link 
                 href="/docs"
-                className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg glass-card border border-white/20 text-foreground hover:bg-white/5 transition-all duration-300 hover:scale-105"
+                className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg glass-card border border-white/20 text-foreground hover:bg-white/5 transition-all duration-300 hover:scale-105 w-full sm:w-auto"
               >
                 Learn More
               </Link>
