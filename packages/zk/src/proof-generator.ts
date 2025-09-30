@@ -1,3 +1,4 @@
+// @ts-ignore - snarkjs doesn't have TypeScript definitions
 import { groth16 } from 'snarkjs';
 import * as fs from 'fs';
 import * as path from 'path';

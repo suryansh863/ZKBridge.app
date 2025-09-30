@@ -8,10 +8,10 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ZKBridge - Bitcoin-Ethereum Trustless Bridge',
+  title: 'BridgeSpark - Bitcoin-Ethereum Trustless Bridge',
   description: 'A trustless bridge between Bitcoin and Ethereum using Zero-Knowledge proofs. Secure, fast, and completely decentralized.',
   keywords: ['Bitcoin', 'Ethereum', 'Bridge', 'ZK Proofs', 'Blockchain', 'DeFi', 'Zero-Knowledge', 'Cryptocurrency'],
-  authors: [{ name: 'ZKBridge Team' }],
+  authors: [{ name: 'BridgeSpark Team' }],
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
@@ -21,20 +21,20 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'ZKBridge',
+    title: 'BridgeSpark',
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: 'website',
-    siteName: 'ZKBridge',
-    title: 'ZKBridge - Bitcoin-Ethereum Trustless Bridge',
+    siteName: 'BridgeSpark',
+    title: 'BridgeSpark - Bitcoin-Ethereum Trustless Bridge',
     description: 'A trustless bridge between Bitcoin and Ethereum using Zero-Knowledge proofs',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ZKBridge - Bitcoin-Ethereum Trustless Bridge',
+    title: 'BridgeSpark - Bitcoin-Ethereum Trustless Bridge',
     description: 'A trustless bridge between Bitcoin and Ethereum using Zero-Knowledge proofs',
   },
 };
@@ -59,9 +59,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="ZKBridge" />
+        <meta name="apple-mobile-web-app-title" content="BridgeSpark" />
         <link rel="apple-touch-icon" href="/favicon.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

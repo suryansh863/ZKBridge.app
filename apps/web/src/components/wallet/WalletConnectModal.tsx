@@ -1,6 +1,6 @@
 /**
  * Wallet Connect Modal Component
- * zkBridge-style modern wallet connection interface
+ * Professional wallet connection interface with proper detection and fallback
  */
 
 "use client";
@@ -35,28 +35,27 @@ export function WalletConnectModal({ isOpen, onClose, onConnect }: WalletConnect
   const [loadingWallet, setLoadingWallet] = useState<string | null>(null);
 
   const wallets = getSupportedWallets();
-  
-  // Debug: Log available wallets
-  console.log('📋 Available wallets:', wallets.map(w => ({ id: w.id, name: w.name, isInstalled: w.isInstalled })));
 
   const handleWalletSelect = async (walletId: string) => {
     try {
-      console.log('🎯 Wallet button clicked:', walletId);
       setConnectionError(null);
       setLoadingWallet(walletId);
       
-      console.log('🔄 Starting wallet connection...');
       await connectWallet(walletId);
       
-      console.log('✅ Wallet connected successfully!');
-      onConnect?.(walletId);
-      onClose();
+      // Don't close modal immediately - let user see the message
+      setTimeout(() => {
+        onConnect?.(walletId);
+        onClose();
+      }, 2000);
     } catch (error) {
-      console.error('❌ Failed to connect wallet:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setConnectionError(errorMessage);
-    } finally {
-      setLoadingWallet(null);
+      
+      // Clear loading state after showing message
+      setTimeout(() => {
+        setLoadingWallet(null);
+      }, 1000);
     }
   };
 
@@ -183,7 +182,6 @@ function WalletGridButton({ wallet, onClick, isLoading }: WalletButtonProps) {
   const walletIcon = getWalletIcon(wallet.id);
 
   const handleClick = () => {
-    console.log('🖱️ Wallet button clicked:', wallet.id, wallet.name);
     onClick();
   };
 

@@ -12,7 +12,14 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       message.includes('message port closed') ||
       message.includes('Extension context invalidated') ||
       message.includes('Could not establish connection') ||
-      message.includes('Receiving end does not exist')
+      message.includes('Receiving end does not exist') ||
+      message.includes('ConnectorNotFoundError') ||
+      message.includes('Connection request reset') ||
+      message.includes('User denied account authorization') ||
+      message.includes('The message port closed before a response was received') ||
+      message.includes('chrome-extension://') ||
+      message.includes('moz-extension://') ||
+      message.includes('safari-extension://')
     ) {
       return;
     }
@@ -27,7 +34,9 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     if (
       message.includes('runtime.lastError') ||
       message.includes('message port closed') ||
-      message.includes('Extension context invalidated')
+      message.includes('Extension context invalidated') ||
+      message.includes('Lit is in dev mode') ||
+      message.includes('Not recommended for production')
     ) {
       return;
     }
