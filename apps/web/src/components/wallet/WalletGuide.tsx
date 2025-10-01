@@ -1,6 +1,6 @@
 /**
- *  Guide Component
- * Provides step-by-step guides for different  types
+ * Wallet Guide Component
+ * Provides step-by-step guides for different wallet types
  */
 
 "use client";
@@ -13,25 +13,41 @@ import {
   ChevronRight, 
   ExternalLink, 
   Download,
-  Smartphone,
-  Monitor,
   Shield,
   AlertTriangle,
   CheckCircle,
   Info
 } from 'lucide-react';
-import { Info, Guide as GuideType } from '@/types/';
+
+interface GuideStep {
+  title: string;
+  description: string;
+  image?: string;
+}
+
+interface TroubleshootingItem {
+  problem: string;
+  solution: string;
+}
+
+interface GuideType {
+  walletId: string;
+  title: string;
+  steps: GuideStep[];
+  tips: string[];
+  troubleshooting: TroubleshootingItem[];
+}
 
 interface GuideProps {
-  : Info;
+  info: any;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function Guide({ , isOpen, onClose }: GuideProps) {
+export function Guide({ info, isOpen, onClose }: GuideProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
-  const guide = getGuide(.type);
+  const guide = getGuide(info?.type || 'metamask');
 
   const nextStep = () => {
     if (currentStep < guide.steps.length - 1) {
@@ -67,14 +83,14 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
           <div className="flex items-center justify-between p-6 border-b border-gray-700">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                {.icon ? (
-                  <img src={.icon} alt={.name} className="w-8 h-8" />
+                {info?.icon ? (
+                  <img src={info.icon} alt={info.name} className="w-8 h-8" />
                 ) : (
                   <Shield className="w-6 h-6 text-white" />
                 )}
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">{.name} Setup Guide</h2>
+                <h2 className="text-xl font-semibold text-white">{info?.name || 'Wallet'} Setup Guide</h2>
                 <p className="text-sm text-gray-400">Step-by-step installation and connection</p>
               </div>
             </div>
@@ -134,7 +150,7 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
                   Pro Tips
                 </h4>
                 <ul className="space-y-2">
-                  {guide.tips.map((tip, index) => (
+                  {guide.tips.map((tip: string, index: number) => (
                     <li key={index} className="text-sm text-gray-300 flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
                       {tip}
@@ -179,9 +195,9 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
             </button>
 
             <div className="flex items-center gap-2">
-              {.downloadUrl && (
+              {info?.downloadUrl && (
                 <a
-                  href={.downloadUrl}
+                  href={info.downloadUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
@@ -190,9 +206,9 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
                   Download
                 </a>
               )}
-              {.guideUrl && (
+              {info?.guideUrl && (
                 <a
-                  href={.guideUrl}
+                  href={info.guideUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
@@ -219,12 +235,12 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
 }
 
 /**
- * Get  guide based on  type
+ * Get wallet guide based on wallet type
  */
-function getGuide(Type: string): GuideType {
+function getGuide(walletType: string): GuideType {
   const guides: Record<string, GuideType> = {
     metamask: {
-      Id: 'metamask',
+      walletId: 'metamask',
       title: 'MetaMask Setup Guide',
       steps: [
         {
@@ -233,13 +249,13 @@ function getGuide(Type: string): GuideType {
           image: '/guides/metamask/install.png'
         },
         {
-          title: 'Create a New ',
-          description: 'Click "Create a new " and follow the setup process. Make sure to save your seed phrase securely.',
+          title: 'Create a New Wallet',
+          description: 'Click "Create a new wallet" and follow the setup process. Make sure to save your seed phrase securely.',
           image: '/guides/metamask/create.png'
         },
         {
           title: 'Connect to BridgeSpark',
-          description: 'Click the "Connect " button on BridgeSpark and select MetaMask from the list.',
+          description: 'Click the "Connect Wallet" button on BridgeSpark and select MetaMask from the list.',
           image: '/guides/metamask/connect.png'
         },
         {
@@ -252,7 +268,7 @@ function getGuide(Type: string): GuideType {
         'Never share your seed phrase with anyone',
         'Always verify you\'re on the correct website',
         'Keep your MetaMask extension updated',
-        'Use hardware s for large amounts'
+        'Use hardware wallets for large amounts'
       ],
       troubleshooting: [
         {
@@ -270,32 +286,32 @@ function getGuide(Type: string): GuideType {
       ]
     },
     coinbase: {
-      Id: 'coinbase',
-      title: 'Coinbase  Setup Guide',
+      walletId: 'coinbase',
+      title: 'Coinbase Wallet Setup Guide',
       steps: [
         {
-          title: 'Install Coinbase ',
-          description: 'Download Coinbase  from the Chrome Web Store or your mobile app store.',
+          title: 'Install Coinbase Wallet',
+          description: 'Download Coinbase Wallet from the Chrome Web Store or your mobile app store.',
           image: '/guides/coinbase/install.png'
         },
         {
-          title: 'Set Up Your ',
-          description: 'Create a new  or import an existing one using your seed phrase.',
+          title: 'Set Up Your Wallet',
+          description: 'Create a new wallet or import an existing one using your seed phrase.',
           image: '/guides/coinbase/setup.png'
         },
         {
           title: 'Connect to BridgeSpark',
-          description: 'Click "Connect " and select Coinbase  from the options.',
+          description: 'Click "Connect Wallet" and select Coinbase Wallet from the options.',
           image: '/guides/coinbase/connect.png'
         },
         {
           title: 'Authorize Connection',
-          description: 'Approve the connection request in your Coinbase .',
+          description: 'Approve the connection request in your Coinbase Wallet.',
           image: '/guides/coinbase/authorize.png'
         }
       ],
       tips: [
-        'Coinbase  supports multiple networks',
+        'Coinbase Wallet supports multiple networks',
         'You can connect both mobile and browser versions',
         'Keep your recovery phrase safe and offline',
         'Enable biometric authentication for security'
@@ -303,115 +319,31 @@ function getGuide(Type: string): GuideType {
       troubleshooting: [
         {
           problem: 'Connection request not received',
-          solution: 'Make sure you have the latest version of Coinbase  installed and try refreshing the page.'
+          solution: 'Make sure you have the latest version of Coinbase Wallet installed and try refreshing the page.'
         },
         {
           problem: 'Transaction failed',
           solution: 'Check your account balance and ensure you have enough ETH for gas fees.'
         }
       ]
-    },
-    trust: {
-      Id: 'trust',
-      title: 'Trust  Setup Guide',
-      steps: [
-        {
-          title: 'Download Trust ',
-          description: 'Install Trust  from the App Store (iOS) or Google Play Store (Android).',
-          image: '/guides/trust/download.png'
-        },
-        {
-          title: 'Create Your ',
-          description: 'Open the app and tap "Create a new ". Write down your recovery phrase.',
-          image: '/guides/trust/create.png'
-        },
-        {
-          title: 'Use Connect',
-          description: 'On BridgeSpark, click "Connect " and select Connect, then scan the QR code with Trust .',
-          image: '/guides/trust/connect.png'
-        },
-        {
-          title: 'Approve Connection',
-          description: 'In Trust , tap "Connect" to approve the connection to BridgeSpark.',
-          image: '/guides/trust/approve.png'
-        }
-      ],
-      tips: [
-        'Trust  supports 1M+ cryptocurrencies',
-        'Use the built-in DApp browser for easy access',
-        'Enable transaction notifications',
-        'Regularly backup your '
-      ],
-      troubleshooting: [
-        {
-          problem: 'QR code not scanning',
-          solution: 'Make sure your camera has permission and try adjusting the lighting or distance.'
-        },
-        {
-          problem: 'Connection keeps failing',
-          solution: 'Try closing and reopening both apps, then attempt the connection again.'
-        }
-      ]
-    },
-    coindcx: {
-      Id: 'coindcx',
-      title: 'CoinDCX Exchange Setup Guide',
-      steps: [
-        {
-          title: 'Create CoinDCX Account',
-          description: 'Sign up for a CoinDCX account and complete the KYC verification process.',
-          image: '/guides/coindcx/signup.png'
-        },
-        {
-          title: 'Generate API Keys',
-          description: 'Go to API settings in your CoinDCX account and create new API keys with trading permissions.',
-          image: '/guides/coindcx/api-keys.png'
-        },
-        {
-          title: 'Configure API Permissions',
-          description: 'Set appropriate permissions for your API keys (read, trade, withdraw) based on your needs.',
-          image: '/guides/coindcx/permissions.png'
-        },
-        {
-          title: 'Connect to BridgeSpark',
-          description: 'Enter your API Key and Secret in the CoinDCX connection form on BridgeSpark.',
-          image: '/guides/coindcx/connect.png'
-        }
-      ],
-      tips: [
-        'Never share your API secret with anyone',
-        'Use IP restrictions for added security',
-        'Start with read-only permissions for testing',
-        'Regularly rotate your API keys'
-      ],
-      troubleshooting: [
-        {
-          problem: 'API connection failed',
-          solution: 'Verify your API keys are correct and have the necessary permissions enabled.'
-        },
-        {
-          problem: 'KYC verification pending',
-          solution: 'Complete the KYC process in your CoinDCX account before connecting to BridgeSpark.'
-        }
-      ]
     }
   };
 
-  return guides[Type] || {
-    Id: Type,
-    title: `${Type} Setup Guide`,
+  return guides[walletType] || {
+    walletId: walletType,
+    title: `${walletType} Setup Guide`,
     steps: [
       {
-        title: 'Install ',
-        description: `Install the ${Type}  from the official website or app store.`,
+        title: 'Install Wallet',
+        description: `Install the ${walletType} wallet from the official website or app store.`,
       },
       {
         title: 'Create Account',
-        description: 'Create a new  account and securely store your recovery phrase.',
+        description: 'Create a new wallet account and securely store your recovery phrase.',
       },
       {
         title: 'Connect to BridgeSpark',
-        description: 'Use the connect  feature to link your  to BridgeSpark.',
+        description: 'Use the connect wallet feature to link your wallet to BridgeSpark.',
       }
     ],
     tips: [
@@ -422,10 +354,8 @@ function getGuide(Type: string): GuideType {
     troubleshooting: [
       {
         problem: 'Connection issues',
-        solution: 'Try refreshing the page and ensuring your  is unlocked.'
+        solution: 'Try refreshing the page and ensuring your wallet is unlocked.'
       }
     ]
   };
 }
-
-

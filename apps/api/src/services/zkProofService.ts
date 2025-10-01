@@ -1,7 +1,9 @@
 // import { ZKProofGenerator, ZKProofInputs, ZKProofResult } from '@zkbridge/zk';
-import { groth16 } from 'snarkjs';
+// @ts-expect-error - snarkjs types not available
+import { groth16 } from 'snarkjs'; 
 import { logger } from '../utils/logger';
-import { ZKProof, MerkleProof } from '../types';
+// Mark groth16 as used for future real implementation
+void groth16;
 
 export interface BitcoinTransactionProof {
   txHash: string;
@@ -93,7 +95,8 @@ export class ZKProofService {
       }
 
       // Prepare circuit inputs for the ZK package
-      const circuitInputs: ZKProofInputs = {
+      // Note: Currently using mock proofs, real circuit inputs will be used when circuits are available
+      /* const circuitInputs: ZKProofInputs = {
         btcTxHash: bitcoinTx.txHash,
         merkleRoot: bitcoinTx.merkleRoot,
         merkleProof: bitcoinTx.merkleProof,
@@ -106,7 +109,7 @@ export class ZKProofService {
         publicAddress,
         privateSecret,
         nonce: this.generateNonce()
-      };
+      }; */
 
       // Generate mock proof for development
       const mockProof = this.generateMockBitcoinProof(bitcoinTx, publicAmount, publicAddress, privateSecret);
@@ -138,7 +141,8 @@ export class ZKProofService {
         return this.generateMockMerkleProof(merkleRoot, merkleProof, proofIndex, leafHash);
       }
 
-      const circuitInputs: ZKCircuitInputs = {
+      // Note: Currently using mock proofs, real circuit inputs will be used when circuits are available
+      /* const circuitInputs: ZKCircuitInputs = {
         btcTxHash: leafHash,
         merkleRoot,
         merkleProof,
@@ -151,7 +155,7 @@ export class ZKProofService {
         publicAddress: '',
         privateSecret: this.generateNonce(),
         nonce: this.generateNonce()
-      };
+      }; */
 
       const mockProof = this.generateMockMerkleProof(merkleRoot, merkleProof, proofIndex, leafHash);
 
@@ -171,7 +175,7 @@ export class ZKProofService {
   /**
    * Verify ZK proof
    */
-  async verifyProof(proof: any, publicSignals: string[], verificationKey?: any): Promise<boolean> {
+  async verifyProof(proof: any, publicSignals: string[], _verificationKey?: any): Promise<boolean> {
     try {
       if (!this.isCircuitAvailable) {
         return this.verifyMockProof(proof, publicSignals);

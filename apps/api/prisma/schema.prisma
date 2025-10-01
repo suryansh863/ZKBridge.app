@@ -25,14 +25,15 @@ model User {
 model BridgeTransaction {
   id                String   @id @default(cuid())
   direction         String   // BITCOIN_TO_ETHEREUM or ETHEREUM_TO_BITCOIN
-  status            String   @default("PENDING") // PENDING, CONFIRMED, FAILED, COMPLETED
-  sourceTxHash      String
+  status            String   @default("PENDING") // PENDING, VERIFYING, PROOF_GENERATED, SUBMITTING, CONFIRMED, FAILED, COMPLETED
+  sourceTxHash      String   @unique
   sourceAmount      String
   sourceAddress     String
   targetTxHash      String?
   targetAmount      String?
-  targetAddress     String?
+  targetAddress     String
   zkProof           String?  // JSON string of the ZK proof
+  zkProofHash       String?  // Hash of the ZK proof for verification
   merkleProof       String?  // JSON string of the Merkle proof
   merkleRoot        String?
   blockHeight       Int?
@@ -42,8 +43,13 @@ model BridgeTransaction {
   gasPrice          String?  // Gas price for Ethereum transaction
   fee               String?  // Transaction fee
   errorMessage      String?  // Error message if transaction failed
+  errorCount        Int      @default(0) // Number of retry attempts
   proofGeneratedAt  DateTime? // When the ZK proof was generated
-  proofVerifiedAt   DateTime? // When the ZK proof was verified
+  proofVerifiedAt   DateTime? // When the ZK proof was verified on-chain
+  submittedAt       DateTime? // When transaction was submitted to target chain
+  completedAt       DateTime? // When bridge transaction completed
+  estimatedCompletionTime DateTime? // Estimated completion time
+  network           String   @default("testnet") // mainnet or testnet
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   userId            String?
@@ -51,6 +57,27 @@ model BridgeTransaction {
   // Relations
   user User? @relation(fields: [userId], references: [id])
 
+  // Indexes for better query performance
+  @@index([status])
+  @@index([direction])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([sourceTxHash])
+  @@index([targetTxHash])
   @@map("bridge_transactions")
+}
+
+model TransactionEvent {
+  id              String   @id @default(cuid())
+  transactionId   String
+  eventType       String   // CREATED, VERIFYING, PROOF_GENERATED, SUBMITTED, CONFIRMED, FAILED, etc.
+  eventData       String?  // JSON string of event-specific data
+  message         String?  // Human-readable message
+  createdAt       DateTime @default(now())
+
+  @@index([transactionId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("transaction_events")
 }
 

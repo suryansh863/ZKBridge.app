@@ -128,6 +128,9 @@ export default function BridgePage() {
       
       if (!response.ok) {
         const errorData = await response.json()
+        if (response.status === 500 && errorData.message?.includes('Transaction not found')) {
+          throw new Error('Transaction not found on Bitcoin testnet. The sample transactions are for demo purposes only. Please use a real testnet transaction ID from https://blockstream.info/testnet/')
+        }
         throw new Error(errorData.message || 'Failed to fetch transaction')
       }
       
@@ -164,8 +167,9 @@ export default function BridgePage() {
       setTransaction(transactionInfo)
       setCurrentStep(2)
     } catch (error) {
-      console.error('Error verifying transaction:', error)
-      alert(`Failed to verify transaction: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('Error verifying transaction:', errorMessage)
+      alert(`Failed to verify transaction: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
@@ -364,7 +368,7 @@ export default function BridgePage() {
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h3 className="text-lg font-semibold text-blue-400 mb-1">🎯 Try Sample Transactions</h3>
-                          <p className="text-sm text-gray-400">Test the bridge with real Bitcoin testnet transactions</p>
+                          <p className="text-sm text-gray-400">⚠️ Demo transactions (not real) - Use for testing UI only</p>
                         </div>
                         {!loadingSamples && sampleTransactions.length > 0 && (
                           <button

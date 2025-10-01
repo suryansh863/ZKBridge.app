@@ -153,12 +153,12 @@ export function ZKProofVisualizer({
             publicSignals: [
               "0.001",
               "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-              "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+              "", // Will be populated with real transaction hash
               "ef1d870d24c85b89d5adcc212a6f10d837b9e2d9",
               "123456"
             ],
             circuitInputs: {
-              btcTxHash: "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+              btcTxHash: "", // Will be populated with real transaction hash
               merkleRoot: "ef1d870d24c85b89d5adcc212a6f10d837b9e2d9",
               merkleProof: [
                 "a1b2c3d4e5f6789012345678901234567890abcdef",

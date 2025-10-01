@@ -56,6 +56,7 @@ export function EthereumBridgeInterface({
     if (amount && isConnected) {
       estimateGasForBurn();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amount, isConnected]);
 
   const estimateGasForBurn = async () => {

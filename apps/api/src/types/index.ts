@@ -88,6 +88,7 @@ export function generateNonce(): string {
 }
 
 export function sha256(data: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const crypto = require('crypto');
   return crypto.createHash('sha256').update(data).digest('hex');
 }
@@ -102,7 +103,7 @@ export function generateMerkleProof(txHash: string, siblings: string[], index: n
   };
 }
 
-export function verifyMerkleProof(proof: MerkleProof): boolean {
+export function verifyMerkleProof(proof: MerkleProof, _path: string[], _indices: any, _root: any): boolean {
   // Simplified verification - in real implementation would verify against merkle root
   return proof.path.length > 0 && proof.index >= 0;
 }

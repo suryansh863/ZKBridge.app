@@ -102,9 +102,13 @@ app.use(express.urlencoded({
 // Input sanitization middleware
 app.use(sanitizationMiddleware);
 
+// Import bridge transactions routes
+import bridgeTransactionsRoutes from './routes/bridgeTransactions';
+
 // API Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/bridge', bridgeRoutes);
+app.use('/api/bridge', bridgeTransactionsRoutes); // New comprehensive bridge transaction routes
 app.use('/api/bitcoin', bitcoinRoutes);
 app.use('/api/proofs', bitcoinRoutes); // Merkle proofs endpoint
 app.use('/api/ethereum', ethereumRoutes);

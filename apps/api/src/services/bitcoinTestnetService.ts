@@ -273,7 +273,7 @@ export class BitcoinTestnetService {
       
       for (let i = 0; i < proof.proofPath.length; i++) {
         const sibling = proof.proofPath[i];
-        const isLeft = (proof.proofIndex >> i) & 1 === 0;
+        const isLeft = (((proof.proofIndex >> i) & 1) === 0);
         
         if (isLeft) {
           currentHash = this.doubleSha256(currentHash + sibling);
@@ -310,27 +310,64 @@ export class BitcoinTestnetService {
   }
 
   /**
-   * Get sample testnet transactions for demo
+   * Get real testnet transactions from recent blocks for demo
    */
   async getSampleTransactions(): Promise<Array<{txHash: string, description: string}>> {
-    return [
-      {
-        txHash: 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16',
-        description: 'First Bitcoin transaction (mainnet) - for reference'
-      },
-      {
-        txHash: 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890',
-        description: 'Sample testnet transaction - Small amount transfer'
-      },
-      {
-        txHash: 'b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1',
-        description: 'Sample testnet transaction - Medium amount transfer'
-      },
-      {
-        txHash: 'c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1b2',
-        description: 'Sample testnet transaction - Large amount transfer'
+    const cacheKey = 'sample_transactions';
+    const cached = this.getCached(cacheKey);
+    if (cached) return cached;
+
+    try {
+      // Get the latest block height
+      const tipHeightResponse = await axios.get(`${BLOCKSTREAM_API_BASE}/blocks/tip/height`);
+      const tipHeight = tipHeightResponse.data;
+      
+      // Get a recent block (not the very latest to ensure confirmations)
+      const targetHeight = tipHeight - 10; // Go back 10 blocks
+      const blockHashResponse = await axios.get(`${BLOCKSTREAM_API_BASE}/block-height/${targetHeight}`);
+      const blockHash = blockHashResponse.data;
+      
+      // Get transactions from this block
+      const txsResponse = await axios.get(`${BLOCKSTREAM_API_BASE}/block/${blockHash}/txs`);
+      const transactions = txsResponse.data;
+      
+      // Filter and format sample transactions (skip coinbase, take first 4 regular txs)
+      const sampleTxs = transactions
+        .filter((tx: any) => !tx.vin[0].is_coinbase)
+        .slice(0, 4)
+        .map((tx: any) => ({
+          txHash: tx.txid,
+          description: `✅ Real testnet transaction - ${(tx.vout.reduce((sum: number, out: any) => sum + out.value, 0) / 100000000).toFixed(8)} BTC (Block ${targetHeight})`
+        }));
+      
+      // If we don't have enough real transactions, add some fallback guidance
+      if (sampleTxs.length === 0) {
+        return [{
+          txHash: '',
+          description: '🔍 Visit https://blockstream.info/testnet/ to find recent testnet transactions'
+        }];
       }
-    ];
+      
+      this.setCache(cacheKey, sampleTxs);
+      return sampleTxs;
+    } catch (error) {
+      console.error('Failed to fetch real sample transactions:', error);
+      // Fallback to helpful guidance
+      return [
+        {
+          txHash: '',
+          description: '🔍 Visit https://blockstream.info/testnet/ to find real testnet transactions'
+        },
+        {
+          txHash: '',
+          description: '💡 Click on any recent transaction to copy its ID'
+        },
+        {
+          txHash: '',
+          description: '📋 Paste the transaction ID above to test the bridge'
+        }
+      ];
+    }
   }
 
   /**

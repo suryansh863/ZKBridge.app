@@ -1,4 +1,8 @@
+// Note: groth16 is available but not directly used in mock mode
+// @ts-expect-error - snarkjs types are not available
 import { groth16 } from 'snarkjs';
+// Mark groth16 as used for future real implementation
+void groth16;
 import { ZKProof } from '../types';
 import { logger } from '../utils/logger';
 import { generateNonce } from '../types';
@@ -23,11 +27,12 @@ export class ZKService {
       // 2. Generate witness from inputs
       // 3. Generate proof using groth16
 
-      const inputs = {
+      // Note: Currently using mock proofs, real circuit inputs will be used when circuits are available
+      /* const inputs = {
         secret: secret,
         publicInput: publicInput,
         nonce: generateNonce()
-      };
+      }; */
 
       // For demo purposes, we'll create a mock proof
       // In production, this would be: const { proof, publicSignals } = await groth16.fullProve(inputs, circuit, provingKey);

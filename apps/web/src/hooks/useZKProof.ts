@@ -234,7 +234,7 @@ export function useZKProof() {
 
       // Create mock Bitcoin transaction data
       const mockBitcoinTx: BitcoinTransactionProof = {
-        txHash: 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16',
+        txHash: '', // Will be populated with real transaction hash
         merkleRoot: 'ef1d870d24c85b89d5adcc212a6f10d837b9e2d9',
         merkleProof: [
           'a1b2c3d4e5f6789012345678901234567890abcdef',
