@@ -33,7 +33,6 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
     address, 
     chainId, 
     network, 
-    balance, 
     hasErrors, 
     latestError 
   } = useWalletConnection();
@@ -131,7 +130,7 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
         <div className="mt-3 flex items-center justify-between">
           <span className="text-sm text-gray-400">Balance</span>
           <span className="font-medium text-white">
-            {formatBalance(currentBalance)} ETH
+            {currentBalance ? formatBalance(Number(currentBalance.value)) : '0'} ETH
           </span>
         </div>
       </div>
@@ -241,7 +240,7 @@ export function WalletStatusCompact({ className = '' }: { className?: string }) 
       </div>
       <div className="text-right">
         <p className="text-sm font-medium text-white">
-          {formatBalance(balance)} ETH
+          {balance ? formatBalance(Number(balance.value)) : '0'} ETH
         </p>
         <p className="text-xs text-gray-400">
           {formatAddress(address || '')}

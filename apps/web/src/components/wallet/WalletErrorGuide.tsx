@@ -148,7 +148,7 @@ export function ErrorGuide({ error, isOpen, onClose }: ErrorGuideProps) {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-white"> Connection Error</h2>
-                <p className="text-sm text-gray-400">Let's fix this together</p>
+                <p className="text-sm text-gray-400">Let&apos;s fix this together</p>
               </div>
             </div>
             <button

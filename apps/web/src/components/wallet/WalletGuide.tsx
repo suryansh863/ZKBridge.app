@@ -18,20 +18,35 @@ import {
   Shield,
   AlertTriangle,
   CheckCircle,
-  Info
+  Info as InfoIcon
 } from 'lucide-react';
-import { Info, Guide as GuideType } from '@/types/';
+import { WalletInfo } from '@/types/wallet';
+
+interface GuideType {
+  Id: string;
+  title: string;
+  steps: Array<{
+    title: string;
+    description: string;
+    image?: string;
+  }>;
+  tips: string[];
+  troubleshooting: Array<{
+    problem: string;
+    solution: string;
+  }>;
+}
 
 interface GuideProps {
-  : Info;
+  info: WalletInfo;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function Guide({ , isOpen, onClose }: GuideProps) {
+export function Guide({ info, isOpen, onClose }: GuideProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
-  const guide = getGuide(.type);
+  const guide = getGuide(info.type);
 
   const nextStep = () => {
     if (currentStep < guide.steps.length - 1) {
@@ -67,14 +82,14 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
           <div className="flex items-center justify-between p-6 border-b border-gray-700">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                {.icon ? (
-                  <img src={.icon} alt={.name} className="w-8 h-8" />
+                {info.icon ? (
+                  <img src={info.icon} alt={info.name} className="w-8 h-8" />
                 ) : (
                   <Shield className="w-6 h-6 text-white" />
                 )}
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">{.name} Setup Guide</h2>
+                <h2 className="text-xl font-semibold text-white">{info.name} Setup Guide</h2>
                 <p className="text-sm text-gray-400">Step-by-step installation and connection</p>
               </div>
             </div>
@@ -130,7 +145,7 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
             {guide.tips.length > 0 && (
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-blue-400 mb-3 flex items-center gap-2">
-                  <Info className="w-4 h-4" />
+                  <InfoIcon className="w-4 h-4" />
                   Pro Tips
                 </h4>
                 <ul className="space-y-2">
@@ -179,9 +194,9 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
             </button>
 
             <div className="flex items-center gap-2">
-              {.downloadUrl && (
+              {info.downloadUrl && (
                 <a
-                  href={.downloadUrl}
+                  href={info.downloadUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
@@ -190,9 +205,9 @@ export function Guide({ , isOpen, onClose }: GuideProps) {
                   Download
                 </a>
               )}
-              {.guideUrl && (
+              {info.guideUrl && (
                 <a
-                  href={.guideUrl}
+                  href={info.guideUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"

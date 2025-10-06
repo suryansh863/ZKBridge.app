@@ -271,7 +271,8 @@ class CoinDCXService {
     const timestamp = Date.now().toString();
     
     // Create signature for authentication
-    const signature = await this.createSignature(endpoint, timestamp, options.body);
+    const bodyString = typeof options.body === 'string' ? options.body : undefined;
+    const signature = await this.createSignature(endpoint, timestamp, bodyString);
     
     const headers = {
       'Content-Type': 'application/json',

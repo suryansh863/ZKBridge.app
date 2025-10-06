@@ -10,6 +10,14 @@ import { errorHandler } from './middleware/errorHandler';
 import { sanitizationMiddleware } from './middleware/sanitization';
 import { logger } from './utils/logger';
 import { connectDatabase } from './config/database';
+import { 
+  advancedRateLimit, 
+  securityAudit, 
+  securityHeaders, 
+  requestSizeLimit, 
+  requestTimeout 
+} from './middleware/security';
+import { securityConfig, validateSecurityConfig } from './config/security';
 
 // Import routes
 import bridgeRoutes from './routes/bridge';
@@ -24,12 +32,34 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+// Validate security configuration
+const configValid = validateSecurityConfig();
+if (configValid) {
+  logger.info('Security configuration validated successfully');
+} else {
+  logger.warn('Security configuration has warnings but server will continue');
+}
+
+// Enhanced rate limiting with different limits for different endpoints
+const globalLimiter = rateLimit({
+  windowMs: securityConfig.rateLimit.windowMs,
+  max: securityConfig.rateLimit.maxRequests,
   message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
+
+const zkLimiter = advancedRateLimit(
+  securityConfig.rateLimit.windowMs, 
+  securityConfig.rateLimit.zkMaxRequests, 
+  'zk'
+);
+
+const bridgeLimiter = advancedRateLimit(
+  securityConfig.rateLimit.windowMs, 
+  securityConfig.rateLimit.bridgeMaxRequests, 
+  'bridge'
+);
 
 // Security middleware
 app.use(helmet({
@@ -49,31 +79,34 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-// CORS configuration
+// Enhanced security headers
+app.use(securityHeaders);
+
+// CORS configuration using security config
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      'http://localhost:3000',
-      'https://localhost:3000'
-    ];
-    
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (securityConfig.cors.origins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      logger.warn('CORS blocked origin', { origin, allowedOrigins: securityConfig.cors.origins });
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Requested-With']
+  credentials: securityConfig.cors.credentials,
+  methods: securityConfig.cors.methods,
+  allowedHeaders: securityConfig.cors.allowedHeaders
 }));
 
 // Compression middleware
 app.use(compression());
+
+// Security audit middleware (must be early in the chain)
+if (securityConfig.features.enableSecurityAudit) {
+  app.use(securityAudit);
+}
 
 // Logging middleware
 app.use(morgan('combined', { 
@@ -83,12 +116,18 @@ app.use(morgan('combined', {
   skip: (req) => req.url === '/health' // Skip logging for health checks
 }));
 
-// Rate limiting
-app.use(limiter);
+// Request size limiting
+app.use(requestSizeLimit(securityConfig.request.maxSize));
+
+// Request timeout
+app.use(requestTimeout(securityConfig.request.timeout));
+
+// Global rate limiting
+app.use(globalLimiter);
 
 // Body parsing middleware
 app.use(express.json({ 
-  limit: '10mb',
+  limit: `${securityConfig.request.maxSize}b`,
   verify: (req, res, buf) => {
     // Store raw body for webhook verification if needed
     (req as any).rawBody = buf;
@@ -96,19 +135,19 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ 
   extended: true, 
-  limit: '10mb' 
+  limit: `${securityConfig.request.maxSize}b` 
 }));
 
 // Input sanitization middleware
 app.use(sanitizationMiddleware);
 
-// API Routes
+// API Routes with endpoint-specific rate limiting
 app.use('/api/health', healthRoutes);
-app.use('/api/bridge', bridgeRoutes);
+app.use('/api/bridge', bridgeLimiter, bridgeRoutes);
 app.use('/api/bitcoin', bitcoinRoutes);
 app.use('/api/proofs', bitcoinRoutes); // Merkle proofs endpoint
 app.use('/api/ethereum', ethereumRoutes);
-app.use('/api/zk', zkRoutes);
+app.use('/api/zk', zkLimiter, zkRoutes);
 
 // API Documentation endpoint
 app.get('/api/docs', (req, res) => {
@@ -116,6 +155,28 @@ app.get('/api/docs', (req, res) => {
     success: true,
     message: 'ZKBridge API Documentation',
     version: '1.0.0',
+    security: {
+      authentication: {
+        type: 'Bearer Token or API Key',
+        header: 'Authorization: Bearer <token> or X-API-Key: <key>',
+        accessLevels: {
+          readonly: 'Read-only access to public endpoints',
+          full: 'Full access to most endpoints',
+          admin: 'Administrative access to all endpoints'
+        }
+      },
+      rateLimiting: {
+        global: `${securityConfig.rateLimit.maxRequests} requests per ${securityConfig.rateLimit.windowMs / 1000} seconds`,
+        zk: `${securityConfig.rateLimit.zkMaxRequests} requests per ${securityConfig.rateLimit.windowMs / 1000} seconds`,
+        bridge: `${securityConfig.rateLimit.bridgeMaxRequests} requests per ${securityConfig.rateLimit.windowMs / 1000} seconds`
+      },
+      securityFeatures: {
+        requestSizeLimit: `${securityConfig.request.maxSize} bytes`,
+        requestTimeout: `${securityConfig.request.timeout} milliseconds`,
+        securityAudit: securityConfig.features.enableSecurityAudit,
+        suspiciousIPBlocking: securityConfig.features.blockSuspiciousIPs
+      }
+    },
     endpoints: {
       health: {
         'GET /api/health': 'API health check',
@@ -160,15 +221,32 @@ app.get('/api/docs', (req, res) => {
         'GET /api/zk/circuit-info': 'Get circuit information',
         'GET /api/zk/health': 'ZK service health check'
       }
+    }
+  });
+});
+
+// Security status endpoint
+app.get('/api/security/status', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Security status',
+    timestamp: new Date().toISOString(),
+    security: {
+      rateLimiting: 'Active',
+      inputSanitization: 'Active',
+      securityHeaders: 'Active',
+      suspiciousIPBlocking: securityConfig.features.blockSuspiciousIPs ? 'Active' : 'Disabled',
+      securityAudit: securityConfig.features.enableSecurityAudit ? 'Active' : 'Disabled',
+      cors: 'Active',
+      requestSizeLimit: 'Active',
+      requestTimeout: 'Active'
     },
-    authentication: {
-      type: 'Bearer Token or API Key',
-      header: 'Authorization: Bearer <token> or X-API-Key: <key>'
-    },
-    rateLimiting: {
-      default: '100 requests per 15 minutes',
-      zk: '20 requests per 15 minutes',
-      bridge: '50 requests per 15 minutes'
+    configuration: {
+      rateLimitWindow: securityConfig.rateLimit.windowMs,
+      maxRequests: securityConfig.rateLimit.maxRequests,
+      maxRequestSize: securityConfig.request.maxSize,
+      requestTimeout: securityConfig.request.timeout,
+      environment: process.env.NODE_ENV
     }
   });
 });

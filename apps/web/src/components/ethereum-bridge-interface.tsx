@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ArrowRightLeft, 
@@ -51,14 +51,7 @@ export function EthereumBridgeInterface({
     estimateGas,
   } = useEthereum();
 
-  // Auto-estimate gas when amount changes
-  useEffect(() => {
-    if (amount && isConnected) {
-      estimateGasForBurn();
-    }
-  }, [amount, isConnected]);
-
-  const estimateGasForBurn = async () => {
+  const estimateGasForBurn = useCallback(async () => {
     if (!amount) return;
     
     setIsEstimatingGas(true);
@@ -69,7 +62,14 @@ export function EthereumBridgeInterface({
     } finally {
       setIsEstimatingGas(false);
     }
-  };
+  }, [amount, estimateGas]);
+
+  // Auto-estimate gas when amount changes
+  useEffect(() => {
+    if (amount && isConnected) {
+      estimateGasForBurn();
+    }
+  }, [amount, isConnected, estimateGasForBurn]);
 
   const handleClaimBitcoin = async () => {
     if (!btcTxHash || !merkleProof || !btcAddress || !amount) {

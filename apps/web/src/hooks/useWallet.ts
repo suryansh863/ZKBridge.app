@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAccount, useBalance, useConnect, useDisconnect } from 'wagmi';
+import { useAccount, useBalance, useConnect, useDisconnect, useChainId } from 'wagmi';
 import { useQuery } from '@tanstack/react-query';
 import { WalletInfo } from '@/types/wallet';
 
@@ -16,6 +16,7 @@ declare global {
 
 export function useWallet() {
   const { address, isConnected, connector } = useAccount();
+  const chainId = useChainId();
   const { data: balance } = useBalance({
     address: address,
   });
@@ -39,11 +40,38 @@ export function useWallet() {
     balance,
     ensName,
     connector,
+    chainId,
     connect,
     disconnect,
     connectors,
     connectError,
     isConnecting: false,
+    // Network information
+    getNetworkInfo: () => {
+      const networkNames: { [key: number]: string } = {
+        1: 'Ethereum Mainnet',
+        11155111: 'Sepolia Testnet',
+        5: 'Goerli Testnet',
+        137: 'Polygon Mainnet',
+        80001: 'Polygon Mumbai Testnet',
+        56: 'BSC Mainnet',
+        97: 'BSC Testnet',
+        42161: 'Arbitrum One',
+        421614: 'Arbitrum Sepolia',
+        10: 'Optimism',
+        420: 'Optimism Sepolia',
+        8453: 'Base',
+        84532: 'Base Sepolia',
+      };
+      
+      return {
+        chainId,
+        networkName: networkNames[chainId] || `Unknown Network (${chainId})`,
+        isMainnet: chainId === 1,
+        isTestnet: chainId !== 1,
+      };
+    },
+    
     // Additional functions for compatibility
     connectWallet: async (walletId: string) => {
       try {
@@ -102,8 +130,33 @@ export function useWallet() {
           });
           
           // Use wagmi's connect function directly
-          await connect({ connector: targetConnector });
-          console.log(`🎉 Successfully connected to ${walletId}`);
+             await connect({ connector: targetConnector });
+             console.log(`🎉 Successfully connected to ${walletId}`);
+             
+             // Log network information after connection
+             setTimeout(() => {
+               const networkInfo = {
+                 chainId,
+                 networkName: {
+                   1: 'Ethereum Mainnet',
+                   11155111: 'Sepolia Testnet',
+                   5: 'Goerli Testnet',
+                   137: 'Polygon Mainnet',
+                   80001: 'Polygon Mumbai Testnet',
+                   56: 'BSC Mainnet',
+                   97: 'BSC Testnet',
+                   42161: 'Arbitrum One',
+                   421614: 'Arbitrum Sepolia',
+                   10: 'Optimism',
+                   420: 'Optimism Sepolia',
+                   8453: 'Base',
+                   84532: 'Base Sepolia',
+                 }[chainId] || `Unknown Network (${chainId})`,
+                 isMainnet: chainId === 1,
+                 isTestnet: chainId !== 1,
+               };
+               console.log('🌐 Network Information:', networkInfo);
+             }, 1000);
         } else {
           console.error(`❌ No connector found for ${walletId}`);
           console.log('Available connectors:', connectors.map(c => `${c.id} (${c.name})`));
