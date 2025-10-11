@@ -1,7 +1,8 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
-import { ApiResponse, BridgeTransaction, BridgeDirection, TransactionStatus } from '../types';
+import { ApiResponse, TransactionStatus } from '../types';
+// import { BridgeTransaction, BridgeDirection } from '../types'; // Unused for now
 import { BridgeService } from '../services/bridgeService';
 import { BitcoinService } from '../services/bitcoinService';
 import { rateLimit } from 'express-rate-limit';
@@ -45,7 +46,7 @@ router.post('/initiate', [
   body('sourceAddress').isString().notEmpty().withMessage('Source address is required'),
   body('targetAddress').isString().notEmpty().withMessage('Target address is required'),
   body('userId').optional().isString().withMessage('User ID must be a string'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const {
     fromChain,
     toChain,
@@ -82,7 +83,7 @@ router.post('/initiate', [
     };
 
     res.status(201).json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge initiation error:', error);
     throw new CustomError('Failed to initiate bridge process', 500);
   }
@@ -91,7 +92,7 @@ router.post('/initiate', [
 // GET /api/bridge/status/:txId - Check bridge status
 router.get('/status/:txId', [
   param('txId').isString().notEmpty().withMessage('Transaction ID is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txId } = req.params;
 
   logger.info('Bridge status requested', { txId });
@@ -106,7 +107,7 @@ router.get('/status/:txId', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge status error:', error);
     if (error.message.includes('not found')) {
       throw new CustomError('Bridge transaction not found', 404);
@@ -120,7 +121,7 @@ router.get('/transactions', [
   query('userId').optional().isString().withMessage('User ID must be a string'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('offset').optional().isInt({ min: 0 }).withMessage('Offset must be non-negative'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { userId, limit = 50, offset = 0 } = req.query;
 
   logger.info('Bridge transactions requested', { userId, limit, offset });
@@ -139,7 +140,7 @@ router.get('/transactions', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge transactions error:', error);
     throw new CustomError('Failed to get bridge transactions', 500);
   }
@@ -148,7 +149,7 @@ router.get('/transactions', [
 // POST /api/bridge/verify-source - Manually trigger source verification
 router.post('/verify-source', [
   body('txId').isString().notEmpty().withMessage('Transaction ID is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txId } = req.body;
 
   logger.info('Manual source verification requested', { txId });
@@ -166,7 +167,7 @@ router.post('/verify-source', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Manual verification trigger error:', error);
     throw new CustomError('Failed to trigger source verification', 500);
   }
@@ -176,7 +177,7 @@ router.post('/verify-source', [
 router.post('/cancel', [
   body('txId').isString().notEmpty().withMessage('Transaction ID is required'),
   body('reason').optional().isString().withMessage('Cancellation reason must be a string'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txId, reason } = req.body;
 
   logger.info('Bridge cancellation requested', { txId, reason });
@@ -200,7 +201,7 @@ router.post('/cancel', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge cancellation error:', error);
     if (error.message.includes('not found')) {
       throw new CustomError('Bridge transaction not found', 404);
@@ -210,7 +211,7 @@ router.post('/cancel', [
 }));
 
 // GET /api/bridge/stats - Get bridge statistics
-router.get('/stats', asyncHandler(async (req, res) => {
+router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
   logger.info('Bridge statistics requested');
 
   try {
@@ -250,14 +251,14 @@ router.get('/stats', asyncHandler(async (req, res) => {
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge stats error:', error);
     throw new CustomError('Failed to get bridge statistics', 500);
   }
 }));
 
 // GET /api/bridge/health - Check bridge service health
-router.get('/health', asyncHandler(async (req, res) => {
+router.get('/health', asyncHandler(async (req: Request, res: Response) => {
   logger.info('Bridge health check requested');
 
   try {
@@ -281,7 +282,7 @@ router.get('/health', asyncHandler(async (req, res) => {
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge health check error:', error);
     throw new CustomError('Bridge service health check failed', 500);
   }
@@ -292,7 +293,7 @@ router.post('/store-attempt', [
   body('bitcoinTxId').isString().notEmpty().withMessage('Bitcoin transaction ID is required'),
   body('ethereumAddress').isString().notEmpty().withMessage('Ethereum address is required'),
   body('userId').optional().isString().withMessage('User ID must be a string'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { bitcoinTxId, ethereumAddress, userId } = req.body;
 
   logger.info('Bridge attempt storage requested', { bitcoinTxId, ethereumAddress, userId });
@@ -319,9 +320,43 @@ router.post('/store-attempt', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge attempt storage error:', error);
     throw new CustomError(`Failed to store bridge attempt: ${error.message}`, 500);
+  }
+}));
+
+// PATCH /api/bridge/:id/status - Update bridge transaction status
+router.patch('/:id/status', [
+  param('id').isString().notEmpty().withMessage('Bridge ID is required'),
+  body('status').isIn(['PENDING', 'COMPLETED', 'FAILED']).withMessage('Status must be PENDING, COMPLETED, or FAILED'),
+  body('targetTxHash').optional().isString().withMessage('Target transaction hash must be a string'),
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status, targetTxHash } = req.body;
+
+  logger.info('Bridge status update requested', { id, status, targetTxHash });
+
+  try {
+    const updateData: any = { status };
+    
+    if (targetTxHash) {
+      updateData.targetTxHash = targetTxHash;
+    }
+    
+
+    const updatedBridge = await bridgeService.updateBridgeStatus(id, updateData);
+
+    const response: ApiResponse = {
+      success: true,
+      data: updatedBridge,
+      message: 'Bridge status updated successfully'
+    };
+
+    res.json(response);
+  } catch (error: any) {
+    logger.error('Bridge status update error:', error);
+    throw new CustomError(`Failed to update bridge status: ${error.message}`, 500);
   }
 }));
 

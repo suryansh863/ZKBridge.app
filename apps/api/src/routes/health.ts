@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { getPrismaClient } from '../config/database';
 import { asyncHandler } from '../middleware/errorHandler';
 import { ApiResponse } from '../types';
 
 const router = Router();
 
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const response: ApiResponse = {
     success: true,
     message: 'ZKBridge API is healthy',
@@ -19,7 +19,7 @@ router.get('/', asyncHandler(async (req, res) => {
   res.json(response);
 }));
 
-router.get('/database', asyncHandler(async (req, res) => {
+router.get('/database', asyncHandler(async (req: Request, res: Response) => {
   const prisma = getPrismaClient();
   
   try {

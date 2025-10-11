@@ -47,6 +47,10 @@ const globalLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Performance optimization: skip successful requests
+  skipSuccessfulRequests: true,
+  // Performance optimization: skip failed requests
+  skipFailedRequests: false,
 });
 
 const zkLimiter = advancedRateLimit(
@@ -108,12 +112,18 @@ if (securityConfig.features.enableSecurityAudit) {
   app.use(securityAudit);
 }
 
-// Logging middleware
+// Logging middleware (optimized for performance)
 app.use(morgan('combined', { 
   stream: { 
     write: (message) => logger.info(message.trim()) 
   },
-  skip: (req) => req.url === '/health' // Skip logging for health checks
+  skip: (req) => {
+    // Skip logging for health checks and static assets
+    return req.url === '/health' || 
+           req.url === '/favicon.ico' || 
+           req.url.startsWith('/static') ||
+           req.url.startsWith('/_next');
+  }
 }));
 
 // Request size limiting

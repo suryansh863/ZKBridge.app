@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Hero } from '@/components/hero';
 import { Features } from '@/components/features';
@@ -10,12 +10,57 @@ import { LazySection } from '@/components/lazy-section';
 import { HowItWorks } from '@/components/how-it-works';
 import { TrustlessExplanation } from '@/components/trustless-explanation';
 
-// Lazy load heavy components
-const BridgeInterface = lazy(() => import('@/components/bridge-interface').then(module => ({ default: module.BridgeInterface })));
-const ZKProofVisualizer = lazy(() => import('@/components/zk-proof-visualizer').then(module => ({ default: module.ZKProofVisualizer })));
-const TransactionHistory = lazy(() => import('@/components/transaction-history').then(module => ({ default: module.TransactionHistory })));
+// Lazy load heavy components with better error handling
+const BridgeInterface = lazy(() => 
+  import('@/components/bridge-interface')
+    .then(module => ({ default: module.BridgeInterface }))
+    .catch(() => ({ default: () => <div className="p-8 text-center text-muted-foreground">Bridge interface temporarily unavailable</div> }))
+);
+
+const ZKProofVisualizer = lazy(() => 
+  import('@/components/zk-proof-visualizer')
+    .then(module => ({ default: module.ZKProofVisualizer }))
+    .catch(() => ({ default: () => <div className="p-8 text-center text-muted-foreground">ZK Proof visualizer temporarily unavailable</div> }))
+);
+
+const TransactionHistory = lazy(() => 
+  import('@/components/transaction-history')
+    .then(module => ({ default: module.TransactionHistory }))
+    .catch(() => ({ default: () => <div className="p-8 text-center text-muted-foreground">Transaction history temporarily unavailable</div> }))
+);
+
+// Loading component
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-16">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
 
 export default function Home() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Ensure the page is fully loaded before showing content
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading BridgeSpark...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -27,31 +72,19 @@ export default function Home() {
         
         {/* Lazy load heavy components with intersection observer */}
         <LazySection>
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          }>
+          <Suspense fallback={<LoadingSpinner />}>
             <BridgeInterface />
           </Suspense>
         </LazySection>
         
         <LazySection>
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          }>
+          <Suspense fallback={<LoadingSpinner />}>
             <ZKProofVisualizer />
           </Suspense>
         </LazySection>
         
         <LazySection>
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          }>
+          <Suspense fallback={<LoadingSpinner />}>
             <TransactionHistory />
           </Suspense>
         </LazySection>

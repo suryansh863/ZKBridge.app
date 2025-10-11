@@ -2,22 +2,23 @@ import Client from 'bitcoin-core';
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
 import { BitcoinTransaction, MerkleProof } from '../types';
-import { generateMerkleProof, verifyMerkleProof } from '../types';
+import { verifyMerkleProof } from '../types';
+// import { generateMerkleProof } from '../types'; // Unused for now
 import { logger } from '../utils/logger';
 import { bitcoinTestnetService, BitcoinTransaction as TestnetTransaction, MerkleProof as TestnetMerkleProof } from './bitcoinTestnetService';
 
 // Bitcoin testnet configuration
-const TESTNET_CONFIG = {
-  messagePrefix: '\x18Bitcoin Signed Message:\n',
-  bech32: 'tb',
-  bip32: {
-    public: 0x043587cf,
-    private: 0x04358394,
-  },
-  pubKeyHash: 0x6f,
-  scriptHash: 0xc4,
-  wif: 0xef,
-};
+// const TESTNET_CONFIG = { // Unused for now
+//   messagePrefix: '\x18Bitcoin Signed Message:\n',
+//   bech32: 'tb',
+//   bip32: {
+//     public: 0x043587cf,
+//     private: 0x04358394,
+//   },
+//   pubKeyHash: 0x6f,
+//   scriptHash: 0xc4,
+//   wif: 0xef,
+// };
 
 export class BitcoinService {
   private client: Client;
@@ -47,26 +48,28 @@ export class BitcoinService {
       const testnetTx = await bitcoinTestnetService.getTransaction(txid);
       const confirmations = await bitcoinTestnetService.getConfirmationCount(txid);
       
-      // Calculate amount from outputs
-      const totalOutputValue = testnetTx.vout.reduce((sum, output) => sum + output.value, 0);
-      const amountInBTC = totalOutputValue / 100000000; // Convert satoshis to BTC
-      
-      // Get input and output addresses
-      const inputAddresses = testnetTx.vin.map(input => input.prevout.scriptpubkey_address);
-      const outputAddresses = testnetTx.vout.map(output => output.scriptpubkey_address);
+      // Calculate amount from outputs for outputs array
       
       return {
-        txid: testnetTx.txid,
-        amount: amountInBTC,
-        fromAddress: inputAddresses[0] || '',
-        toAddress: outputAddresses[0] || '',
-        blockHeight: testnetTx.status.block_height,
+        txHash: testnetTx.txid,
+        blockHash: testnetTx.status.block_hash || '',
+        blockHeight: testnetTx.status.block_height || 0,
         confirmations,
-        timestamp: testnetTx.status.block_time || Math.floor(Date.now() / 1000),
-        merkleProof: undefined, // Will be generated separately
-        merkleRoot: undefined // Will be set when generating proof
+        inputs: testnetTx.vin.map(input => ({
+          address: input.prevout.scriptpubkey_address || '',
+          amount: input.prevout.value || 0,
+          txHash: input.txid || '',
+          outputIndex: input.vout || 0
+        })),
+        outputs: testnetTx.vout.map(output => ({
+          address: output.scriptpubkey_address || '',
+          amount: output.value || 0,
+          scriptPubKey: output.scriptpubkey || ''
+        })),
+        fee: testnetTx.fee || 0,
+        timestamp: testnetTx.status.block_time || Math.floor(Date.now() / 1000)
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting Bitcoin transaction:', error);
       throw new Error(`Failed to get Bitcoin transaction: ${error.message}`);
     }
@@ -127,8 +130,9 @@ export class BitcoinService {
         outputAddresses.includes(address);
       
       // Check amount with tolerance (allow for fees)
+      const totalOutputAmount = tx.outputs.reduce((sum, output) => sum + output.amount, 0);
       const tolerance = Math.max(1000, Math.floor(amount * 0.01)); // 1% tolerance or 1000 sats minimum
-      const isCorrectAmount = Math.abs(tx.amount - amount) <= tolerance;
+      const isCorrectAmount = Math.abs(totalOutputAmount - amount) <= tolerance;
       
       // Check confirmations
       const hasEnoughConfirmations = tx.confirmations >= 6; // 6 confirmations for security
@@ -147,14 +151,15 @@ export class BitcoinService {
           sufficientConfirmations: hasEnoughConfirmations
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error verifying Bitcoin transaction:', error);
       return { isValid: false, details: { error: error.message } };
     }
   }
 
   private validateTransactionFormat(tx: BitcoinTransaction): boolean {
-    return !!(tx.txid && tx.amount > 0 && (tx.fromAddress || tx.toAddress));
+    const totalAmount = tx.outputs.reduce((sum, output) => sum + output.amount, 0);
+    return !!(tx.txHash && totalAmount > 0 && (tx.inputs.length > 0 || tx.outputs.length > 0));
   }
 
   private async getInputAddresses(txid: string): Promise<string[]> {
@@ -171,7 +176,7 @@ export class BitcoinService {
         }
       }
       return addresses;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting input addresses:', error);
       return [];
     }
@@ -191,13 +196,13 @@ export class BitcoinService {
         }
       }
       return addresses;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting output addresses:', error);
       return [];
     }
   }
 
-  async generateMerkleProof(txid: string, blockHash?: string): Promise<MerkleProof> {
+  async generateMerkleProof(txid: string, _blockHash?: string): Promise<MerkleProof> {
     try {
       // Use the new testnet service for real Merkle proof generation
       const testnetProof = await bitcoinTestnetService.generateMerkleProof(txid);
@@ -208,7 +213,7 @@ export class BitcoinService {
         indices: [testnetProof.proofIndex], // Convert to array format expected by existing code
         root: testnetProof.merkleRoot
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error generating Merkle proof:', error);
       throw new Error(`Failed to generate Merkle proof: ${error.message}`);
     }
@@ -217,7 +222,7 @@ export class BitcoinService {
   async verifyMerkleProof(proof: MerkleProof): Promise<boolean> {
     try {
       return verifyMerkleProof(proof.leaf, proof.path, proof.indices, proof.root);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error verifying Merkle proof:', error);
       return false;
     }
@@ -234,7 +239,7 @@ export class BitcoinService {
         networkactive: info.networkactive,
         networks: info.networks
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting Bitcoin network info:', error);
       throw new Error(`Failed to get network info: ${error.message}`);
     }
@@ -247,7 +252,7 @@ export class BitcoinService {
       const unspent = await this.client.listUnspent(0, 9999999, [address]);
       const balance = unspent.reduce((sum: number, utxo: any) => sum + utxo.amount, 0);
       return balance * 100000000; // Convert to satoshis
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting Bitcoin balance:', error);
       throw new Error(`Failed to get balance: ${error.message}`);
     }
@@ -256,7 +261,7 @@ export class BitcoinService {
   async getBlockCount(): Promise<number> {
     try {
       return await this.client.getBlockCount();
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting block count:', error);
       throw new Error(`Failed to get block count: ${error.message}`);
     }
@@ -265,7 +270,7 @@ export class BitcoinService {
   async getBlockHash(height: number): Promise<string> {
     try {
       return await this.client.getBlockHash(height);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting block hash:', error);
       throw new Error(`Failed to get block hash: ${error.message}`);
     }

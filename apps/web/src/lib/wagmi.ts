@@ -1,5 +1,5 @@
 import { configureChains, createConfig } from 'wagmi'
-import { mainnet, sepolia, goerli } from 'wagmi/chains'
+import { sepolia, goerli, hardhat } from 'wagmi/chains'
 import { infuraProvider } from 'wagmi/providers/infura'
 import { publicProvider } from 'wagmi/providers/public'
 import { InjectedConnector } from 'wagmi/connectors/injected'
@@ -8,11 +8,15 @@ import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [mainnet, sepolia, goerli],
+  [hardhat, sepolia, goerli], // Include localhost for testing
   [
-    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '9aa3d95b3bc440fa88ea12eaa4456161' }),
-    publicProvider(),
+    publicProvider(), // Use public provider by default to avoid API key issues
   ],
+  {
+    // Performance optimization: reduce retry attempts
+    retryCount: 2,
+    retryDelay: 1000,
+  }
 )
 
 // Create connectors array with error handling
@@ -86,7 +90,8 @@ export const config = createConfig({
   autoConnect: true,
   connectors: createConnectors(),
   publicClient,
-  webSocketPublicClient,
+  // Disable WebSocket client to prevent connection issues
+  webSocketPublicClient: undefined,
 })
 
 // Export chains for RainbowKit

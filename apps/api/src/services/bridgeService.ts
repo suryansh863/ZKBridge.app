@@ -4,6 +4,11 @@ import { EthereumService } from './ethereumService';
 import { ZKProofService } from './zkProofService';
 import { logger } from '../utils/logger';
 import { BitcoinTransaction, MerkleProof } from './bitcoinTestnetService';
+import { TransactionStatus } from '../types';
+import crypto from 'crypto';
+
+// Define BridgeDirection locally since it's not in types yet
+type BridgeDirection = 'bitcoin-to-ethereum' | 'ethereum-to-bitcoin';
 
 export interface BridgeInitiationData {
   fromChain: 'bitcoin' | 'ethereum';
@@ -79,7 +84,7 @@ export class BridgeService {
         createdAt: bridgeTx.createdAt,
         updatedAt: bridgeTx.updatedAt
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error initiating bridge:', error);
       throw new Error(`Failed to initiate bridge: ${error.message}`);
     }
@@ -98,8 +103,8 @@ export class BridgeService {
       return {
         id: bridgeTx.id,
         status: bridgeTx.status,
-        fromChain: this.getChainName(bridgeTx.direction, 'from'),
-        toChain: this.getChainName(bridgeTx.direction, 'to'),
+        fromChain: this.getChainName(bridgeTx.direction as BridgeDirection, 'from'),
+        toChain: this.getChainName(bridgeTx.direction as BridgeDirection, 'to'),
         sourceTxHash: bridgeTx.sourceTxHash,
         targetTxHash: bridgeTx.targetTxHash || undefined,
         amount: bridgeTx.sourceAmount,
@@ -107,7 +112,7 @@ export class BridgeService {
         createdAt: bridgeTx.createdAt,
         updatedAt: bridgeTx.updatedAt
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting bridge status:', error);
       throw new Error(`Failed to get bridge status: ${error.message}`);
     }
@@ -126,7 +131,7 @@ export class BridgeService {
       logger.info('Verifying source transaction', { bridgeTxId, sourceTxHash: bridgeTx.sourceTxHash });
 
       // Update status to processing
-      await this.updateBridgeStatus(bridgeTxId, 'PROCESSING');
+      await this.updateBridgeStatus(bridgeTxId, TransactionStatus.PROCESSING);
 
       // Verify based on source chain
       let verificationResult;
@@ -147,19 +152,25 @@ export class BridgeService {
         );
       }
 
-      if (!verificationResult.isValid) {
-        await this.updateBridgeStatus(bridgeTxId, 'FAILED', 'Source transaction verification failed');
+      if (typeof verificationResult === 'boolean' && !verificationResult) {
+        await this.updateBridgeStatus(bridgeTxId, TransactionStatus.FAILED, 'Source transaction verification failed');
+        return;
+      }
+
+      if (typeof verificationResult === 'object' && !verificationResult.isValid) {
+        await this.updateBridgeStatus(bridgeTxId, TransactionStatus.FAILED, 'Source transaction verification failed');
         return;
       }
 
       // Update confirmations
-      await this.updateBridgeConfirmations(bridgeTxId, verificationResult.confirmations || 0);
+      const confirmations = typeof verificationResult === 'object' ? verificationResult.confirmations || 0 : 0;
+      await this.updateBridgeConfirmations(bridgeTxId, confirmations);
 
       // Wait for sufficient confirmations
-      if (verificationResult.confirmations < 6) {
+      if (confirmations < 6) {
         logger.info('Waiting for more confirmations', { 
           bridgeTxId, 
-          confirmations: verificationResult.confirmations 
+          confirmations 
         });
         return;
       }
@@ -168,12 +179,12 @@ export class BridgeService {
       await this.generateAndStoreZKProof(bridgeTxId);
 
       // Update status to confirmed
-      await this.updateBridgeStatus(bridgeTxId, TransactionStatus.CONFIRMED);
+      await this.updateBridgeStatus(bridgeTxId, TransactionStatus.COMPLETED);
 
       // Start target chain transaction
       await this.initiateTargetTransaction(bridgeTxId);
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error verifying source transaction:', error);
       await this.updateBridgeStatus(bridgeTxId, TransactionStatus.FAILED, error.message);
     }
@@ -214,7 +225,7 @@ export class BridgeService {
       });
 
       logger.info('ZK proof generated and stored', { bridgeTxId });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error generating ZK proof:', error);
       throw error;
     }
@@ -234,7 +245,7 @@ export class BridgeService {
 
       // For demo purposes, we'll simulate the target transaction
       // In a real implementation, this would interact with Ethereum smart contracts
-      const targetTxHash = `0x${generateNonce()}${Date.now().toString(16)}`;
+      const targetTxHash = `0x${crypto.randomBytes(16).toString('hex')}${Date.now().toString(16)}`;
 
       // Update with target transaction hash
       await this.prisma.bridgeTransaction.update({
@@ -246,7 +257,7 @@ export class BridgeService {
       });
 
       logger.info('Target transaction initiated', { bridgeTxId, targetTxHash });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error initiating target transaction:', error);
       await this.updateBridgeStatus(bridgeTxId, TransactionStatus.FAILED, error.message);
     }
@@ -289,9 +300,9 @@ export class BridgeService {
 
   private getBridgeDirection(fromChain: string, toChain: string): BridgeDirection {
     if (fromChain === 'bitcoin' && toChain === 'ethereum') {
-      return BridgeDirection.BITCOIN_TO_ETHEREUM;
+      return 'bitcoin-to-ethereum';
     } else if (fromChain === 'ethereum' && toChain === 'bitcoin') {
-      return BridgeDirection.ETHEREUM_TO_BITCOIN;
+      return 'ethereum-to-bitcoin';
     } else {
       throw new Error('Invalid bridge direction');
     }
@@ -299,9 +310,9 @@ export class BridgeService {
 
   private getChainName(direction: BridgeDirection, side: 'from' | 'to'): string {
     if (side === 'from') {
-      return direction === BridgeDirection.BITCOIN_TO_ETHEREUM ? 'bitcoin' : 'ethereum';
+      return direction === 'bitcoin-to-ethereum' ? 'bitcoin' : 'ethereum';
     } else {
-      return direction === BridgeDirection.BITCOIN_TO_ETHEREUM ? 'ethereum' : 'bitcoin';
+      return direction === 'bitcoin-to-ethereum' ? 'ethereum' : 'bitcoin';
     }
   }
 
@@ -356,9 +367,30 @@ export class BridgeService {
       });
 
       return transactions;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting bridge transactions:', error);
       throw new Error(`Failed to get bridge transactions: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update bridge transaction status
+   */
+  async updateBridgeStatus(bridgeId: string, updateData: any): Promise<any> {
+    try {
+      const updatedBridge = await this.prisma.bridgeTransaction.update({
+        where: { id: bridgeId },
+        data: {
+          ...updateData,
+          updatedAt: new Date()
+        }
+      });
+
+      logger.info('Bridge status updated successfully', { bridgeId, status: updateData.status });
+      return updatedBridge;
+    } catch (error: any) {
+      logger.error('Error updating bridge status:', error);
+      throw new Error(`Failed to update bridge status: ${error.message}`);
     }
   }
 
@@ -377,29 +409,28 @@ export class BridgeService {
           direction: 'BITCOIN_TO_ETHEREUM',
           status: 'PENDING',
           sourceTxHash: bitcoinTx.txid,
-          sourceAmount: bitcoinTx.amount.toString(),
-          sourceAddress: bitcoinTx.inputs[0]?.address || '',
+          sourceAmount: bitcoinTx.vout ? bitcoinTx.vout.reduce((sum: number, output: any) => sum + (output.value || 0), 0).toString() : '0',
+          sourceAddress: bitcoinTx.vin && bitcoinTx.vin[0]?.prevout?.scriptpubkey_address || '',
           targetAddress: ethereumAddress,
           merkleProof: JSON.stringify(merkleProof),
-          blockHeight: bitcoinTx.blockHeight?.toString(),
-          blockHash: bitcoinTx.blockHash,
-          confirmations: bitcoinTx.confirmations,
-          userId: userId || null,
-          metadata: JSON.stringify({
-            inputs: bitcoinTx.inputs,
-            outputs: bitcoinTx.outputs,
-            fee: bitcoinTx.fee,
-            size: bitcoinTx.size,
-            merkleRoot: merkleProof.merkleRoot,
-            proofPath: merkleProof.proofPath,
-            proofIndex: merkleProof.proofIndex
-          })
+          blockHeight: bitcoinTx.status?.block_height || 0,
+          blockHash: bitcoinTx.status?.block_hash,
+          confirmations: 0, // Will be calculated separately
+          userId: null, // For demo purposes, we'll skip user association
+          // metadata: JSON.stringify({
+          //   inputs: bitcoinTx.inputs,
+          //   outputs: bitcoinTx.outputs,
+          //   fee: bitcoinTx.fee,
+          //   merkleRoot: merkleProof.merkleRoot,
+          //   proofPath: merkleProof.proofPath,
+          //   proofIndex: merkleProof.proofIndex
+          // })
         }
       });
 
-      logger.info('Bridge attempt stored', { bridgeId: bridge.id, bitcoinTx: bitcoinTx.txid });
+      logger.info('Bridge attempt stored', { bridgeId: bridge.id, bitcoinTx: bitcoinTx.txHash });
       return bridge.id;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error storing bridge attempt:', error);
       throw new Error('Failed to store bridge attempt');
     }
@@ -419,8 +450,8 @@ export class BridgeService {
         }
       });
 
-      return bridges.map(bridge => this.mapToBridgeStatus(bridge));
-    } catch (error) {
+      return bridges.map(bridge => this.formatBridgeTransaction(bridge));
+    } catch (error: any) {
       logger.error('Error getting bridge attempts:', error);
       throw new Error('Failed to get bridge attempts');
     }

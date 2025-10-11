@@ -40,7 +40,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
       role: decoded.role || 'user'
     };
     next();
-  } catch (error) {
+    } catch (error: any) {
     logger.warn('Invalid token provided', { error: error.message });
     return res.status(403).json({
       success: false,
@@ -119,7 +119,7 @@ export const optionalAuth = (req: AuthRequest, res: Response, next: NextFunction
       address: decoded.address,
       role: decoded.role || 'user'
     };
-  } catch (error) {
+    } catch (error: any) {
     req.user = undefined;
   }
 

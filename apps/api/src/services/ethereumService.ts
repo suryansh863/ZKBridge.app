@@ -13,7 +13,7 @@ export class EthereumService {
     if (process.env.ETHEREUM_PRIVATE_KEY && process.env.ETHEREUM_PRIVATE_KEY !== 'your_private_key_here') {
       try {
         this.wallet = new ethers.Wallet(process.env.ETHEREUM_PRIVATE_KEY, this.provider);
-      } catch (error) {
+      } catch (error: any) {
         logger.warn('Invalid ETHEREUM_PRIVATE_KEY, wallet not initialized');
       }
     }
@@ -40,7 +40,7 @@ export class EthereumService {
         gasUsed: receipt?.gasUsed.toString(),
         gasPrice: tx.gasPrice?.toString()
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting Ethereum transaction:', error);
       throw new Error(`Failed to get Ethereum transaction: ${error.message}`);
     }
@@ -56,7 +56,7 @@ export class EthereumService {
       const isCorrectAmount = tx.amount === amount;
       
       return isCorrectAddress && isCorrectAmount;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error verifying Ethereum transaction:', error);
       return false;
     }
@@ -74,7 +74,7 @@ export class EthereumService {
         blockNumber,
         gasPrice: gasPrice.toString()
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting Ethereum network info:', error);
       throw new Error(`Failed to get network info: ${error.message}`);
     }
@@ -84,7 +84,7 @@ export class EthereumService {
     try {
       const balance = await this.provider.getBalance(address);
       return balance.toString();
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting Ethereum balance:', error);
       throw new Error(`Failed to get balance: ${error.message}`);
     }
@@ -94,7 +94,7 @@ export class EthereumService {
     try {
       const gasPrice = await this.provider.getGasPrice();
       return gasPrice.toString();
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting gas price:', error);
       throw new Error(`Failed to get gas price: ${error.message}`);
     }
@@ -112,7 +112,7 @@ export class EthereumService {
         data: transaction.data
       });
       return gasEstimate.toString();
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error estimating gas:', error);
       throw new Error(`Failed to estimate gas: ${error.message}`);
     }
@@ -135,7 +135,7 @@ export class EthereumService {
       });
 
       return tx.hash;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error sending transaction:', error);
       throw new Error(`Failed to send transaction: ${error.message}`);
     }
@@ -151,7 +151,7 @@ export class EthereumService {
         timestamp: block?.timestamp,
         transactions: block?.transactions
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting block:', error);
       throw new Error(`Failed to get block: ${error.message}`);
     }
@@ -160,7 +160,7 @@ export class EthereumService {
   async getBlockNumber(): Promise<number> {
     try {
       return await this.provider.getBlockNumber();
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error getting block number:', error);
       throw new Error(`Failed to get block number: ${error.message}`);
     }

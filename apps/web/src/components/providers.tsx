@@ -13,11 +13,10 @@ import '@/lib/console-suppress';
 import '@rainbow-me/rainbowkit/styles.css';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 60 * 1000, // 1 minute
+        staleTime: 5 * 60 * 1000, // 5 minutes (increased for better performance)
         gcTime: 10 * 60 * 1000, // 10 minutes
         retry: (failureCount, error) => {
           // Don't retry on 4xx errors
@@ -25,15 +24,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
               typeof error.status === 'number' && error.status >= 400 && error.status < 500) {
             return false;
           }
-          return failureCount < 3;
+          return failureCount < 2; // Reduced retry attempts
         },
+        // Performance optimization: reduce refetch frequency
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
       },
     },
   }));
 
   useEffect(() => {
-    setMounted(true);
-    
     // Handle extension communication errors
     const handleExtensionError = (event: ErrorEvent) => {
       if (event.message?.includes('runtime.lastError') || 
@@ -72,40 +72,35 @@ export function Providers({ children }: { children: React.ReactNode }) {
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
+            suppressColorSchemeWarning
           >
-            {mounted ? (
-              <RainbowKitProvider
-                chains={chains}
-                theme={{
-                  lightMode: lightTheme({
-                    accentColor: '#6366f1',
-                    accentColorForeground: 'white',
-                    borderRadius: 'medium',
-                    fontStack: 'system',
-                    overlayBlur: 'small',
-                  }),
-                  darkMode: darkTheme({
-                    accentColor: '#6366f1',
-                    accentColorForeground: 'white',
-                    borderRadius: 'medium',
-                    fontStack: 'system',
-                    overlayBlur: 'small',
-                  }),
-                }}
-                appInfo={{
-                  appName: 'BridgeSpark',
-                  learnMoreUrl: 'https://docs.bridgespark.app',
-                }}
-                showRecentTransactions={true}
-                modalSize="compact"
-              >
-                {children}
-              </RainbowKitProvider>
-            ) : (
-              <div className="min-h-screen bg-background">
-                {children}
-              </div>
-            )}
+            <RainbowKitProvider
+              chains={chains}
+              theme={{
+                lightMode: lightTheme({
+                  accentColor: '#6366f1',
+                  accentColorForeground: 'white',
+                  borderRadius: 'medium',
+                  fontStack: 'system',
+                  overlayBlur: 'small',
+                }),
+                darkMode: darkTheme({
+                  accentColor: '#6366f1',
+                  accentColorForeground: 'white',
+                  borderRadius: 'medium',
+                  fontStack: 'system',
+                  overlayBlur: 'small',
+                }),
+              }}
+              appInfo={{
+                appName: 'BridgeSpark',
+                learnMoreUrl: 'https://docs.bridgespark.app',
+              }}
+              showRecentTransactions={true}
+              modalSize="compact"
+            >
+              {children}
+            </RainbowKitProvider>
             <BackToTop />
           </NextThemeProvider>
         </QueryClientProvider>

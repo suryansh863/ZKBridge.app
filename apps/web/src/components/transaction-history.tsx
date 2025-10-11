@@ -15,17 +15,22 @@ import {
   Loader2
 } from 'lucide-react';
 import { cn, formatAddress, formatTimeAgo } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface Transaction {
   id: string;
-  from: 'Bitcoin' | 'Ethereum';
-  to: 'Bitcoin' | 'Ethereum';
-  amount: string;
-  status: 'pending' | 'completed' | 'failed' | 'processing';
-  timestamp: number;
-  txHash: string;
-  recipientAddress: string;
-  bridgeFee: string;
+  direction: string; // 'BITCOIN_TO_ETHEREUM' or 'ETHEREUM_TO_BITCOIN'
+  status: string; // 'PENDING', 'CONFIRMED', 'FAILED', 'COMPLETED', 'PROCESSING'
+  sourceTxHash: string;
+  sourceAmount: string;
+  sourceAddress: string;
+  targetTxHash?: string;
+  targetAmount?: string;
+  targetAddress?: string;
+  confirmations: number;
+  fee?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface TransactionHistoryProps {
@@ -39,65 +44,38 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data - in real app, this would come from API
+  // Load real transaction data from API
   useEffect(() => {
-    // Add a small delay to prevent blocking the initial page load
-    const loadData = async () => {
-      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
-      
-      const mockTransactions: Transaction[] = [
-      {
-        id: '1',
-        from: 'Bitcoin',
-        to: 'Ethereum',
-        amount: '0.5',
-        status: 'completed',
-        timestamp: Date.now() - 3600000, // 1 hour ago
-        txHash: '0x1234567890abcdef1234567890abcdef12345678',
-        recipientAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-        bridgeFee: '0.01',
-      },
-      {
-        id: '2',
-        from: 'Ethereum',
-        to: 'Bitcoin',
-        amount: '2.1',
-        status: 'processing',
-        timestamp: Date.now() - 1800000, // 30 minutes ago
-        txHash: '0xabcd1234567890ef1234567890abcdef1234567890',
-        recipientAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-        bridgeFee: '0.042',
-      },
-      {
-        id: '3',
-        from: 'Bitcoin',
-        to: 'Ethereum',
-        amount: '1.0',
-        status: 'pending',
-        timestamp: Date.now() - 900000, // 15 minutes ago
-        txHash: 'btc-tx-hash-1234567890abcdef',
-        recipientAddress: '0x9876543210fedcba9876543210fedcba98765432',
-        bridgeFee: '0.02',
-      },
-      {
-        id: '4',
-        from: 'Ethereum',
-        to: 'Bitcoin',
-        amount: '0.8',
-        status: 'failed',
-        timestamp: Date.now() - 7200000, // 2 hours ago
-        txHash: '0x9876543210fedcba9876543210fedcba9876543210',
-        recipientAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-        bridgeFee: '0.016',
-      },
-      ];
-
-      setTransactions(mockTransactions);
-      setFilteredTransactions(mockTransactions);
-      setIsLoading(false);
+    const loadTransactions = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/bridge/transactions?limit=10');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          setTransactions(data.data);
+          setFilteredTransactions(data.data);
+        } else {
+          logger.warn('API returned unsuccessful response:', data);
+          setTransactions([]);
+          setFilteredTransactions([]);
+        }
+      } catch (error) {
+        logger.error('Failed to load transactions:', error);
+        // Show empty state on error
+        setTransactions([]);
+        setFilteredTransactions([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    loadData();
+    loadTransactions();
   }, []);
 
   // Filter transactions based on search and status
@@ -106,9 +84,11 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
 
     if (searchTerm) {
       filtered = filtered.filter(tx => 
-        tx.txHash.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tx.recipientAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tx.amount.includes(searchTerm)
+        tx.sourceTxHash.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tx.targetTxHash?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tx.sourceAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tx.targetAddress?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tx.sourceAmount.includes(searchTerm)
       );
     }
 
@@ -119,9 +99,10 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
     setFilteredTransactions(filtered);
   }, [transactions, searchTerm, statusFilter]);
 
-  const getStatusIcon = (status: Transaction['status']) => {
-    switch (status) {
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
       case 'completed':
+      case 'confirmed':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'processing':
         return <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />;
@@ -134,9 +115,10 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
     }
   };
 
-  const getStatusColor = (status: Transaction['status']) => {
-    switch (status) {
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
       case 'completed':
+      case 'confirmed':
         return 'text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 border-green-200 dark:border-green-800';
       case 'processing':
         return 'text-blue-600 bg-blue-50 dark:bg-blue-950 dark:text-blue-400 border-blue-200 dark:border-blue-800';
@@ -147,6 +129,16 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
       default:
         return 'text-gray-600 bg-gray-50 dark:bg-gray-950 dark:text-gray-400 border-gray-200 dark:border-gray-800';
     }
+  };
+
+  // Helper function to get chain info
+  const getChainInfo = (direction: string) => {
+    if (direction === 'BITCOIN_TO_ETHEREUM') {
+      return { from: 'Bitcoin', to: 'Ethereum', fromSymbol: 'BTC', toSymbol: 'ETH' };
+    } else if (direction === 'ETHEREUM_TO_BITCOIN') {
+      return { from: 'Ethereum', to: 'Bitcoin', fromSymbol: 'ETH', toSymbol: 'BTC' };
+    }
+    return { from: 'Unknown', to: 'Unknown', fromSymbol: '?', toSymbol: '?' };
   };
 
   const copyToClipboard = (text: string) => {
@@ -199,7 +191,7 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search by hash, address, or amount..."
+                placeholder="Search by transaction hash, address, or amount..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={cn(
@@ -223,10 +215,11 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
                 )}
               >
                 <option value="all">All Status</option>
-                <option value="completed">Completed</option>
-                <option value="processing">Processing</option>
-                <option value="pending">Pending</option>
-                <option value="failed">Failed</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="PROCESSING">Processing</option>
+                <option value="PENDING">Pending</option>
+                <option value="FAILED">Failed</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             </div>
@@ -274,7 +267,7 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
                               {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                             </div>
                             <span className="text-sm text-muted-foreground">
-                              {formatTimeAgo(tx.timestamp)}
+                              {formatTimeAgo(new Date(tx.createdAt).getTime())}
                             </span>
                           </div>
                         </div>
@@ -283,11 +276,11 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
                           <div className="flex items-center gap-2">
                             <div className={cn(
                               "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                              tx.from === 'Bitcoin' ? 'bg-bitcoin text-white' : 'bg-ethereum text-white'
+                              getChainInfo(tx.direction).from === 'Bitcoin' ? 'bg-bitcoin text-white' : 'bg-ethereum text-white'
                             )}>
-                              {tx.from === 'Bitcoin' ? 'B' : 'E'}
+                              {getChainInfo(tx.direction).from === 'Bitcoin' ? 'B' : 'E'}
                             </div>
-                            <span className="font-medium">{tx.from}</span>
+                            <span className="font-medium">{getChainInfo(tx.direction).from}</span>
                           </div>
                           
                           <ArrowRightLeft className="h-5 w-5 text-muted-foreground" />
@@ -295,31 +288,47 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
                           <div className="flex items-center gap-2">
                             <div className={cn(
                               "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                              tx.to === 'Bitcoin' ? 'bg-bitcoin text-white' : 'bg-ethereum text-white'
+                              getChainInfo(tx.direction).to === 'Bitcoin' ? 'bg-bitcoin text-white' : 'bg-ethereum text-white'
                             )}>
-                              {tx.to === 'Bitcoin' ? 'B' : 'E'}
+                              {getChainInfo(tx.direction).to === 'Bitcoin' ? 'B' : 'E'}
                             </div>
-                            <span className="font-medium">{tx.to}</span>
+                            <span className="font-medium">{getChainInfo(tx.direction).to}</span>
                           </div>
                         </div>
 
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Amount</span>
+                            <span className="text-sm text-muted-foreground">Source Amount</span>
                             <span className="font-semibold">
-                              {tx.amount} {tx.from === 'Bitcoin' ? 'BTC' : 'ETH'}
+                              {(parseFloat(tx.sourceAmount) / 100000000).toFixed(8)} {getChainInfo(tx.direction).fromSymbol}
                             </span>
                           </div>
+                          {tx.targetAmount && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Target Amount</span>
+                              <span className="font-semibold">
+                                {(parseFloat(tx.targetAmount) / 100000000).toFixed(8)} {getChainInfo(tx.direction).toSymbol}
+                              </span>
+                            </div>
+                          )}
+                          {tx.fee && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Bridge Fee</span>
+                              <span className="text-sm">
+                                {(parseFloat(tx.fee) / 100000000).toFixed(8)} {getChainInfo(tx.direction).fromSymbol}
+                              </span>
+                            </div>
+                          )}
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Bridge Fee</span>
-                            <span className="text-sm">
-                              {tx.bridgeFee} {tx.from === 'Bitcoin' ? 'BTC' : 'ETH'}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Recipient</span>
+                            <span className="text-sm text-muted-foreground">Target Address</span>
                             <span className="font-mono text-xs">
-                              {formatAddress(tx.recipientAddress, 6)}
+                              {formatAddress(tx.targetAddress || tx.sourceAddress, 6)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Confirmations</span>
+                            <span className="text-sm">
+                              {tx.confirmations}
                             </span>
                           </div>
                         </div>
@@ -328,19 +337,36 @@ export function TransactionHistory({ className }: TransactionHistoryProps) {
                       {/* Transaction Hash and Actions */}
                       <div className="flex flex-col gap-4 lg:w-80">
                         <div className="space-y-2">
-                          <span className="text-sm text-muted-foreground">Transaction Hash</span>
+                          <span className="text-sm text-muted-foreground">Source Transaction</span>
                           <div className="flex items-center gap-2 p-3 rounded-xl glass border border-white/10">
                             <span className="font-mono text-xs flex-1 truncate">
-                              {formatAddress(tx.txHash, 8)}
+                              {formatAddress(tx.sourceTxHash, 8)}
                             </span>
                             <button
-                              onClick={() => copyToClipboard(tx.txHash)}
+                              onClick={() => copyToClipboard(tx.sourceTxHash)}
                               className="p-1 hover:bg-white/10 rounded transition-colors"
                             >
                               <Copy className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
+                        
+                        {tx.targetTxHash && (
+                          <div className="space-y-2">
+                            <span className="text-sm text-muted-foreground">Target Transaction</span>
+                            <div className="flex items-center gap-2 p-3 rounded-xl glass border border-white/10">
+                              <span className="font-mono text-xs flex-1 truncate">
+                                {formatAddress(tx.targetTxHash, 8)}
+                              </span>
+                              <button
+                                onClick={() => copyToClipboard(tx.targetTxHash!)}
+                                className="p-1 hover:bg-white/10 rounded transition-colors"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex gap-2">
                           <button className={cn(

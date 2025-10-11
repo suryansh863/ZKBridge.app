@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useAccount, useConnect } from 'wagmi'
 import { motion } from 'framer-motion'
-import { CheckCircle, AlertCircle, Clock, ArrowRight, ExternalLink, Copy, Hash, Eye } from 'lucide-react'
+import { CheckCircle, AlertCircle, Clock, ArrowRight, ExternalLink, Copy, Hash, Eye, QrCode, Clipboard, Link, Info } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { MerkleTreeVisualizer } from '@/components/merkle-tree-visualizer'
+import { QRScannerSimple } from '@/components/qr-scanner-simple'
 
 interface BridgeStep {
   id: number
@@ -59,6 +60,11 @@ export default function BridgePage() {
   const [sampleTransactions, setSampleTransactions] = useState<Array<{txHash: string, description: string}>>([])
   const [showSampleTransactions, setShowSampleTransactions] = useState(false)
   const [loadingSamples, setLoadingSamples] = useState(true)
+  const [showQRScanner, setShowQRScanner] = useState(false)
+  const [clipboardDetected, setClipboardDetected] = useState('')
+  const [showHelpTooltip, setShowHelpTooltip] = useState(false)
+  const [clipboardError, setClipboardError] = useState('')
+  const [qrScannerError, setQrScannerError] = useState('')
 
   useEffect(() => {
     // Load sample transactions for demo
@@ -78,6 +84,176 @@ export default function BridgePage() {
     
     loadSampleTransactions()
   }, [])
+
+  // Auto-detect Bitcoin transaction IDs from clipboard and URLs
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const text = e.clipboardData?.getData('text') || ''
+      
+      // Check if pasted text contains a Bitcoin transaction ID
+      const txIdMatch = text.match(/\b[a-fA-F0-9]{64}\b/)
+      if (txIdMatch) {
+        setBitcoinTx(txIdMatch[0])
+        setClipboardDetected('Transaction ID detected from clipboard!')
+        setTimeout(() => setClipboardDetected(''), 3000)
+        return
+      }
+      
+      // Check if pasted text is a Bitcoin explorer URL
+      const urlPatterns = [
+        /blockstream\.info\/testnet\/tx\/([a-fA-F0-9]{64})/,
+        /blockchain\.info\/tx\/([a-fA-F0-9]{64})/,
+        /mempool\.space\/testnet\/tx\/([a-fA-F0-9]{64})/,
+        /btc\.com\/btc-testnet\/tx\/([a-fA-F0-9]{64})/
+      ]
+      
+      for (const pattern of urlPatterns) {
+        const match = text.match(pattern)
+        if (match) {
+          setBitcoinTx(match[1])
+          setClipboardDetected('Transaction ID extracted from URL!')
+          setTimeout(() => setClipboardDetected(''), 3000)
+          return
+        }
+      }
+    }
+
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  }, [])
+
+  // Function to extract transaction ID from various formats
+  const extractTransactionId = (input: string): string | null => {
+    if (!input) return null
+    
+    // Direct transaction ID
+    if (/^[a-fA-F0-9]{64}$/.test(input.trim())) {
+      return input.trim()
+    }
+    
+    // Bitcoin explorer URLs
+    const urlPatterns = [
+      /blockstream\.info\/testnet\/tx\/([a-fA-F0-9]{64})/,
+      /blockchain\.info\/tx\/([a-fA-F0-9]{64})/,
+      /mempool\.space\/testnet\/tx\/([a-fA-F0-9]{64})/,
+      /btc\.com\/btc-testnet\/tx\/([a-fA-F0-9]{64})/,
+      /tx\/([a-fA-F0-9]{64})/
+    ]
+    
+    for (const pattern of urlPatterns) {
+      const match = input.match(pattern)
+      if (match) {
+        return match[1]
+      }
+    }
+    
+    // Look for transaction ID anywhere in the text
+    const txIdMatch = input.match(/\b[a-fA-F0-9]{64}\b/)
+    return txIdMatch ? txIdMatch[0] : null
+  }
+
+  // Comprehensive clipboard reading function with fallbacks
+  const readFromClipboard = async () => {
+    try {
+      setClipboardError('')
+      setClipboardDetected('')
+      
+      let clipboardText = ''
+      
+      // Method 1: Modern Clipboard API (preferred)
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        try {
+          // Request permission first
+          const permission = await navigator.permissions.query({ name: 'clipboard-read' as PermissionName }).catch(() => null)
+          
+          if (permission && permission.state === 'denied') {
+            throw new Error('Clipboard access denied by user')
+          }
+          
+          clipboardText = await navigator.clipboard.readText()
+        } catch (apiError) {
+          console.log('Clipboard API failed, trying fallback:', apiError)
+          throw apiError
+        }
+      } else {
+        throw new Error('Clipboard API not available')
+      }
+      
+      // If we got text from clipboard
+      if (clipboardText && clipboardText.trim()) {
+        const txId = extractTransactionId(clipboardText)
+        if (txId) {
+          setBitcoinTx(txId)
+          setClipboardDetected('Transaction ID pasted successfully!')
+          setTimeout(() => setClipboardDetected(''), 3000)
+        } else {
+          setClipboardError('No Bitcoin transaction ID found in clipboard')
+          setTimeout(() => setClipboardError(''), 3000)
+        }
+      } else {
+        setClipboardError('Clipboard is empty')
+        setTimeout(() => setClipboardError(''), 3000)
+      }
+      
+    } catch (error: any) {
+      console.error('Clipboard read error:', error)
+      
+      // Method 2: Fallback - Create a temporary textarea and use execCommand
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.style.position = 'fixed'
+        textarea.style.left = '-999999px'
+        textarea.style.top = '-999999px'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        
+        // Focus and paste
+        textarea.focus()
+        const success = document.execCommand('paste')
+        
+        if (success && textarea.value) {
+          const txId = extractTransactionId(textarea.value)
+          if (txId) {
+            setBitcoinTx(txId)
+            setClipboardDetected('Transaction ID pasted!')
+            setTimeout(() => setClipboardDetected(''), 3000)
+          } else {
+            setClipboardError('No Bitcoin transaction ID found in clipboard')
+            setTimeout(() => setClipboardError(''), 3000)
+          }
+        } else {
+          throw new Error('execCommand paste failed')
+        }
+        
+        document.body.removeChild(textarea)
+        
+      } catch (fallbackError) {
+        console.error('Fallback clipboard method failed:', fallbackError)
+        
+        // Method 3: Show user-friendly error with manual instructions
+        setClipboardError('Please paste manually (Ctrl+V or Cmd+V) into the input field')
+        setTimeout(() => setClipboardError(''), 5000)
+      }
+    }
+  }
+
+  // QR Scanner handlers
+  const handleQRScan = (result: string) => {
+    setBitcoinTx(result)
+    setShowQRScanner(false)
+    setClipboardDetected('Transaction ID scanned from QR code!')
+    setTimeout(() => setClipboardDetected(''), 3000)
+  }
+
+  const handleQRError = (error: string) => {
+    setQrScannerError(error)
+    setTimeout(() => setQrScannerError(''), 5000)
+  }
+
+  const handleQRClose = () => {
+    setShowQRScanner(false)
+    setQrScannerError('')
+  }
 
   const steps: BridgeStep[] = [
     {
@@ -127,11 +303,30 @@ export default function BridgePage() {
       const response = await fetch(`/api/bitcoin/detailed-transaction/${bitcoinTx}`)
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to fetch transaction')
+        let errorMessage = 'Failed to fetch transaction'
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.message || errorData.error || errorMessage
+        } catch (parseError) {
+          // If response is not JSON, get the text
+          const errorText = await response.text()
+          errorMessage = errorText || errorMessage
+        }
+        throw new Error(errorMessage)
       }
       
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError)
+        throw new Error('Invalid response format from server')
+      }
+      
+      if (!data.success || !data.data) {
+        throw new Error(data.message || 'Invalid transaction data received')
+      }
+      
       const txData = data.data
       
       // Convert to our interface format
@@ -252,6 +447,29 @@ export default function BridgePage() {
       // Mock bridge transaction hash
       const mockHash = '0x' + Math.random().toString(16).substr(2, 40)
       setBridgeTxHash(mockHash)
+      
+      // Update the bridge transaction status to completed
+      try {
+        const updateResponse = await fetch(`/api/bridge/${storeData.data.bridgeId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            status: 'COMPLETED',
+            targetTxHash: mockHash
+          })
+        })
+
+        if (updateResponse.ok) {
+          console.log('Bridge transaction marked as completed')
+        } else {
+          console.error('Failed to update bridge status')
+        }
+      } catch (updateError) {
+        console.error('Error updating bridge status:', updateError)
+      }
+      
       setCurrentStep(4)
     } catch (error) {
       console.error('Error bridging to Ethereum:', error)
@@ -383,22 +601,53 @@ export default function BridgePage() {
                         </div>
                       ) : showSampleTransactions && sampleTransactions.length > 0 ? (
                         <div className="space-y-3">
+                          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4">
+                            <p className="text-blue-400 text-sm font-medium flex items-center">
+                              <Info className="w-4 h-4 mr-2" />
+                              Demo Transactions Available
+                            </p>
+                            <p className="text-blue-300/80 text-xs mt-1">
+                              Click &quot;Use This Transaction&quot; to try the bridge with pre-loaded test data
+                            </p>
+                          </div>
+                          
                           {sampleTransactions.map((sample, index) => (
-                            <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-blue-500/30 transition-colors">
-                              <div className="flex-1 mb-3 sm:mb-0">
-                                <p className="text-sm text-gray-300 font-medium mb-1">{sample.description}</p>
-                                <code className="text-xs text-blue-400 font-mono bg-gray-900/50 px-2 py-1 rounded">
-                                  {sample.txHash.substring(0, 20)}...{sample.txHash.substring(sample.txHash.length - 20)}
-                                </code>
+                            <div key={index} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-blue-500/30 transition-all hover:shadow-lg hover:shadow-blue-500/10">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                                <div className="flex-1 mb-3 sm:mb-0">
+                                  <div className="flex items-center mb-2">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    <p className="text-sm text-gray-300 font-medium">{sample.description}</p>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <code className="text-xs text-blue-400 font-mono bg-gray-900/50 px-2 py-1 rounded">
+                                      {sample.txHash.substring(0, 12)}...{sample.txHash.substring(sample.txHash.length - 12)}
+                                    </code>
+                                    <button
+                                      onClick={() => navigator.clipboard.writeText(sample.txHash)}
+                                      className="text-gray-400 hover:text-gray-300 transition-colors"
+                                      title="Copy full transaction ID"
+                                    >
+                                      <Copy className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleSampleTransaction(sample.txHash)}
+                                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all hover:scale-105 flex items-center space-x-2"
+                                >
+                                  <span>Use This Transaction</span>
+                                  <ArrowRight className="w-4 h-4" />
+                                </button>
                               </div>
-                              <button
-                                onClick={() => handleSampleTransaction(sample.txHash)}
-                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all hover:scale-105"
-                              >
-                                Use This Transaction
-                              </button>
                             </div>
                           ))}
+                          
+                          <div className="bg-gray-700/30 rounded-lg p-3 mt-4">
+                            <p className="text-gray-400 text-xs">
+                              💡 <strong>Tip:</strong> These are demo transactions for testing. In real usage, you&apos;ll use your own Bitcoin transaction IDs from your wallet.
+                            </p>
+                          </div>
                         </div>
                       ) : !loadingSamples && sampleTransactions.length === 0 ? (
                         <div className="text-center py-6">
@@ -410,27 +659,125 @@ export default function BridgePage() {
 
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Bitcoin Transaction ID (Testnet)
-                        </label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-sm font-medium text-gray-300">
+                            Bitcoin Transaction ID (Testnet)
+                          </label>
+                          <div className="relative">
+                            <button
+                              onClick={() => setShowHelpTooltip(!showHelpTooltip)}
+                              className="text-gray-400 hover:text-gray-300 transition-colors"
+                            >
+                              <Info className="w-4 h-4" />
+                            </button>
+                            {showHelpTooltip && (
+                              <div className="absolute right-0 top-6 w-80 bg-gray-800 border border-gray-600 rounded-lg p-3 text-xs text-gray-300 z-10">
+                                <div className="space-y-2">
+                                  <p className="font-medium text-white">Easy ways to enter your transaction ID:</p>
+                                  <ul className="space-y-1">
+                                  <li>• <strong>📱 Scan QR code:</strong> Click the QR button to scan with your camera</li>
+                                  <li>• <strong>📋 Click clipboard button:</strong> Automatically reads from your clipboard</li>
+                                  <li>• <strong>⌨️ Manual paste:</strong> Copy any Bitcoin explorer URL and paste (Ctrl+V)</li>
+                                  <li>• <strong>🎯 Use samples:</strong> Click &quot;Use This Transaction&quot; from the list above</li>
+                                  <li>• <strong>✏️ Type manually:</strong> Enter the 64-character transaction ID directly</li>
+                                  </ul>
+                                  <div className="bg-blue-500/10 border border-blue-500/20 rounded p-2 mt-2">
+                                    <p className="text-blue-400 font-medium">💡 Pro Tip:</p>
+                                    <p className="text-blue-300/80">Copy any Bitcoin explorer URL (like blockstream.info) and paste it - we&apos;ll extract the transaction ID automatically!</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
                         <div className="relative">
                           <input
                             type="text"
                             value={bitcoinTx}
-                            onChange={(e) => setBitcoinTx(e.target.value)}
-                            placeholder="Enter Bitcoin transaction ID"
-                            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+                            onChange={(e) => {
+                              setBitcoinTx(e.target.value)
+                              // Clear any previous messages when user types
+                              if (clipboardDetected) setClipboardDetected('')
+                              if (clipboardError) setClipboardError('')
+                            }}
+                            onPaste={(e) => {
+                              // Handle paste events - let the browser paste first, then process
+                              setTimeout(() => {
+                                const pastedText = e.clipboardData?.getData('text') || ''
+                                const txId = extractTransactionId(pastedText)
+                                if (txId && txId !== bitcoinTx) {
+                                  setBitcoinTx(txId)
+                                  setClipboardDetected('Transaction ID extracted from pasted content!')
+                                  setTimeout(() => setClipboardDetected(''), 3000)
+                                }
+                              }, 10)
+                            }}
+                            placeholder="Paste Bitcoin transaction ID or explorer URL here..."
+                            className="w-full px-4 py-3 pr-20 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base transition-all duration-200"
                           />
-                          {bitcoinTx && (
-                            <button
-                              onClick={() => setBitcoinTx('')}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                            >
-                              ✕
-                            </button>
-                          )}
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                            {bitcoinTx ? (
+                              <button
+                                onClick={() => setBitcoinTx('')}
+                                className="p-1 text-gray-400 hover:text-white transition-colors"
+                                title="Clear"
+                              >
+                                ✕
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={readFromClipboard}
+                                  className="p-1 text-gray-400 hover:text-blue-400 transition-colors"
+                                  title="Paste from clipboard"
+                                >
+                                  <Clipboard className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setShowQRScanner(true)}
+                                  className="p-1 text-gray-400 hover:text-green-400 transition-colors"
+                                  title="Scan QR code"
+                                >
+                                  <QrCode className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Enter a 64-character hexadecimal transaction ID</p>
+                        
+                        {clipboardDetected && (
+                          <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg">
+                            <p className="text-green-400 text-xs flex items-center">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              {clipboardDetected}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {clipboardError && (
+                          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                            <p className="text-red-400 text-xs flex items-center">
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              {clipboardError}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {qrScannerError && (
+                          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                            <p className="text-red-400 text-xs flex items-center">
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              QR Scanner: {qrScannerError}
+                            </p>
+                          </div>
+                        )}
+                        
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <div className="text-xs text-gray-500">
+                            💡 <strong>Easy options:</strong> Paste any Bitcoin explorer URL, copy transaction ID from your wallet, or use sample transactions above
+                          </div>
+                        </div>
                       </div>
 
                       <div>
@@ -771,6 +1118,15 @@ export default function BridgePage() {
       </main>
 
       <Footer />
+
+      {/* QR Scanner Modal */}
+      {showQRScanner && (
+        <QRScannerSimple
+          onScan={handleQRScan}
+          onClose={handleQRClose}
+          onError={handleQRError}
+        />
+      )}
     </div>
   )
 }

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useWalletConnection, useWalletBalance, useWalletErrors } from '@/hooks/useWallet';
 import { formatAddress, formatBalance } from '@/utils/format';
+import { ClientOnly } from '@/components/client-only';
 
 interface WalletStatusProps {
   className?: string;
@@ -77,16 +78,21 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className={`flex items-center gap-2 text-gray-400 ${className}`}>
-        <Wallet className="w-4 h-4" />
-        <span className="text-sm">Not connected</span>
-      </div>
-    );
-  }
-
   return (
+    <ClientOnly 
+      fallback={
+        <div className={`flex items-center gap-2 text-gray-400 ${className}`}>
+          <Wallet className="w-4 h-4" />
+          <span className="text-sm">Loading...</span>
+        </div>
+      }
+    >
+      {!isConnected ? (
+        <div className={`flex items-center gap-2 text-gray-400 ${className}`}>
+          <Wallet className="w-4 h-4" />
+          <span className="text-sm">Not connected</span>
+        </div>
+      ) : (
     <div className={`bg-gray-800/50 rounded-xl border border-gray-700 ${className}`}>
       {/* Main Status */}
       <div className="p-4">
@@ -214,6 +220,8 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
         </motion.div>
       )}
     </div>
+      )}
+    </ClientOnly>
   );
 }
 
@@ -224,29 +232,36 @@ export function WalletStatusCompact({ className = '' }: { className?: string }) 
   const { isConnected, address, network } = useWalletConnection();
   const { balance } = useWalletBalance();
 
-  if (!isConnected) {
-    return (
-      <div className={`flex items-center gap-2 text-gray-400 ${className}`}>
-        <Wallet className="w-4 h-4" />
-        <span className="text-sm">Connect Wallet</span>
-      </div>
-    );
-  }
-
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-        <Wallet className="w-4 h-4 text-white" />
-      </div>
-      <div className="text-right">
-        <p className="text-sm font-medium text-white">
-          {balance ? formatBalance(Number(balance.value)) : '0'} ETH
-        </p>
-        <p className="text-xs text-gray-400">
-          {formatAddress(address || '')}
-        </p>
-      </div>
-    </div>
+    <ClientOnly 
+      fallback={
+        <div className={`flex items-center gap-2 text-gray-400 ${className}`}>
+          <Wallet className="w-4 h-4" />
+          <span className="text-sm">Loading...</span>
+        </div>
+      }
+    >
+      {!isConnected ? (
+        <div className={`flex items-center gap-2 text-gray-400 ${className}`}>
+          <Wallet className="w-4 h-4" />
+          <span className="text-sm">Connect Wallet</span>
+        </div>
+      ) : (
+        <div className={`flex items-center gap-3 ${className}`}>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <Wallet className="w-4 h-4 text-white" />
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-medium text-white">
+              {balance ? formatBalance(Number(balance.value)) : '0'} ETH
+            </p>
+            <p className="text-xs text-gray-400">
+              {formatAddress(address || '')}
+            </p>
+          </div>
+        </div>
+      )}
+    </ClientOnly>
   );
 }
 

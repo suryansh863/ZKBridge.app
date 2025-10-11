@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
 import { ApiResponse, EthereumTransaction } from '../types';
@@ -10,7 +10,7 @@ const ethereumService = new EthereumService();
 // Get Ethereum transaction details
 router.get('/transaction/:hash', [
   param('hash').isString().notEmpty().withMessage('Transaction hash is required'),
-], asyncHandler(async (req, res) => {
+], asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     throw new CustomError('Validation failed', 400);
@@ -32,7 +32,7 @@ router.post('/verify', [
   body('hash').isString().notEmpty().withMessage('Transaction hash is required'),
   body('address').isString().notEmpty().withMessage('Address is required'),
   body('amount').isString().withMessage('Amount must be a string'),
-], asyncHandler(async (req, res) => {
+], asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     throw new CustomError('Validation failed', 400);
@@ -50,7 +50,7 @@ router.post('/verify', [
 }));
 
 // Get Ethereum network info
-router.get('/network-info', asyncHandler(async (req, res) => {
+router.get('/network-info', asyncHandler(async (req: Request, res: Response) => {
   const networkInfo = await ethereumService.getNetworkInfo();
 
   const response: ApiResponse = {
@@ -64,7 +64,7 @@ router.get('/network-info', asyncHandler(async (req, res) => {
 // Get Ethereum balance for address
 router.get('/balance/:address', [
   param('address').isString().notEmpty().withMessage('Address is required'),
-], asyncHandler(async (req, res) => {
+], asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     throw new CustomError('Validation failed', 400);
@@ -82,7 +82,7 @@ router.get('/balance/:address', [
 }));
 
 // Get gas price
-router.get('/gas-price', asyncHandler(async (req, res) => {
+router.get('/gas-price', asyncHandler(async (req: Request, res: Response) => {
   const gasPrice = await ethereumService.getGasPrice();
 
   const response: ApiResponse<{ gasPrice: string }> = {
@@ -98,7 +98,7 @@ router.post('/estimate-gas', [
   body('to').isString().notEmpty().withMessage('To address is required'),
   body('value').isString().withMessage('Value must be a string'),
   body('data').optional().isString().withMessage('Data must be a string'),
-], asyncHandler(async (req, res) => {
+], asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     throw new CustomError('Validation failed', 400);

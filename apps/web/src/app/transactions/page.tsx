@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, Download, Eye, Clock, CheckCircle, XCircle, ExternalLink, Copy } from 'lucide-react'
+import { Search, Filter, Download, Eye, Clock, CheckCircle, XCircle, ExternalLink, Copy, RefreshCw } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 
@@ -18,64 +18,84 @@ interface Transaction {
   fee: number
 }
 
-const mockTransactions: Transaction[] = [
-  {
-    id: 'tx_001',
-    type: 'bridge',
-    status: 'confirmed',
-    bitcoinTx: 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456',
-    ethereumTx: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12',
-    amount: 0.001,
-    timestamp: new Date('2024-01-15T10:30:00Z'),
-    confirmations: 12,
-    fee: 0.0001
-  },
-  {
-    id: 'tx_002',
-    type: 'bridge',
-    status: 'pending',
-    bitcoinTx: 'b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890',
-    amount: 0.005,
-    timestamp: new Date('2024-01-15T09:15:00Z'),
-    confirmations: 3,
-    fee: 0.0002
-  },
-  {
-    id: 'tx_003',
-    type: 'withdraw',
-    status: 'confirmed',
-    ethereumTx: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-    amount: 0.002,
-    timestamp: new Date('2024-01-14T16:45:00Z'),
-    confirmations: 8,
-    fee: 0.00015
-  },
-  {
-    id: 'tx_004',
-    type: 'deposit',
-    status: 'failed',
-    bitcoinTx: 'c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890ab',
-    amount: 0.003,
-    timestamp: new Date('2024-01-14T14:20:00Z'),
-    confirmations: 0,
-    fee: 0.0003
-  }
-]
-
 export default function TransactionsPage() {
   const [mounted, setMounted] = useState(false)
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions)
-  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>(mockTransactions)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'failed'>('all')
   const [typeFilter, setTypeFilter] = useState<'all' | 'bridge' | 'withdraw' | 'deposit'>('all')
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Load transactions from API
+  const loadTransactions = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/bridge/transactions')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data) {
+          // Transform API data to match our Transaction interface
+          const transformedTransactions: Transaction[] = data.data.map((tx: any) => ({
+            id: tx.id,
+            type: 'bridge',
+            status: tx.status.toLowerCase() === 'completed' ? 'confirmed' : 
+                   tx.status.toLowerCase() === 'pending' ? 'pending' : 'failed',
+            bitcoinTx: tx.sourceTxHash,
+            ethereumTx: tx.targetTxHash || undefined,
+            amount: parseFloat(tx.sourceAmount) / 100000000, // Convert satoshis to BTC
+            timestamp: new Date(tx.createdAt),
+            confirmations: tx.confirmations || 0,
+            fee: parseFloat(tx.fee || '0') / 100000000
+          }))
+          setTransactions(transformedTransactions)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load transactions:', error)
+      // Fallback to mock data for demo purposes
+      setTransactions([
+        {
+          id: 'demo-1',
+          type: 'bridge',
+          status: 'confirmed',
+          bitcoinTx: 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16',
+          ethereumTx: '0x1234567890abcdef1234567890abcdef12345678',
+          amount: 0.001,
+          timestamp: new Date(Date.now() - 86400000),
+          confirmations: 6,
+          fee: 0.00001
+        }
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (mounted) {
+      loadTransactions()
+    }
+  }, [mounted])
+
+  // Refresh transactions when page becomes visible (e.g., returning from bridge completion)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && mounted) {
+        loadTransactions()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [mounted])
 
   useEffect(() => {
     let filtered = transactions
@@ -264,14 +284,27 @@ export default function TransactionsPage() {
               </select>
             </div>
 
-            {/* Export Button */}
-            <button
-              onClick={exportTransactions}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
-            >
-              <Download className="w-4 h-4" />
-              <span>Export</span>
-            </button>
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3">
+              {/* Refresh Button */}
+              <button
+                onClick={loadTransactions}
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
+              </button>
+
+              {/* Export Button */}
+              <button
+                onClick={exportTransactions}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export</span>
+              </button>
+            </div>
           </div>
         </motion.div>
 

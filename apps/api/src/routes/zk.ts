@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
 import { ApiResponse, ZKProof } from '../types';
@@ -39,7 +39,7 @@ router.post('/prove', [
   body('secret').isString().notEmpty().withMessage('Secret is required'),
   body('publicInput').isString().notEmpty().withMessage('Public input is required'),
   body('additionalData').optional().isObject().withMessage('Additional data must be an object'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { secret, publicInput, additionalData } = req.body;
 
   logger.info('ZK proof generation requested', { 
@@ -58,7 +58,7 @@ router.post('/prove', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('ZK proof generation error:', error);
     throw new CustomError('Failed to generate ZK proof', 500);
   }
@@ -68,7 +68,7 @@ router.post('/prove', [
 router.post('/verify', [
   body('proof').isObject().withMessage('Proof must be an object'),
   body('publicSignals').isArray().withMessage('Public signals must be an array'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { proof, publicSignals } = req.body;
 
   logger.info('ZK proof verification requested', { 
@@ -86,7 +86,7 @@ router.post('/verify', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('ZK proof verification error:', error);
     throw new CustomError('Failed to verify ZK proof', 500);
   }
@@ -102,7 +102,7 @@ router.post('/bridge-proof', [
   body('ethereumData').isObject().withMessage('Ethereum data is required'),
   body('ethereumData.address').isString().notEmpty().withMessage('Ethereum address is required'),
   body('ethereumData.amount').isString().notEmpty().withMessage('Ethereum amount is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { bitcoinTxData, ethereumData } = req.body;
 
   logger.info('Bridge ZK proof generation requested', { 
@@ -120,7 +120,7 @@ router.post('/bridge-proof', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge ZK proof generation error:', error);
     throw new CustomError('Failed to generate bridge ZK proof', 500);
   }
@@ -134,7 +134,7 @@ router.post('/verify-bridge-proof', [
   body('expectedData.bitcoinAmount').isNumeric().withMessage('Bitcoin amount must be numeric'),
   body('expectedData.ethereumAddress').isString().notEmpty().withMessage('Ethereum address is required'),
   body('expectedData.ethereumAmount').isString().notEmpty().withMessage('Ethereum amount is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { proof, expectedData } = req.body;
 
   logger.info('Bridge ZK proof verification requested', { 
@@ -157,7 +157,7 @@ router.post('/verify-bridge-proof', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bridge ZK proof verification error:', error);
     throw new CustomError('Failed to verify bridge ZK proof', 500);
   }
@@ -166,7 +166,7 @@ router.post('/verify-bridge-proof', [
 // POST /api/zk/demo/proof-of-knowledge - Demo proof of knowledge
 router.post('/demo/proof-of-knowledge', [
   body('secret').isString().notEmpty().withMessage('Secret is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { secret } = req.body;
 
   logger.info('Demo proof of knowledge requested', { secretLength: secret.length });
@@ -185,7 +185,7 @@ router.post('/demo/proof-of-knowledge', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Demo proof of knowledge error:', error);
     throw new CustomError('Failed to demonstrate proof of knowledge', 500);
   }
@@ -198,7 +198,7 @@ router.post('/generate-witness', [
   body('inputs.publicInput').optional().isString().withMessage('Public input must be a string'),
   body('inputs.nonce').optional().isString().withMessage('Nonce must be a string'),
   body('inputs.timestamp').optional().isNumeric().withMessage('Timestamp must be numeric'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { inputs } = req.body;
 
   logger.info('Witness generation requested', { 
@@ -216,14 +216,14 @@ router.post('/generate-witness', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Witness generation error:', error);
     throw new CustomError('Failed to generate witness', 500);
   }
 }));
 
 // GET /api/zk/circuit-info - Get circuit information
-router.get('/circuit-info', asyncHandler(async (req, res) => {
+router.get('/circuit-info', asyncHandler(async (req: Request, res: Response) => {
   logger.info('Circuit info requested');
 
   try {
@@ -236,14 +236,14 @@ router.get('/circuit-info', asyncHandler(async (req, res) => {
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Circuit info error:', error);
     throw new CustomError('Failed to get circuit information', 500);
   }
 }));
 
 // GET /api/zk/health - Check ZK service health
-router.get('/health', asyncHandler(async (req, res) => {
+router.get('/health', asyncHandler(async (req: Request, res: Response) => {
   logger.info('ZK service health check requested');
 
   try {
@@ -260,7 +260,7 @@ router.get('/health', asyncHandler(async (req, res) => {
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('ZK health check error:', error);
     throw new CustomError('ZK service health check failed', 500);
   }

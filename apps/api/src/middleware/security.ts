@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
-import { authenticateApiKey } from './auth';
+// import { authenticateApiKey } from './auth'; // Unused for now
 
 // IP-based rate limiting storage
 const ipRequestCounts = new Map<string, { count: number; resetTime: number }>();
@@ -181,7 +181,14 @@ export const validateApiKeyAccess = (requiredLevel: 'readonly' | 'full' | 'admin
     const apiKey = req.headers['x-api-key'] as string;
     
     if (!apiKey) {
-      req.security = { ...req.security, accessLevel: 'public' };
+      req.security = { 
+        ...req.security, 
+        accessLevel: 'public',
+        isSuspicious: false,
+        riskScore: 0,
+        ip: req.ip || 'unknown',
+        userAgent: req.get('User-Agent') || 'unknown'
+      };
       return next();
     }
 
@@ -218,7 +225,15 @@ export const validateApiKeyAccess = (requiredLevel: 'readonly' | 'full' | 'admin
       });
     }
 
-    req.security = { ...req.security, apiKey, accessLevel };
+    req.security = { 
+      ...req.security, 
+      apiKey, 
+      accessLevel,
+      isSuspicious: false,
+      riskScore: 0,
+      ip: req.ip || 'unknown',
+      userAgent: req.get('User-Agent') || 'unknown'
+    };
     next();
   };
 };

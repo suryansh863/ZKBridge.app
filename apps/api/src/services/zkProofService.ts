@@ -1,7 +1,7 @@
 // import { ZKProofGenerator, ZKProofInputs, ZKProofResult } from '@zkbridge/zk';
-import { groth16 } from 'snarkjs';
+// import { groth16 } from 'snarkjs'; // Unused for now
 import { logger } from '../utils/logger';
-import { ZKProof, MerkleProof } from '../types';
+// import { ZKProof, MerkleProof } from '../types'; // Unused for now
 
 export interface BitcoinTransactionProof {
   txHash: string;
@@ -57,7 +57,7 @@ export interface ZKProofResult {
   };
   publicSignals: string[];
   circuitInputs: ZKCircuitInputs;
-  verificationKey: any;
+    _verificationKey: any;
 }
 
 export class ZKProofService {
@@ -72,7 +72,7 @@ export class ZKProofService {
       // For now, we'll use mock proofs in development
       logger.warn('ZK circuit files not found. Using mock proofs for development.', { service: 'zkbridge-backend' });
       return false;
-    } catch (error) {
+    } catch (error: any) {
       logger.warn('ZK circuit files not found. Using mock proofs for development.', { service: 'zkbridge-backend' });
       return false;
     }
@@ -92,21 +92,8 @@ export class ZKProofService {
         return this.generateMockBitcoinProof(bitcoinTx, publicAmount, publicAddress, privateSecret);
       }
 
-      // Prepare circuit inputs for the ZK package
-      const circuitInputs: ZKProofInputs = {
-        btcTxHash: bitcoinTx.txHash,
-        merkleRoot: bitcoinTx.merkleRoot,
-        merkleProof: bitcoinTx.merkleProof,
-        proofIndex: bitcoinTx.proofIndex,
-        blockHeight: bitcoinTx.blockHeight,
-        inputAmount: bitcoinTx.inputs.reduce((sum, input) => sum + parseFloat(input.amount), 0).toString(),
-        outputAmount: bitcoinTx.outputs.reduce((sum, output) => sum + parseFloat(output.amount), 0).toString(),
-        fee: bitcoinTx.fee,
-        publicAmount,
-        publicAddress,
-        privateSecret,
-        nonce: this.generateNonce()
-      };
+      // TODO: Prepare circuit inputs for the ZK package when implementing real proof generation
+      // const circuitInputs: ZKProofInputs = { ... };
 
       // Generate mock proof for development
       const mockProof = this.generateMockBitcoinProof(bitcoinTx, publicAmount, publicAddress, privateSecret);
@@ -118,7 +105,7 @@ export class ZKProofService {
       });
 
       return mockProof;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error generating Bitcoin transaction ZK proof:', error);
       throw new Error(`Failed to generate Bitcoin transaction ZK proof: ${error.message}`);
     }
@@ -138,20 +125,8 @@ export class ZKProofService {
         return this.generateMockMerkleProof(merkleRoot, merkleProof, proofIndex, leafHash);
       }
 
-      const circuitInputs: ZKCircuitInputs = {
-        btcTxHash: leafHash,
-        merkleRoot,
-        merkleProof,
-        proofIndex,
-        blockHeight: 0, // Not needed for Merkle proof
-        inputAmount: '0',
-        outputAmount: '0',
-        fee: '0',
-        publicAmount: '0',
-        publicAddress: '',
-        privateSecret: this.generateNonce(),
-        nonce: this.generateNonce()
-      };
+      // TODO: Prepare circuit inputs when implementing real Merkle proof generation
+      // const circuitInputs: ZKCircuitInputs = { ... };
 
       const mockProof = this.generateMockMerkleProof(merkleRoot, merkleProof, proofIndex, leafHash);
 
@@ -162,7 +137,7 @@ export class ZKProofService {
       });
 
       return mockProof;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error generating Merkle proof ZK proof:', error);
       throw new Error(`Failed to generate Merkle proof ZK proof: ${error.message}`);
     }
@@ -171,7 +146,7 @@ export class ZKProofService {
   /**
    * Verify ZK proof
    */
-  async verifyProof(proof: any, publicSignals: string[], verificationKey?: any): Promise<boolean> {
+  async verifyProof(proof: any, publicSignals: string[], _verificationKey?: any): Promise<boolean> {
     try {
       if (!this.isCircuitAvailable) {
         return this.verifyMockProof(proof, publicSignals);
@@ -185,7 +160,7 @@ export class ZKProofService {
       });
 
       return isValid;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error verifying ZK proof:', error);
       throw new Error(`Failed to verify ZK proof: ${error.message}`);
     }
@@ -400,7 +375,7 @@ export class ZKProofService {
       circuitPath: this.circuitPath,
       provingKeyPath: this.provingKeyPath,
       verificationKeyPath: this.verificationKeyPath,
-      lastModified: this.isCircuitAvailable ? fs.statSync(this.circuitPath).mtime : null
+      lastModified: null // TODO: Implement file modification check when needed
     };
   }
 
@@ -417,7 +392,7 @@ export class ZKProofService {
       });
       
       return this.isCircuitAvailable;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error compiling circuit:', error);
       return false;
     }

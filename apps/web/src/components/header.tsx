@@ -11,14 +11,112 @@ import { WalletConnectModal } from '@/components/wallet/WalletConnectModal';
 import { CoinDCXConnectModal } from '@/components/wallet/CoinDCXConnectModal';
 import { WalletStatusCompact } from '@/components/wallet/WalletStatus';
 import { useWalletConnection } from '@/hooks/useWallet';
+import { ClientOnly } from '@/components/client-only';
+
+// Wallet connection component to avoid hydration issues
+function WalletConnectionSection() {
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [isCoinDCXModalOpen, setIsCoinDCXModalOpen] = useState(false);
+  const { isConnected } = useWalletConnection();
+
+  return (
+    <ClientOnly 
+      fallback={
+        <button
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300",
+            "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
+            "text-white font-medium shadow-lg hover:shadow-xl hover:scale-105"
+          )}
+        >
+          <Wallet className="h-4 w-4" />
+          Connect Wallet
+        </button>
+      }
+    >
+      {isConnected ? (
+        <WalletStatusCompact />
+      ) : (
+        <button
+          onClick={() => setIsWalletModalOpen(true)}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300",
+            "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
+            "text-white font-medium shadow-lg hover:shadow-xl hover:scale-105"
+          )}
+        >
+          <Wallet className="h-4 w-4" />
+          Connect Wallet
+        </button>
+      )}
+      
+      {/* Wallet Connection Modals */}
+      <WalletConnectModal 
+        isOpen={isWalletModalOpen} 
+        onClose={() => setIsWalletModalOpen(false)} 
+      />
+      <CoinDCXConnectModal 
+        isOpen={isCoinDCXModalOpen} 
+        onClose={() => setIsCoinDCXModalOpen(false)} 
+      />
+    </ClientOnly>
+  );
+}
+
+// Mobile wallet connection component
+function MobileWalletConnectionSection() {
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [isCoinDCXModalOpen, setIsCoinDCXModalOpen] = useState(false);
+  const { isConnected } = useWalletConnection();
+
+  return (
+    <ClientOnly 
+      fallback={
+        <button
+          className={cn(
+            "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-300",
+            "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
+            "text-white font-medium shadow-lg hover:shadow-xl"
+          )}
+        >
+          <Wallet className="h-4 w-4" />
+          Connect Wallet
+        </button>
+      }
+    >
+      {isConnected ? (
+        <WalletStatusCompact />
+      ) : (
+        <button
+          onClick={() => setIsWalletModalOpen(true)}
+          className={cn(
+            "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-300",
+            "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
+            "text-white font-medium shadow-lg hover:shadow-xl"
+          )}
+        >
+          <Wallet className="h-4 w-4" />
+          Connect Wallet
+        </button>
+      )}
+      
+      {/* Wallet Connection Modals */}
+      <WalletConnectModal 
+        isOpen={isWalletModalOpen} 
+        onClose={() => setIsWalletModalOpen(false)} 
+      />
+      <CoinDCXConnectModal 
+        isOpen={isCoinDCXModalOpen} 
+        onClose={() => setIsCoinDCXModalOpen(false)} 
+      />
+    </ClientOnly>
+  );
+}
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const [isCoinDCXModalOpen, setIsCoinDCXModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
-  const { isConnected } = useWalletConnection();
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -93,21 +191,7 @@ export function Header() {
           </button>
           
           {/* Multi-Wallet Connect Button */}
-          {isConnected ? (
-            <WalletStatusCompact />
-          ) : (
-            <button
-              onClick={() => setIsWalletModalOpen(true)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300",
-                "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
-                "text-white font-medium shadow-lg hover:shadow-xl hover:scale-105"
-              )}
-            >
-              <Wallet className="h-4 w-4" />
-              Connect Wallet
-            </button>
-          )}
+          <WalletConnectionSection />
         </div>
 
         {/* Mobile Menu Button */}
@@ -199,40 +283,13 @@ export function Header() {
               </div>
               
               <div className="w-full">
-                {isConnected ? (
-                  <WalletStatusCompact />
-                ) : (
-                  <button
-                    onClick={() => setIsWalletModalOpen(true)}
-                    className={cn(
-                      "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-300",
-                      "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
-                      "text-white font-medium shadow-lg hover:shadow-xl"
-                    )}
-                  >
-                    <Wallet className="h-4 w-4" />
-                    Connect Wallet
-                  </button>
-                )}
+                <MobileWalletConnectionSection />
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Wallet Connect Modal */}
-      <WalletConnectModal
-        isOpen={isWalletModalOpen}
-        onClose={() => setIsWalletModalOpen(false)}
-        onConnect={() => setIsWalletModalOpen(false)}
-      />
-
-      {/* CoinDCX Connect Modal */}
-      <CoinDCXConnectModal
-        isOpen={isCoinDCXModalOpen}
-        onClose={() => setIsCoinDCXModalOpen(false)}
-        onConnect={() => setIsCoinDCXModalOpen(false)}
-      />
     </header>
   );
 }

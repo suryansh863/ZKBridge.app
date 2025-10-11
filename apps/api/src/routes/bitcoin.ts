@@ -1,7 +1,8 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
-import { ApiResponse, BitcoinTransaction, MerkleProof } from '../types';
+import { ApiResponse } from '../types';
+import { BitcoinTransaction, MerkleProof } from '../services/bitcoinTestnetService';
 import { bitcoinTestnetService } from '../services/bitcoinTestnetService';
 import { rateLimit } from 'express-rate-limit';
 import { logger } from '../utils/logger';
@@ -19,6 +20,23 @@ const bitcoinRateLimit = rateLimit({
 
 // Apply rate limiting to all Bitcoin routes
 router.use(bitcoinRateLimit);
+
+// Add caching headers for better performance
+router.use((req, res, next) => {
+  // Cache static data for 10 minutes
+  if (req.path.includes('/sample-transactions')) {
+    res.set('Cache-Control', 'public, max-age=600, s-maxage=600');
+  }
+  // Cache transaction data for 5 minutes
+  else if (req.path.includes('/transaction/') || req.path.includes('/detailed-transaction/')) {
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
+  }
+  // Cache Merkle proofs for 1 hour (they don't change)
+  else if (req.path.includes('/merkle-proof/') || req.path.includes('/detailed-merkle-proof/')) {
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+  }
+  next();
+});
 
 // Input validation middleware
 const validateRequest = (req: any, res: any, next: any) => {
@@ -38,7 +56,7 @@ router.post('/verify', [
   body('txid').isString().notEmpty().withMessage('Transaction ID is required'),
   body('address').isString().notEmpty().withMessage('Address is required'),
   body('amount').isNumeric().withMessage('Amount must be numeric'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txid, address, amount } = req.body;
 
   logger.info('Bitcoin transaction verification requested', { txid, address, amount });
@@ -58,7 +76,7 @@ router.post('/verify', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bitcoin verification error:', error);
     throw new CustomError('Failed to verify Bitcoin transaction', 500);
   }
@@ -68,7 +86,7 @@ router.post('/verify', [
 router.post('/proofs/generate', [
   body('txid').isString().notEmpty().withMessage('Transaction ID is required'),
   body('blockHash').optional().isString().withMessage('Block hash must be a string'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txid, blockHash } = req.body;
 
   logger.info('Merkle proof generation requested', { txid, blockHash });
@@ -83,7 +101,7 @@ router.post('/proofs/generate', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Merkle proof generation error:', error);
     throw new CustomError('Failed to generate Merkle proof', 500);
   }
@@ -95,7 +113,7 @@ router.post('/proofs/verify', [
   body('path').isArray().withMessage('Path must be an array'),
   body('indices').isArray().withMessage('Indices must be an array'),
   body('root').isString().notEmpty().withMessage('Root is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { leaf, path, indices, root } = req.body;
 
   logger.info('Merkle proof verification requested', { leaf, root });
@@ -118,7 +136,7 @@ router.post('/proofs/verify', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Merkle proof verification error:', error);
     throw new CustomError('Failed to verify Merkle proof', 500);
   }
@@ -127,7 +145,7 @@ router.post('/proofs/verify', [
 // GET /api/bitcoin/transaction/:txid - Get Bitcoin transaction details
 router.get('/transaction/:txid', [
   param('txid').isString().notEmpty().withMessage('Transaction ID is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txid } = req.params;
 
   logger.info('Bitcoin transaction details requested', { txid });
@@ -141,7 +159,7 @@ router.get('/transaction/:txid', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bitcoin transaction fetch error:', error);
     throw new CustomError('Failed to get Bitcoin transaction', 500);
   }
@@ -150,7 +168,7 @@ router.get('/transaction/:txid', [
 // GET /api/bitcoin/balance/:address - Get Bitcoin balance
 router.get('/balance/:address', [
   param('address').isString().notEmpty().withMessage('Address is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { address } = req.params;
 
   logger.info('Bitcoin balance requested', { address });
@@ -165,14 +183,14 @@ router.get('/balance/:address', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bitcoin balance fetch error:', error);
     throw new CustomError('Failed to get Bitcoin balance', 500);
   }
 }));
 
 // GET /api/bitcoin/network-info - Get Bitcoin network info
-router.get('/network-info', asyncHandler(async (req, res) => {
+router.get('/network-info', asyncHandler(async (req: Request, res: Response) => {
   logger.info('Bitcoin network info requested');
 
   try {
@@ -190,14 +208,14 @@ router.get('/network-info', asyncHandler(async (req, res) => {
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bitcoin network info error:', error);
     throw new CustomError('Failed to get Bitcoin network info', 500);
   }
 }));
 
 // GET /api/bitcoin/block-count - Get current block count
-router.get('/block-count', asyncHandler(async (req, res) => {
+router.get('/block-count', asyncHandler(async (req: Request, res: Response) => {
   logger.info('Bitcoin block count requested');
 
   try {
@@ -209,7 +227,7 @@ router.get('/block-count', asyncHandler(async (req, res) => {
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bitcoin block count error:', error);
     throw new CustomError('Failed to get Bitcoin block count', 500);
   }
@@ -218,7 +236,7 @@ router.get('/block-count', asyncHandler(async (req, res) => {
 // POST /api/bitcoin/validate-address - Validate Bitcoin address
 router.post('/validate-address', [
   body('address').isString().notEmpty().withMessage('Address is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { address } = req.body;
 
   logger.info('Bitcoin address validation requested', { address });
@@ -236,14 +254,14 @@ router.post('/validate-address', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Bitcoin address validation error:', error);
     throw new CustomError('Failed to validate Bitcoin address', 500);
   }
 }));
 
 // GET /api/bitcoin/sample-transactions - Get sample transactions for demo
-router.get('/sample-transactions', asyncHandler(async (req, res) => {
+router.get('/sample-transactions', asyncHandler(async (req: Request, res: Response) => {
   logger.info('Sample transactions requested');
 
   try {
@@ -255,7 +273,7 @@ router.get('/sample-transactions', asyncHandler(async (req, res) => {
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Sample transactions error:', error);
     throw new CustomError('Failed to get sample transactions', 500);
   }
@@ -264,7 +282,7 @@ router.get('/sample-transactions', asyncHandler(async (req, res) => {
 // GET /api/bitcoin/detailed-transaction/:txid - Get detailed transaction information
 router.get('/detailed-transaction/:txid', [
   param('txid').isString().notEmpty().withMessage('Transaction ID is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txid } = req.params;
 
   logger.info('Detailed Bitcoin transaction requested', { txid });
@@ -278,7 +296,7 @@ router.get('/detailed-transaction/:txid', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Detailed Bitcoin transaction error:', error);
     throw new CustomError('Failed to get detailed Bitcoin transaction', 500);
   }
@@ -287,7 +305,7 @@ router.get('/detailed-transaction/:txid', [
 // GET /api/bitcoin/detailed-merkle-proof/:txid - Get detailed Merkle proof
 router.get('/detailed-merkle-proof/:txid', [
   param('txid').isString().notEmpty().withMessage('Transaction ID is required'),
-], validateRequest, asyncHandler(async (req, res) => {
+], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txid } = req.params;
 
   logger.info('Detailed Merkle proof requested', { txid });
@@ -301,7 +319,7 @@ router.get('/detailed-merkle-proof/:txid', [
     };
 
     res.json(response);
-  } catch (error) {
+    } catch (error: any) {
     logger.error('Detailed Merkle proof error:', error);
     throw new CustomError('Failed to get detailed Merkle proof', 500);
   }

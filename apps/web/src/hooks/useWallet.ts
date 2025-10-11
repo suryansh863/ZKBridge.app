@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useBalance, useConnect, useDisconnect, useChainId } from 'wagmi';
 import { useQuery } from '@tanstack/react-query';
 import { WalletInfo } from '@/types/wallet';

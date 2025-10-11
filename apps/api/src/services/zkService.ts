@@ -1,4 +1,4 @@
-import { groth16 } from 'snarkjs';
+// import { groth16 } from 'snarkjs'; // Unused for now
 import { ZKProof } from '../types';
 import { logger } from '../utils/logger';
 import { generateNonce } from '../types';
@@ -23,11 +23,8 @@ export class ZKService {
       // 2. Generate witness from inputs
       // 3. Generate proof using groth16
 
-      const inputs = {
-        secret: secret,
-        publicInput: publicInput,
-        nonce: generateNonce()
-      };
+      // TODO: Prepare inputs for real ZK proof generation
+      // const inputs = { secret, publicInput, nonce: generateNonce() };
 
       // For demo purposes, we'll create a mock proof
       // In production, this would be: const { proof, publicSignals } = await groth16.fullProve(inputs, circuit, provingKey);
@@ -64,7 +61,7 @@ export class ZKService {
         proof: mockProof,
         publicSignals
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error generating ZK proof:', error);
       throw new Error(`Failed to generate ZK proof: ${error.message}`);
     }
@@ -89,7 +86,7 @@ export class ZKService {
       // In production, this would be:
       // const verificationKey = await fs.readFile(this.verificationKeyPath, 'utf8');
       // return await groth16.verify(JSON.parse(verificationKey), publicSignals, proof);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error verifying ZK proof:', error);
       return false;
     }
@@ -112,34 +109,29 @@ export class ZKService {
       };
 
       return witness;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error generating witness:', error);
       throw new Error(`Failed to generate witness: ${error.message}`);
     }
   }
 
   async getCircuitInfo(): Promise<any> {
-    try {
-      // This would normally read from actual circuit files
-      return {
-        name: 'Bridge Circuit',
-        version: '1.0.0',
-        description: 'Demo circuit for Bitcoin-Ethereum bridge',
-        inputs: {
-          secret: 'string',
-          publicInput: 'string'
-        },
-        outputs: {
-          publicSignal: 'string',
-          nonce: 'string'
-        },
-        constraints: 42, // Mock constraint count
-        wires: 128 // Mock wire count
-      };
-    } catch (error) {
-      logger.error('Error getting circuit info:', error);
-      throw new Error(`Failed to get circuit info: ${error.message}`);
-    }
+    // This would normally read from actual circuit files
+    return {
+      name: 'Bridge Circuit',
+      version: '1.0.0',
+      description: 'Demo circuit for Bitcoin-Ethereum bridge',
+      inputs: {
+        secret: 'string',
+        publicInput: 'string'
+      },
+      outputs: {
+        publicSignal: 'string',
+        nonce: 'string'
+      },
+      constraints: 42, // Mock constraint count
+      wires: 128 // Mock wire count
+    };
   }
 
   async demoProofOfKnowledge(secret: string): Promise<any> {
@@ -157,7 +149,7 @@ export class ZKService {
         isValid,
         message: 'Successfully proved knowledge of secret without revealing it'
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error in demo proof of knowledge:', error);
       throw new Error(`Failed to demonstrate proof of knowledge: ${error.message}`);
     }

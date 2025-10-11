@@ -1,15 +1,21 @@
-// Simple logger for frontend
+// Simple logger for frontend - only logs in development
 export const logger = {
   info: (message: string, data?: any) => {
-    console.log(`[INFO] ${message}`, data || '');
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[INFO] ${message}`, data || '');
+    }
   },
   
   error: (message: string, error?: any) => {
-    console.error(`[ERROR] ${message}`, error || '');
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`[ERROR] ${message}`, error || '');
+    }
   },
   
   warn: (message: string, data?: any) => {
-    console.warn(`[WARN] ${message}`, data || '');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[WARN] ${message}`, data || '');
+    }
   },
   
   debug: (message: string, data?: any) => {

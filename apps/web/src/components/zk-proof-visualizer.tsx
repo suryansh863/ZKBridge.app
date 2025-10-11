@@ -122,63 +122,8 @@ export function ZKProofVisualizer({
           setIsPlaying(false);
           clearInterval(interval);
           
-          // Generate mock proof when demo completes
-          const mockProof: ZKProofData = {
-            proof: {
-              pi_a: [
-                "1234567890123456789012345678901234567890123456789012345678901234",
-                "2345678901234567890123456789012345678901234567890123456789012345",
-                "1"
-              ],
-              pi_b: [
-                [
-                  "3456789012345678901234567890123456789012345678901234567890123456",
-                  "4567890123456789012345678901234567890123456789012345678901234567"
-                ],
-                [
-                  "5678901234567890123456789012345678901234567890123456789012345678",
-                  "6789012345678901234567890123456789012345678901234567890123456789"
-                ],
-                [
-                  "1",
-                  "0"
-                ]
-              ],
-              pi_c: [
-                "7890123456789012345678901234567890123456789012345678901234567890",
-                "8901234567890123456789012345678901234567890123456789012345678901",
-                "1"
-              ]
-            },
-            publicSignals: [
-              "0.001",
-              "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-              "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
-              "ef1d870d24c85b89d5adcc212a6f10d837b9e2d9",
-              "123456"
-            ],
-            circuitInputs: {
-              btcTxHash: "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
-              merkleRoot: "ef1d870d24c85b89d5adcc212a6f10d837b9e2d9",
-              merkleProof: [
-                "a1b2c3d4e5f6789012345678901234567890abcdef",
-                "fedcba0987654321098765432109876543210fedcba"
-              ],
-              proofIndex: 0,
-              blockHeight: 123456,
-              inputAmount: "0.001",
-              outputAmount: "0.001",
-              fee: "0.00001",
-              publicAmount: "0.001",
-              publicAddress: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-              privateSecret: secret,
-              nonce: "abc123def456"
-            },
-            verificationKey: { mock: true }
-          };
-          
-          setProof(mockProof);
-          onProofGenerated?.(mockProof);
+          // TODO: Generate real ZK proof when demo completes
+          // For now, show completion state without mock data
           return prev;
         }
         return prev + 1;

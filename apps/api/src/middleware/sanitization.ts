@@ -170,7 +170,7 @@ export const sanitizeObject = (obj: any): any => {
   if (typeof obj === 'object') {
     const sanitized: any = {};
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         sanitized[key] = sanitizeObject(obj[key]);
       }
     }
@@ -201,7 +201,7 @@ export const sanitizationMiddleware = (req: Request, res: Response, next: NextFu
     if (req.headers && typeof req.headers === 'object') {
       const sanitizedHeaders: any = {};
       for (const key in req.headers) {
-        if (req.headers.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(req.headers, key)) {
           // Skip sensitive headers
           if (key.toLowerCase() === 'authorization' || 
               key.toLowerCase() === 'x-api-key' ||
