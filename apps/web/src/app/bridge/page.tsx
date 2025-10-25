@@ -613,32 +613,32 @@ export default function BridgePage() {
                           
                           {sampleTransactions.map((sample, index) => (
                             <div key={index} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-blue-500/30 transition-all hover:shadow-lg hover:shadow-blue-500/10">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                                <div className="flex-1 mb-3 sm:mb-0">
-                                  <div className="flex items-center mb-2">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                    <p className="text-sm text-gray-300 font-medium">{sample.description}</p>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <code className="text-xs text-blue-400 font-mono bg-gray-900/50 px-2 py-1 rounded">
-                                      {sample.txHash.substring(0, 12)}...{sample.txHash.substring(sample.txHash.length - 12)}
+                              <div className="space-y-4">
+                                <div className="flex items-start mb-3">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2 mt-2 flex-shrink-0"></div>
+                                  <p className="text-sm text-gray-300 font-medium leading-relaxed">{sample.description}</p>
+                                </div>
+                                <div className="space-y-3">
+                                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                                    <code className="text-xs text-blue-400 font-mono bg-gray-900/50 px-3 py-2 rounded break-all flex-1 min-w-0">
+                                      {sample.txHash}
                                     </code>
                                     <button
                                       onClick={() => navigator.clipboard.writeText(sample.txHash)}
-                                      className="text-gray-400 hover:text-gray-300 transition-colors"
+                                      className="p-2 text-gray-400 hover:text-gray-300 transition-colors flex-shrink-0"
                                       title="Copy full transaction ID"
                                     >
-                                      <Copy className="w-3 h-3" />
+                                      <Copy className="w-4 h-4" />
                                     </button>
                                   </div>
+                                  <button
+                                    onClick={() => handleSampleTransaction(sample.txHash)}
+                                    className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all hover:scale-105 flex items-center justify-center space-x-2"
+                                  >
+                                    <span>Use This Transaction</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                  </button>
                                 </div>
-                                <button
-                                  onClick={() => handleSampleTransaction(sample.txHash)}
-                                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all hover:scale-105 flex items-center space-x-2"
-                                >
-                                  <span>Use This Transaction</span>
-                                  <ArrowRight className="w-4 h-4" />
-                                </button>
                               </div>
                             </div>
                           ))}
@@ -671,19 +671,34 @@ export default function BridgePage() {
                               <Info className="w-4 h-4" />
                             </button>
                             {showHelpTooltip && (
-                              <div className="absolute right-0 top-6 w-80 bg-gray-800 border border-gray-600 rounded-lg p-3 text-xs text-gray-300 z-10">
-                                <div className="space-y-2">
-                                  <p className="font-medium text-white">Easy ways to enter your transaction ID:</p>
-                                  <ul className="space-y-1">
-                                  <li>• <strong>📱 Scan QR code:</strong> Click the QR button to scan with your camera</li>
-                                  <li>• <strong>📋 Click clipboard button:</strong> Automatically reads from your clipboard</li>
-                                  <li>• <strong>⌨️ Manual paste:</strong> Copy any Bitcoin explorer URL and paste (Ctrl+V)</li>
-                                  <li>• <strong>🎯 Use samples:</strong> Click &quot;Use This Transaction&quot; from the list above</li>
-                                  <li>• <strong>✏️ Type manually:</strong> Enter the 64-character transaction ID directly</li>
+                              <div className="absolute right-0 top-8 w-80 sm:w-96 bg-gray-800 border border-gray-600 rounded-lg p-4 text-xs text-gray-300 z-50 shadow-2xl max-w-[calc(100vw-2rem)]">
+                                <div className="space-y-3">
+                                  <p className="font-medium text-white text-sm">Easy ways to enter your transaction ID:</p>
+                                  <ul className="space-y-2">
+                                  <li className="flex items-start space-x-2">
+                                    <span className="text-blue-400">•</span>
+                                    <span><strong>📱 Scan QR code:</strong> Click the QR button to scan with your camera</span>
+                                  </li>
+                                  <li className="flex items-start space-x-2">
+                                    <span className="text-blue-400">•</span>
+                                    <span><strong>📋 Click clipboard button:</strong> Automatically reads from your clipboard</span>
+                                  </li>
+                                  <li className="flex items-start space-x-2">
+                                    <span className="text-blue-400">•</span>
+                                    <span><strong>⌨️ Manual paste:</strong> Copy any Bitcoin explorer URL and paste (Ctrl+V)</span>
+                                  </li>
+                                  <li className="flex items-start space-x-2">
+                                    <span className="text-blue-400">•</span>
+                                    <span><strong>🎯 Use samples:</strong> Click &quot;Use This Transaction&quot; from the list above</span>
+                                  </li>
+                                  <li className="flex items-start space-x-2">
+                                    <span className="text-blue-400">•</span>
+                                    <span><strong>✏️ Type manually:</strong> Enter the 64-character transaction ID directly</span>
+                                  </li>
                                   </ul>
-                                  <div className="bg-blue-500/10 border border-blue-500/20 rounded p-2 mt-2">
-                                    <p className="text-blue-400 font-medium">💡 Pro Tip:</p>
-                                    <p className="text-blue-300/80">Copy any Bitcoin explorer URL (like blockstream.info) and paste it - we&apos;ll extract the transaction ID automatically!</p>
+                                  <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3 mt-3">
+                                    <p className="text-blue-400 font-medium text-sm">💡 Pro Tip:</p>
+                                    <p className="text-blue-300/80 text-xs mt-1">Copy any Bitcoin explorer URL (like blockstream.info) and paste it - we&apos;ll extract the transaction ID automatically!</p>
                                   </div>
                                 </div>
                               </div>
@@ -837,17 +852,18 @@ export default function BridgePage() {
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <label className="text-sm text-gray-400">Transaction ID</label>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <code className="text-xs bg-gray-800 px-2 py-1 rounded text-blue-400 flex-1">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div className="bg-gray-800/30 rounded-lg p-4">
+                          <label className="text-sm text-gray-400 block mb-2">Transaction ID</label>
+                          <div className="flex items-center space-x-2">
+                            <code className="text-xs bg-gray-900 px-3 py-2 rounded text-blue-400 flex-1 break-all">
                               {transaction.txid}
                             </code>
                             <button
                               onClick={() => copyToClipboard(transaction.txid)}
-                              className="p-1 hover:bg-gray-700 rounded"
+                              className="p-2 hover:bg-gray-700 rounded transition-colors"
+                              title="Copy transaction ID"
                             >
                               <Copy className="w-4 h-4 text-gray-400" />
                             </button>
@@ -855,7 +871,8 @@ export default function BridgePage() {
                               href={`https://blockstream.info/testnet/tx/${transaction.txid}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-1 hover:bg-gray-700 rounded"
+                              className="p-2 hover:bg-gray-700 rounded transition-colors"
+                              title="View on blockstream"
                             >
                               <ExternalLink className="w-4 h-4 text-gray-400" />
                             </a>
@@ -863,22 +880,23 @@ export default function BridgePage() {
                         </div>
 
                         {transaction.blockHeight && (
-                          <div>
-                            <label className="text-sm text-gray-400">Block Height</label>
-                            <p className="text-white font-mono">{transaction.blockHeight}</p>
+                          <div className="bg-gray-800/30 rounded-lg p-4">
+                            <label className="text-sm text-gray-400 block mb-2">Block Height</label>
+                            <p className="text-white font-mono text-lg">{transaction.blockHeight}</p>
                           </div>
                         )}
 
                         {transaction.blockHash && (
-                          <div>
-                            <label className="text-sm text-gray-400">Block Hash</label>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <code className="text-xs bg-gray-800 px-2 py-1 rounded text-green-400 flex-1">
+                          <div className="bg-gray-800/30 rounded-lg p-4">
+                            <label className="text-sm text-gray-400 block mb-2">Block Hash</label>
+                            <div className="flex items-center space-x-2">
+                              <code className="text-xs bg-gray-900 px-3 py-2 rounded text-green-400 flex-1 break-all">
                                 {transaction.blockHash.substring(0, 16)}...{transaction.blockHash.substring(transaction.blockHash.length - 16)}
                               </code>
                               <button
                                 onClick={() => copyToClipboard(transaction.blockHash!)}
-                                className="p-1 hover:bg-gray-700 rounded"
+                                className="p-2 hover:bg-gray-700 rounded transition-colors"
+                                title="Copy block hash"
                               >
                                 <Copy className="w-4 h-4 text-gray-400" />
                               </button>
@@ -886,50 +904,52 @@ export default function BridgePage() {
                           </div>
                         )}
 
-                        <div>
-                          <label className="text-sm text-gray-400">Amount</label>
-                          <p className="text-white font-medium">{transaction.amount.toFixed(8)} BTC</p>
+                        <div className="bg-gray-800/30 rounded-lg p-4">
+                          <label className="text-sm text-gray-400 block mb-2">Amount</label>
+                          <p className="text-white font-medium text-lg">{transaction.amount.toFixed(8)} BTC</p>
                         </div>
 
                         {transaction.fee > 0 && (
-                          <div>
-                            <label className="text-sm text-gray-400">Transaction Fee</label>
-                            <p className="text-white font-medium">{transaction.fee.toFixed(8)} BTC</p>
+                          <div className="bg-gray-800/30 rounded-lg p-4">
+                            <label className="text-sm text-gray-400 block mb-2">Transaction Fee</label>
+                            <p className="text-white font-medium text-lg">{transaction.fee.toFixed(8)} BTC</p>
                           </div>
                         )}
 
                         {transaction.size > 0 && (
-                          <div>
-                            <label className="text-sm text-gray-400">Transaction Size</label>
-                            <p className="text-white font-medium">{transaction.size} bytes</p>
+                          <div className="bg-gray-800/30 rounded-lg p-4">
+                            <label className="text-sm text-gray-400 block mb-2">Transaction Size</label>
+                            <p className="text-white font-medium text-lg">{transaction.size} bytes</p>
                           </div>
                         )}
 
-                        <div>
-                          <label className="text-sm text-gray-400">Confirmations</label>
-                          <p className="text-white font-medium">{transaction.confirmations}</p>
+                        <div className="bg-gray-800/30 rounded-lg p-4">
+                          <label className="text-sm text-gray-400 block mb-2">Confirmations</label>
+                          <p className="text-white font-medium text-lg">{transaction.confirmations}</p>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {/* Inputs */}
                         {transaction.inputs && transaction.inputs.length > 0 && (
-                          <div className="bg-gray-800/50 rounded-lg p-4">
-                            <h3 className="text-white font-medium mb-3">Inputs ({transaction.inputs.length})</h3>
-                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                          <div className="bg-gray-800/30 rounded-lg p-4">
+                            <h3 className="text-white font-medium mb-4 text-lg">Inputs ({transaction.inputs.length})</h3>
+                            <div className="space-y-4 max-h-48 overflow-y-auto">
                               {transaction.inputs.map((input, index) => (
-                                <div key={index} className="text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Address:</span>
-                                    <code className="text-blue-400 text-xs">
-                                      {input.address.substring(0, 12)}...{input.address.substring(input.address.length - 8)}
-                                    </code>
+                                <div key={index} className="bg-gray-900/50 rounded-lg p-3">
+                                  <div className="space-y-2">
+                                    <div className="flex flex-col space-y-1">
+                                      <span className="text-gray-400 text-sm">Address:</span>
+                                      <code className="text-blue-400 text-xs break-all bg-gray-800 px-2 py-1 rounded">
+                                        {input.address}
+                                      </code>
+                                    </div>
+                                    <div className="flex flex-col space-y-1">
+                                      <span className="text-gray-400 text-sm">Value:</span>
+                                      <span className="text-white font-medium">{input.value.toFixed(8)} BTC</span>
+                                    </div>
                                   </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Value:</span>
-                                    <span className="text-white">{input.value.toFixed(8)} BTC</span>
-                                  </div>
-                                  {index < transaction.inputs.length - 1 && <hr className="border-gray-600 my-2" />}
+                                  {index < transaction.inputs.length - 1 && <hr className="border-gray-600 my-3" />}
                                 </div>
                               ))}
                             </div>
@@ -938,22 +958,24 @@ export default function BridgePage() {
 
                         {/* Outputs */}
                         {transaction.outputs && transaction.outputs.length > 0 && (
-                          <div className="bg-gray-800/50 rounded-lg p-4">
-                            <h3 className="text-white font-medium mb-3">Outputs ({transaction.outputs.length})</h3>
-                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                          <div className="bg-gray-800/30 rounded-lg p-4">
+                            <h3 className="text-white font-medium mb-4 text-lg">Outputs ({transaction.outputs.length})</h3>
+                            <div className="space-y-4 max-h-48 overflow-y-auto">
                               {transaction.outputs.map((output, index) => (
-                                <div key={index} className="text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Address:</span>
-                                    <code className="text-green-400 text-xs">
-                                      {output.address.substring(0, 12)}...{output.address.substring(output.address.length - 8)}
-                                    </code>
+                                <div key={index} className="bg-gray-900/50 rounded-lg p-3">
+                                  <div className="space-y-2">
+                                    <div className="flex flex-col space-y-1">
+                                      <span className="text-gray-400 text-sm">Address:</span>
+                                      <code className="text-green-400 text-xs break-all bg-gray-800 px-2 py-1 rounded">
+                                        {output.address}
+                                      </code>
+                                    </div>
+                                    <div className="flex flex-col space-y-1">
+                                      <span className="text-gray-400 text-sm">Value:</span>
+                                      <span className="text-white font-medium">{output.value.toFixed(8)} BTC</span>
+                                    </div>
                                   </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Value:</span>
-                                    <span className="text-white">{output.value.toFixed(8)} BTC</span>
-                                  </div>
-                                  {index < transaction.outputs.length - 1 && <hr className="border-gray-600 my-2" />}
+                                  {index < transaction.outputs.length - 1 && <hr className="border-gray-600 my-3" />}
                                 </div>
                               ))}
                             </div>

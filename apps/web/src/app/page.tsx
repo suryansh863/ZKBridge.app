@@ -2,6 +2,7 @@
 
 import { Suspense, lazy, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Hero } from '@/components/hero';
 import { Features } from '@/components/features';
 import { Header } from '@/components/header';
@@ -89,29 +90,134 @@ export default function Home() {
           </Suspense>
         </LazySection>
 
-        {/* Call to Action */}
-        <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-transparent to-ethereum/5">
-          <div className="container mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Experience Trustless Bridging?
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+        {/* Enhanced Call to Action */}
+        <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-transparent to-ethereum/5 relative overflow-hidden">
+          {/* Animated background elements */}
+          <motion.div 
+            className="absolute top-0 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+              x: [0, 50, 0],
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div 
+            className="absolute bottom-0 right-1/4 w-80 h-80 bg-ethereum/10 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.2, 0.5, 0.2],
+              x: [0, -40, 0],
+              y: [0, 40, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2
+            }}
+          />
+          
+          <div className="container mx-auto text-center relative z-10">
+            <motion.h2 
+              className="text-3xl md:text-4xl font-bold mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <motion.span
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                style={{
+                  backgroundSize: "200% 200%"
+                }}
+                className="bg-gradient-to-r from-primary via-ethereum to-primary bg-clip-text text-transparent"
+              >
+                Ready to Experience Trustless Bridging?
+              </motion.span>
+            </motion.h2>
+            <motion.p 
+              className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
               Try our demo with Bitcoin testnet transactions and see how SNARKs make cross-chain bridging secure and private.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                href="/bridge"
-                className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+            </motion.p>
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative"
               >
-                Start Bridge Demo
-              </Link>
-              <Link 
-                href="/docs"
-                className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg glass-card border border-white/20 text-foreground hover:bg-white/5 transition-all duration-300 hover:scale-105"
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 rounded-xl blur-lg opacity-75"
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    opacity: [0.5, 0.8, 0.5],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                <Link 
+                  href="/bridge"
+                  className="relative inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  <motion.span
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    Start Bridge Demo
+                  </motion.span>
+                </Link>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Learn More
-              </Link>
-            </div>
+                <Link 
+                  href="/docs"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg glass-card border border-white/20 text-foreground hover:bg-white/5 transition-all duration-300"
+                >
+                  <motion.span
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    Learn More
+                  </motion.span>
+                </Link>
+              </motion.div>
+            </motion.div>
           </div>
         </section>
       </main>
