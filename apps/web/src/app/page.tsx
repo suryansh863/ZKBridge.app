@@ -10,6 +10,7 @@ import { Footer } from '@/components/footer';
 import { LazySection } from '@/components/lazy-section';
 import { HowItWorks } from '@/components/how-it-works';
 import { TrustlessExplanation } from '@/components/trustless-explanation';
+import { Preloader } from '@/components/preloader';
 
 // Lazy load heavy components with better error handling
 const BridgeInterface = lazy(() => 
@@ -41,22 +42,43 @@ function LoadingSpinner() {
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [animationsEnabled, setAnimationsEnabled] = useState(false);
+  const [showPreloader, setShowPreloader] = useState(true);
 
   useEffect(() => {
-    // Ensure the page is fully loaded before showing content
-    const timer = setTimeout(() => {
+    // Check if page was already loaded (for subsequent visits)
+    const wasLoaded = sessionStorage.getItem('bridgeSparkLoaded');
+    if (wasLoaded) {
+      setShowPreloader(false);
       setIsLoaded(true);
-    }, 100);
+      setAnimationsEnabled(true);
+      return;
+    }
 
-    return () => clearTimeout(timer);
+    // Mark as loaded for future visits
+    sessionStorage.setItem('bridgeSparkLoaded', 'true');
   }, []);
+
+  const handlePreloaderComplete = () => {
+    setShowPreloader(false);
+    setIsLoaded(true);
+    
+    // Enable animations after preloader
+    setTimeout(() => {
+      setAnimationsEnabled(true);
+    }, 100);
+  };
+
+  if (showPreloader) {
+    return <Preloader onComplete={handlePreloaderComplete} />;
+  }
 
   if (!isLoaded) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading BridgeSpark...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -92,36 +114,42 @@ export default function Home() {
 
         {/* Enhanced Call to Action */}
         <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-transparent to-ethereum/5 relative overflow-hidden">
-          {/* Animated background elements */}
-          <motion.div 
-            className="absolute top-0 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3],
-              x: [0, 50, 0],
-              y: [0, -30, 0],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div 
-            className="absolute bottom-0 right-1/4 w-80 h-80 bg-ethereum/10 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.3, 1],
-              opacity: [0.2, 0.5, 0.2],
-              x: [0, -40, 0],
-              y: [0, 40, 0],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 2
-            }}
-          />
+          {/* Optimized background elements - only animate when enabled */}
+          {animationsEnabled && (
+            <>
+              <motion.div 
+                className="absolute top-0 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+                initial={{ opacity: 0 }}
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.6, 0.3],
+                  x: [0, 50, 0],
+                  y: [0, -30, 0],
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              <motion.div 
+                className="absolute bottom-0 right-1/4 w-80 h-80 bg-ethereum/10 rounded-full blur-3xl"
+                initial={{ opacity: 0 }}
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [0.2, 0.5, 0.2],
+                  x: [0, -40, 0],
+                  y: [0, 40, 0],
+                }}
+                transition={{
+                  duration: 10,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 2
+                }}
+              />
+            </>
+          )}
           
           <div className="container mx-auto text-center relative z-10">
             <motion.h2 
@@ -169,32 +197,39 @@ export default function Home() {
                 whileTap={{ scale: 0.95 }}
                 className="relative"
               >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 rounded-xl blur-lg opacity-75"
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    opacity: [0.5, 0.8, 0.5],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
+                {animationsEnabled && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 rounded-xl blur-lg opacity-75"
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.5, 0.8, 0.5],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                )}
                 <Link 
                   href="/bridge"
                   className="relative inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
-                  <motion.span
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    Start Bridge Demo
-                  </motion.span>
+                  {animationsEnabled ? (
+                    <motion.span
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      Start Bridge Demo
+                    </motion.span>
+                  ) : (
+                    "Start Bridge Demo"
+                  )}
                 </Link>
               </motion.div>
               <motion.div
@@ -205,16 +240,20 @@ export default function Home() {
                   href="/docs"
                   className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg glass-card border border-white/20 text-foreground hover:bg-white/5 transition-all duration-300"
                 >
-                  <motion.span
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    Learn More
-                  </motion.span>
+                  {animationsEnabled ? (
+                    <motion.span
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      Learn More
+                    </motion.span>
+                  ) : (
+                    "Learn More"
+                  )}
                 </Link>
               </motion.div>
             </motion.div>

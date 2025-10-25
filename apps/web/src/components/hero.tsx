@@ -1,86 +1,107 @@
 "use client"
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Shield, Zap, Globe, Lock, Eye, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export function Hero() {
+  const [animationsEnabled, setAnimationsEnabled] = useState(false);
+
+  useEffect(() => {
+    // Enable animations after a short delay to improve initial load performance
+    const timer = setTimeout(() => {
+      setAnimationsEnabled(true);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="relative py-20 px-4 overflow-hidden">
       {/* Enhanced Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-bitcoin/5 via-transparent to-ethereum/5" />
       
-      {/* Animated floating orbs */}
-      <motion.div 
-        className="absolute top-20 left-10 w-72 h-72 bg-bitcoin/10 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.6, 0.3],
-          x: [0, 50, 0],
-          y: [0, -30, 0],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div 
-        className="absolute bottom-20 right-10 w-96 h-96 bg-ethereum/10 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.2, 0.5, 0.2],
-          x: [0, -40, 0],
-          y: [0, 40, 0],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 2
-        }}
-      />
-      
-      {/* Additional floating particles */}
-      <motion.div 
-        className="absolute top-1/4 left-1/4 w-4 h-4 bg-primary/20 rounded-full"
-        animate={{
-          y: [0, -20, 0],
-          opacity: [0.3, 0.8, 0.3],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div 
-        className="absolute top-1/3 right-1/3 w-6 h-6 bg-bitcoin/30 rounded-full"
-        animate={{
-          y: [0, -30, 0],
-          opacity: [0.2, 0.7, 0.2],
-        }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1
-        }}
-      />
-      <motion.div 
-        className="absolute bottom-1/3 left-1/3 w-3 h-3 bg-ethereum/40 rounded-full"
-        animate={{
-          y: [0, -25, 0],
-          opacity: [0.4, 0.9, 0.4],
-        }}
-        transition={{
-          duration: 5,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 3
-        }}
-      />
+      {/* Optimized floating orbs - only animate when enabled */}
+      {animationsEnabled && (
+        <>
+          <motion.div 
+            className="absolute top-20 left-10 w-72 h-72 bg-bitcoin/10 rounded-full blur-3xl"
+            initial={{ opacity: 0 }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+              x: [0, 50, 0],
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div 
+            className="absolute bottom-20 right-10 w-96 h-96 bg-ethereum/10 rounded-full blur-3xl"
+            initial={{ opacity: 0 }}
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.2, 0.5, 0.2],
+              x: [0, -40, 0],
+              y: [0, 40, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2
+            }}
+          />
+          
+          {/* Additional floating particles */}
+          <motion.div 
+            className="absolute top-1/4 left-1/4 w-4 h-4 bg-primary/20 rounded-full"
+            initial={{ opacity: 0 }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.3, 0.8, 0.3],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div 
+            className="absolute top-1/3 right-1/3 w-6 h-6 bg-bitcoin/30 rounded-full"
+            initial={{ opacity: 0 }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0.2, 0.7, 0.2],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+          />
+          <motion.div 
+            className="absolute bottom-1/3 left-1/3 w-3 h-3 bg-ethereum/40 rounded-full"
+            initial={{ opacity: 0 }}
+            animate={{
+              y: [0, -25, 0],
+              opacity: [0.4, 0.9, 0.4],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 3
+            }}
+          />
+        </>
+      )}
       
       <div className="container mx-auto text-center relative z-10">
         <div className="max-w-5xl mx-auto">

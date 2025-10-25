@@ -1,10 +1,22 @@
 "use client"
 
+import { useState, useEffect } from 'react';
 import { CheckCircle, ArrowRightLeft, Lock, Eye, Clock, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export function Features() {
+  const [animationsEnabled, setAnimationsEnabled] = useState(false);
+
+  useEffect(() => {
+    // Enable animations after a short delay to improve initial load performance
+    const timer = setTimeout(() => {
+      setAnimationsEnabled(true);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const features = [
     {
       icon: <ArrowRightLeft className="h-6 w-6" />,
@@ -40,37 +52,43 @@ export function Features() {
 
   return (
     <section className="py-20 px-4 bg-muted/30 relative overflow-hidden">
-      {/* Animated background elements */}
+      {/* Optimized background elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-ethereum/5" />
-      <motion.div 
-        className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.6, 0.3],
-          x: [0, 30, 0],
-          y: [0, -20, 0],
-        }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div 
-        className="absolute bottom-10 right-10 w-40 h-40 bg-ethereum/10 rounded-full blur-2xl"
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.2, 0.5, 0.2],
-          x: [0, -25, 0],
-          y: [0, 30, 0],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 2
-        }}
-      />
+      {animationsEnabled && (
+        <>
+          <motion.div 
+            className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl"
+            initial={{ opacity: 0 }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+              x: [0, 30, 0],
+              y: [0, -20, 0],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div 
+            className="absolute bottom-10 right-10 w-40 h-40 bg-ethereum/10 rounded-full blur-2xl"
+            initial={{ opacity: 0 }}
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.2, 0.5, 0.2],
+              x: [0, -25, 0],
+              y: [0, 30, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2
+            }}
+          />
+        </>
+      )}
       
       <div className="container mx-auto relative z-10">
         <motion.div 

@@ -9,7 +9,7 @@ const nextConfig = {
   },
   // Performance optimizations
   experimental: {
-    optimizePackageImports: ['lucide-react', '@rainbow-me/rainbowkit'],
+    optimizePackageImports: ['lucide-react', '@rainbow-me/rainbowkit', 'framer-motion'],
     webVitalsAttribution: ['CLS', 'LCP'],
     // Enable faster builds and better caching
     turbo: {
@@ -20,6 +20,10 @@ const nextConfig = {
         },
       },
     },
+    // Optimize bundle size
+    optimizeCss: true,
+    // Enable faster page loads
+    scrollRestoration: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
