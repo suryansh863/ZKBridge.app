@@ -6,10 +6,10 @@ import { Github, Twitter, MessageCircle, Mail } from 'lucide-react';
 export function Footer() {
   return (
     <footer className="border-t bg-background">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container py-12 px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
-          <div className="space-y-4">
+          <div className="col-span-2 md:col-span-1 space-y-4">
             <Link href="/" className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg gradient-bridge flex items-center justify-center">
                 <span className="text-white font-bold text-sm">BS</span>

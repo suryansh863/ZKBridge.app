@@ -1,17 +1,25 @@
 import { createHash, createHmac } from 'crypto';
 
 /**
- * Generate a SHA-256 hash of the input
+ * Generate a SHA-256 hash of the input.
+ * Supports string (hex) or Buffer.
  */
-export function sha256(input: string): string {
-  return createHash('sha256').update(input).digest('hex');
+export function sha256(input: string | Buffer): Buffer {
+  if (typeof input === 'string') {
+    // If it's a hex string, convert to buffer
+    const cleanHex = input.startsWith('0x') ? input.slice(2) : input;
+    return createHash('sha256').update(Buffer.from(cleanHex, 'hex')).digest();
+  }
+  return createHash('sha256').update(input).digest();
 }
 
 /**
  * Generate a double SHA-256 hash (Bitcoin style)
  */
-export function doubleSha256(input: string): string {
-  return sha256(sha256(input));
+export function doubleSha256(input: string | Buffer): string {
+  const firstHash = sha256(input);
+  const secondHash = sha256(firstHash);
+  return secondHash.toString('hex');
 }
 
 /**
@@ -21,21 +29,30 @@ export function generateMerkleRoot(hashes: string[]): string {
   if (hashes.length === 0) {
     throw new Error('Cannot generate Merkle root from empty array');
   }
-  
+
   if (hashes.length === 1) {
     return hashes[0];
   }
 
-  // Ensure even number of hashes by duplicating the last one if odd
-  const evenHashes = hashes.length % 2 === 0 ? hashes : [...hashes, hashes[hashes.length - 1]];
-  
   const nextLevel: string[] = [];
-  
-  for (let i = 0; i < evenHashes.length; i += 2) {
-    const combined = evenHashes[i] + evenHashes[i + 1];
-    nextLevel.push(doubleSha256(combined));
+
+  for (let i = 0; i < hashes.length; i += 2) {
+    const left = hashes[i];
+    const right = hashes[i + 1] || left; // Bitcoin style: duplicate if odd
+
+    // Concatenate raw bytes, not hex strings
+    const combined = Buffer.concat([
+      Buffer.from(left, 'hex').reverse(),
+      Buffer.from(right, 'hex').reverse()
+    ]);
+
+    const hash = doubleSha256(combined);
+    // Bitcoin hashes are displayed in little-endian hex in explorers, 
+    // but internal calculations often require reversal.
+    // Here we return the hex string (which we'll reverse back when needed).
+    nextLevel.push(Buffer.from(hash, 'hex').reverse().toString('hex'));
   }
-  
+
   return generateMerkleRoot(nextLevel);
 }
 
@@ -49,38 +66,46 @@ export function generateMerkleProof(hashes: string[], targetHash: string): {
 } {
   const path: string[] = [];
   const indices: number[] = [];
-  
+
   let currentHashes = [...hashes];
   let targetIndex = currentHashes.indexOf(targetHash);
-  
+
   if (targetIndex === -1) {
     throw new Error('Target hash not found in the list');
   }
-  
+
   while (currentHashes.length > 1) {
-    const isEven = currentHashes.length % 2 === 0;
-    const evenHashes = isEven ? currentHashes : [...currentHashes, currentHashes[currentHashes.length - 1]];
-    
     const nextLevel: string[] = [];
-    
-    for (let i = 0; i < evenHashes.length; i += 2) {
-      const combined = evenHashes[i] + evenHashes[i + 1];
-      const hash = doubleSha256(combined);
+
+    for (let i = 0; i < currentHashes.length; i += 2) {
+      const left = currentHashes[i];
+      const right = currentHashes[i + 1] || left;
+
+      const combined = Buffer.concat([
+        Buffer.from(left, 'hex').reverse(),
+        Buffer.from(right, 'hex').reverse()
+      ]);
+
+      const hash = Buffer.from(doubleSha256(combined), 'hex').reverse().toString('hex');
       nextLevel.push(hash);
-      
-      // If our target is in this pair, add the sibling to the path
+
       if (i === targetIndex || i === targetIndex - 1) {
-        const siblingIndex = i === targetIndex ? i + 1 : i;
-        path.push(evenHashes[siblingIndex]);
-        indices.push(i === targetIndex ? 1 : 0);
+        // If we are on the left, the sibling is on the right, and vice versa.
+        // For Merkle proofs, the "index" or side matters.
+        if (i === targetIndex) {
+          path.push(right);
+          indices.push(1); // 1 = sibling is on the right
+        } else {
+          path.push(left);
+          indices.push(0); // 0 = sibling is on the left
+        }
       }
     }
-    
-    // Update target index for next level
+
     targetIndex = Math.floor(targetIndex / 2);
     currentHashes = nextLevel;
   }
-  
+
   return {
     path,
     indices,
@@ -98,15 +123,27 @@ export function verifyMerkleProof(
   root: string
 ): boolean {
   let currentHash = leaf;
-  
+
   for (let i = 0; i < path.length; i++) {
     const sibling = path[i];
-    const isRight = indices[i] === 1;
-    
-    const combined = isRight ? sibling + currentHash : currentHash + sibling;
-    currentHash = doubleSha256(combined);
+    const isSiblingRight = indices[i] === 1;
+
+    let combined: Buffer;
+    if (isSiblingRight) {
+      combined = Buffer.concat([
+        Buffer.from(currentHash, 'hex').reverse(),
+        Buffer.from(sibling, 'hex').reverse()
+      ]);
+    } else {
+      combined = Buffer.concat([
+        Buffer.from(sibling, 'hex').reverse(),
+        Buffer.from(currentHash, 'hex').reverse()
+      ]);
+    }
+
+    currentHash = Buffer.from(doubleSha256(combined), 'hex').reverse().toString('hex');
   }
-  
+
   return currentHash === root;
 }
 

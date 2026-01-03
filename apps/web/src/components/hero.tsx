@@ -19,15 +19,15 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative py-20 px-4 overflow-hidden">
+    <section className="relative py-12 md:py-20 px-4 overflow-hidden">
       {/* Enhanced Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-bitcoin/5 via-transparent to-ethereum/5" />
-      
+
       {/* Optimized floating orbs - only animate when enabled */}
       {animationsEnabled && (
         <>
-          <motion.div 
-            className="absolute top-20 left-10 w-72 h-72 bg-bitcoin/10 rounded-full blur-3xl"
+          <motion.div
+            className="absolute top-20 left-10 w-48 md:w-72 h-48 md:h-72 bg-bitcoin/10 rounded-full blur-3xl"
             initial={{ opacity: 0 }}
             animate={{
               scale: [1, 1.2, 1],
@@ -41,8 +41,8 @@ export function Hero() {
               ease: "easeInOut"
             }}
           />
-          <motion.div 
-            className="absolute bottom-20 right-10 w-96 h-96 bg-ethereum/10 rounded-full blur-3xl"
+          <motion.div
+            className="absolute bottom-20 right-10 w-64 md:w-96 h-64 md:h-96 bg-ethereum/10 rounded-full blur-3xl"
             initial={{ opacity: 0 }}
             animate={{
               scale: [1, 1.3, 1],
@@ -57,10 +57,10 @@ export function Hero() {
               delay: 2
             }}
           />
-          
+
           {/* Additional floating particles */}
-          <motion.div 
-            className="absolute top-1/4 left-1/4 w-4 h-4 bg-primary/20 rounded-full"
+          <motion.div
+            className="absolute top-1/4 left-1/4 w-4 h-4 bg-primary/20 rounded-full hidden md:block"
             initial={{ opacity: 0 }}
             animate={{
               y: [0, -20, 0],
@@ -72,8 +72,8 @@ export function Hero() {
               ease: "easeInOut"
             }}
           />
-          <motion.div 
-            className="absolute top-1/3 right-1/3 w-6 h-6 bg-bitcoin/30 rounded-full"
+          <motion.div
+            className="absolute top-1/3 right-1/3 w-6 h-6 bg-bitcoin/30 rounded-full hidden md:block"
             initial={{ opacity: 0 }}
             animate={{
               y: [0, -30, 0],
@@ -86,8 +86,8 @@ export function Hero() {
               delay: 1
             }}
           />
-          <motion.div 
-            className="absolute bottom-1/3 left-1/3 w-3 h-3 bg-ethereum/40 rounded-full"
+          <motion.div
+            className="absolute bottom-1/3 left-1/3 w-3 h-3 bg-ethereum/40 rounded-full hidden md:block"
             initial={{ opacity: 0 }}
             animate={{
               y: [0, -25, 0],
@@ -102,8 +102,8 @@ export function Hero() {
           />
         </>
       )}
-      
-      <div className="container mx-auto text-center relative z-10">
+
+      <div className="container mx-auto text-center relative z-10 px-4">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -114,20 +114,20 @@ export function Hero() {
             <div className={cn(
               "inline-flex items-center gap-2 px-4 py-2 rounded-full",
               "glass-card border border-white/20",
-              "text-sm font-medium text-foreground/80"
+              "text-xs md:text-sm font-medium text-foreground/80"
             )}>
-              <Sparkles className="h-4 w-4 text-primary" />
+              <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-primary" />
               <span>Powered by Zero-Knowledge Proofs</span>
             </div>
           </motion.div>
-
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl md:text-7xl font-bold mb-6 leading-tight"
+            className="text-4xl md:text-7xl font-bold mb-6 leading-tight"
           >
-            <motion.span 
+
+            <motion.span
               className="bg-gradient-to-r from-bitcoin via-primary to-ethereum bg-clip-text text-transparent"
               animate={{
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
@@ -144,7 +144,7 @@ export function Hero() {
               Trustless Bridge
             </motion.span>
             <br />
-            <motion.span 
+            <motion.span
               className="text-foreground"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -153,18 +153,18 @@ export function Hero() {
               Bitcoin ↔ Ethereum
             </motion.span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
           >
-            Bridge your assets between Bitcoin and Ethereum using cryptographic proofs. 
+            Bridge your assets between Bitcoin and Ethereum using cryptographic proofs.
             <span className="text-foreground font-medium"> Secure, fast, and completely trustless.</span>
           </motion.p>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -187,7 +187,7 @@ export function Hero() {
                   ease: "easeInOut"
                 }}
               />
-              <Link 
+              <Link
                 href="/bridge"
                 className={cn(
                   "group relative px-8 py-4 rounded-xl font-semibold text-lg",
@@ -216,7 +216,7 @@ export function Hero() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Link 
+              <Link
                 href="/docs"
                 className={cn(
                   "group relative px-8 py-4 rounded-xl font-semibold text-lg",
@@ -243,7 +243,7 @@ export function Hero() {
 
           {/* Feature highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
@@ -255,7 +255,7 @@ export function Hero() {
                 "interactive"
               )}
             >
-              <motion.div 
+              <motion.div
                 className={cn(
                   "p-4 rounded-2xl mb-6 transition-all duration-300",
                   "bg-gradient-to-br from-bitcoin/20 to-bitcoin/10",
@@ -294,7 +294,7 @@ export function Hero() {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.0 }}
@@ -306,7 +306,7 @@ export function Hero() {
                 "interactive"
               )}
             >
-              <motion.div 
+              <motion.div
                 className={cn(
                   "p-4 rounded-2xl mb-6 transition-all duration-300",
                   "bg-gradient-to-br from-ethereum/20 to-ethereum/10",
@@ -329,7 +329,7 @@ export function Hero() {
                 }}
               >
                 <motion.div
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.1, 1],
                     rotate: [0, 10, 0]
                   }}
@@ -348,7 +348,7 @@ export function Hero() {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.2 }}
@@ -360,7 +360,7 @@ export function Hero() {
                 "interactive"
               )}
             >
-              <motion.div 
+              <motion.div
                 className={cn(
                   "p-4 rounded-2xl mb-6 transition-all duration-300",
                   "bg-gradient-to-br from-primary/20 to-primary/10",
@@ -383,7 +383,7 @@ export function Hero() {
                 }}
               >
                 <motion.div
-                  animate={{ 
+                  animate={{
                     rotate: [0, 360],
                     scale: [1, 1.1, 1]
                   }}

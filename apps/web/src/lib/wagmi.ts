@@ -8,7 +8,7 @@ import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [hardhat, sepolia, goerli], // Include localhost for testing
+  [hardhat, sepolia, goerli] as any, // Include localhost for testing
   [
     publicProvider(), // Use public provider by default to avoid API key issues
   ],
@@ -22,9 +22,9 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 // Create connectors array with error handling
 const createConnectors = () => {
   console.log('🔧 Creating wagmi connectors...');
-  
+
   const connectors: any[] = [
-    new MetaMaskConnector({ 
+    new MetaMaskConnector({
       chains,
       options: {
         shimDisconnect: true,
@@ -41,7 +41,7 @@ const createConnectors = () => {
 
   // Only add WalletConnect if we have a valid project ID
   const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'b19c0d68780c98ce580cc0b970e9aa4d';
-  
+
   if (walletConnectProjectId && walletConnectProjectId !== 'your-project-id' && walletConnectProjectId.length > 20) {
     try {
       const walletConnectConnector = new WalletConnectConnector({
@@ -75,12 +75,12 @@ const createConnectors = () => {
     },
   });
   connectors.push(exodusConnector);
-  
-  console.log('📋 Final connectors:', connectors.map((c, i) => ({ 
-    index: i, 
-    id: c.id, 
-    name: c.name, 
-    type: c.type 
+
+  console.log('📋 Final connectors:', connectors.map((c, i) => ({
+    index: i,
+    id: c.id,
+    name: c.name,
+    type: c.type
   })));
 
   return connectors;

@@ -15,10 +15,10 @@ const BTC_RELAY_ADDRESS = process.env.NEXT_PUBLIC_BTC_RELAY_ADDRESS || '0x...';
 const BRIDGE_ABI = [
   {
     "inputs": [
-      {"name": "btcTxHash", "type": "bytes32"},
-      {"name": "merkleProof", "type": "bytes"},
-      {"name": "btcAddress", "type": "string"},
-      {"name": "amount", "type": "uint256"}
+      { "name": "btcTxHash", "type": "bytes32" },
+      { "name": "merkleProof", "type": "bytes" },
+      { "name": "btcAddress", "type": "string" },
+      { "name": "amount", "type": "uint256" }
     ],
     "name": "claimBitcoin",
     "outputs": [],
@@ -27,7 +27,7 @@ const BRIDGE_ABI = [
   },
   {
     "inputs": [
-      {"name": "amount", "type": "uint256"}
+      { "name": "amount", "type": "uint256" }
     ],
     "name": "burnWrappedBTC",
     "outputs": [],
@@ -36,14 +36,14 @@ const BRIDGE_ABI = [
   },
   {
     "inputs": [
-      {"name": "bridgeId", "type": "bytes32"}
+      { "name": "bridgeId", "type": "bytes32" }
     ],
     "name": "getBridgeStatus",
     "outputs": [
-      {"name": "status", "type": "uint8"},
-      {"name": "amount", "type": "uint256"},
-      {"name": "fee", "type": "uint256"},
-      {"name": "timestamp", "type": "uint256"}
+      { "name": "status", "type": "uint8" },
+      { "name": "amount", "type": "uint256" },
+      { "name": "fee", "type": "uint256" },
+      { "name": "timestamp", "type": "uint256" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -51,12 +51,12 @@ const BRIDGE_ABI = [
   {
     "anonymous": false,
     "inputs": [
-      {"indexed": true, "name": "bridgeId", "type": "bytes32"},
-      {"indexed": true, "name": "user", "type": "address"},
-      {"indexed": true, "name": "amount", "type": "uint256"},
-      {"indexed": false, "name": "btcTxHash", "type": "bytes32"},
-      {"indexed": false, "name": "btcAddress", "type": "string"},
-      {"indexed": false, "name": "timestamp", "type": "uint256"}
+      { "indexed": true, "name": "bridgeId", "type": "bytes32" },
+      { "indexed": true, "name": "user", "type": "address" },
+      { "indexed": true, "name": "amount", "type": "uint256" },
+      { "indexed": false, "name": "btcTxHash", "type": "bytes32" },
+      { "indexed": false, "name": "btcAddress", "type": "string" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
     ],
     "name": "BridgeInitiated",
     "type": "event"
@@ -64,11 +64,11 @@ const BRIDGE_ABI = [
   {
     "anonymous": false,
     "inputs": [
-      {"indexed": true, "name": "bridgeId", "type": "bytes32"},
-      {"indexed": true, "name": "user", "type": "address"},
-      {"indexed": true, "name": "amount", "type": "uint256"},
-      {"indexed": false, "name": "fee", "type": "uint256"},
-      {"indexed": false, "name": "timestamp", "type": "uint256"}
+      { "indexed": true, "name": "bridgeId", "type": "bytes32" },
+      { "indexed": true, "name": "user", "type": "address" },
+      { "indexed": true, "name": "amount", "type": "uint256" },
+      { "indexed": false, "name": "fee", "type": "uint256" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
     ],
     "name": "BridgeCompleted",
     "type": "event"
@@ -78,35 +78,35 @@ const BRIDGE_ABI = [
 const WRAPPED_BTC_ABI = [
   {
     "inputs": [
-      {"name": "account", "type": "address"}
+      { "name": "account", "type": "address" }
     ],
     "name": "balanceOf",
     "outputs": [
-      {"name": "", "type": "uint256"}
+      { "name": "", "type": "uint256" }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      {"name": "spender", "type": "address"},
-      {"name": "amount", "type": "uint256"}
+      { "name": "spender", "type": "address" },
+      { "name": "amount", "type": "uint256" }
     ],
     "name": "approve",
     "outputs": [
-      {"name": "", "type": "bool"}
+      { "name": "", "type": "bool" }
     ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
-      {"name": "owner", "type": "address"},
-      {"name": "spender", "type": "address"}
+      { "name": "owner", "type": "address" },
+      { "name": "spender", "type": "address" }
     ],
     "name": "allowance",
     "outputs": [
-      {"name": "", "type": "uint256"}
+      { "name": "", "type": "uint256" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -134,7 +134,7 @@ export function useEthereum() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  
+
   // State management
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -169,19 +169,19 @@ export function useEthereum() {
     address: BRIDGE_CONTRACT_ADDRESS as `0x${string}`,
     abi: BRIDGE_ABI,
     functionName: 'claimBitcoin',
-  });
+  } as any);
 
   const { write: burnWrappedBTC, data: burnTxHash, isLoading: isBurning } = useContractWrite({
     address: BRIDGE_CONTRACT_ADDRESS as `0x${string}`,
     abi: BRIDGE_ABI,
     functionName: 'burnWrappedBTC',
-  });
+  } as any);
 
   const { write: approveWrappedBTC, data: approveTxHash, isLoading: isApproving } = useContractWrite({
     address: WRAPPED_BTC_ADDRESS as `0x${string}`,
     abi: WRAPPED_BTC_ABI,
     functionName: 'approve',
-  });
+  } as any);
 
   // Wait for transaction confirmations
   const { isLoading: isClaimConfirming } = useWaitForTransaction({
@@ -468,28 +468,28 @@ export function useEthereum() {
     // Connection state
     isConnected,
     address,
-    
+
     // Balances
     ethBalance: ethBalance ? formatEther(ethBalance.value) : '0',
     wrappedBTCBalance: wrappedBTCBalance ? formatUnits(wrappedBTCBalance, 8) : '0',
     allowance: allowance ? formatUnits(allowance, 8) : '0',
-    
+
     // Bridge transactions
     bridgeTransactions,
-    
+
     // Gas estimation
     gasEstimate,
-    
+
     // Loading states
     isLoading: isLoading || isClaiming || isBurning || isApproving || isClaimConfirming || isBurnConfirming || isApproveConfirming,
     isClaiming,
     isBurning,
     isApproving,
-    
+
     // Error handling
     error,
     setError,
-    
+
     // Functions
     claimBitcoinOnEthereum,
     burnWrappedBTCForBitcoin,

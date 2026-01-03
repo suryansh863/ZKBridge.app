@@ -20,8 +20,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         gcTime: 10 * 60 * 1000, // 10 minutes
         retry: (failureCount, error) => {
           // Don't retry on 4xx errors
-          if (error instanceof Error && 'status' in error && 
-              typeof error.status === 'number' && error.status >= 400 && error.status < 500) {
+          if (error instanceof Error && 'status' in error &&
+            typeof error.status === 'number' && error.status >= 400 && error.status < 500) {
             return false;
           }
           return failureCount < 2; // Reduced retry attempts
@@ -36,8 +36,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Handle extension communication errors
     const handleExtensionError = (event: ErrorEvent) => {
-      if (event.message?.includes('runtime.lastError') || 
-          event.message?.includes('message port closed')) {
+      if (event.message?.includes('runtime.lastError') ||
+        event.message?.includes('message port closed')) {
         // Silently ignore extension communication errors
         event.preventDefault();
         return false;
@@ -47,7 +47,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // Handle unhandled promise rejections from extensions
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       if (event.reason?.message?.includes('runtime.lastError') ||
-          event.reason?.message?.includes('message port closed')) {
+        event.reason?.message?.includes('message port closed')) {
         // Silently ignore extension communication errors
         event.preventDefault();
         return false;
@@ -72,7 +72,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
-            suppressColorSchemeWarning
           >
             <RainbowKitProvider
               chains={chains}

@@ -46,8 +46,8 @@ export default function TransactionsPage() {
           const transformedTransactions: Transaction[] = data.data.map((tx: any) => ({
             id: tx.id,
             type: 'bridge',
-            status: tx.status.toLowerCase() === 'completed' ? 'confirmed' : 
-                   tx.status.toLowerCase() === 'pending' ? 'pending' : 'failed',
+            status: tx.status.toLowerCase() === 'completed' ? 'confirmed' :
+              tx.status.toLowerCase() === 'pending' ? 'pending' : 'failed',
             bitcoinTx: tx.sourceTxHash,
             ethereumTx: tx.targetTxHash || undefined,
             amount: parseFloat(tx.sourceAmount) / 100000000, // Convert satoshis to BTC
@@ -60,20 +60,7 @@ export default function TransactionsPage() {
       }
     } catch (error) {
       console.error('Failed to load transactions:', error)
-      // Fallback to mock data for demo purposes
-      setTransactions([
-        {
-          id: 'demo-1',
-          type: 'bridge',
-          status: 'confirmed',
-          bitcoinTx: 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16',
-          ethereumTx: '0x1234567890abcdef1234567890abcdef12345678',
-          amount: 0.001,
-          timestamp: new Date(Date.now() - 86400000),
-          confirmations: 6,
-          fee: 0.00001
-        }
-      ])
+      setTransactions([])
     } finally {
       setIsLoading(false)
     }
@@ -102,7 +89,7 @@ export default function TransactionsPage() {
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(tx => 
+      filtered = filtered.filter(tx =>
         tx.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tx.bitcoinTx?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tx.ethereumTx?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -222,7 +209,7 @@ export default function TransactionsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         {/* Header Section */}
         <motion.div

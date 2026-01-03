@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Bitcoin, 
-  CheckCircle, 
-  AlertTriangle, 
-  Clock, 
+import {
+  Bitcoin,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
   Activity,
   TrendingUp,
   TrendingDown,
@@ -33,68 +33,6 @@ interface NetworkData {
   uptime: string;
 }
 
-const mockNetworkData: NetworkData[] = [
-  {
-    name: 'Bitcoin Mainnet',
-    icon: <Bitcoin className="h-6 w-6 text-orange-500" />,
-    status: 'operational',
-    blockHeight: 820000,
-    avgBlockTime: '10.2 minutes',
-    mempoolSize: 15420,
-    feeRate: {
-      slow: 5,
-      medium: 12,
-      fast: 25
-    },
-    lastUpdate: '2 minutes ago',
-    uptime: '99.9%'
-  },
-  {
-    name: 'Bitcoin Testnet',
-    icon: <Bitcoin className="h-6 w-6 text-orange-400" />,
-    status: 'operational',
-    blockHeight: 2500000,
-    avgBlockTime: '9.8 minutes',
-    mempoolSize: 2340,
-    feeRate: {
-      slow: 1,
-      medium: 2,
-      fast: 5
-    },
-    lastUpdate: '1 minute ago',
-    uptime: '99.8%'
-  },
-  {
-    name: 'Ethereum Mainnet',
-    icon: <div className="h-6 w-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">ETH</div>,
-    status: 'operational',
-    blockHeight: 18500000,
-    avgBlockTime: '12.1 seconds',
-    mempoolSize: 125000,
-    feeRate: {
-      slow: 15,
-      medium: 25,
-      fast: 45
-    },
-    lastUpdate: '30 seconds ago',
-    uptime: '99.7%'
-  },
-  {
-    name: 'Ethereum Testnet',
-    icon: <div className="h-6 w-6 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold text-xs">ETH</div>,
-    status: 'operational',
-    blockHeight: 12000000,
-    avgBlockTime: '12.0 seconds',
-    mempoolSize: 8500,
-    feeRate: {
-      slow: 1,
-      medium: 2,
-      fast: 3
-    },
-    lastUpdate: '15 seconds ago',
-    uptime: '99.9%'
-  }
-];
 
 const bridgeMetrics = {
   totalBridges: 15420,
@@ -106,20 +44,69 @@ const bridgeMetrics = {
 
 export default function NetworkStatusPage() {
   const [mounted, setMounted] = useState(false);
+  const [bitcoinHeight, setBitcoinHeight] = useState<number>(2500000);
+  const [bitcoinStatus, setBitcoinStatus] = useState<'operational' | 'degraded' | 'outage'>('operational');
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const fetchNetworkData = async () => {
+    try {
+      const response = await fetch('/api/bitcoin/block-count');
+      if (response.ok) {
+        const data = await response.json();
+        setBitcoinHeight(data.data.blockCount);
+        setBitcoinStatus('operational');
+      }
+    } catch (error) {
+      console.error('Failed to fetch Bitcoin status:', error);
+      setBitcoinStatus('degraded');
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
+    fetchNetworkData();
   }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await fetchNetworkData();
     setLastRefresh(new Date());
     setIsRefreshing(false);
   };
+
+  const networkData: NetworkData[] = [
+    {
+      name: 'Bitcoin Testnet',
+      icon: <Bitcoin className="h-6 w-6 text-orange-400" />,
+      status: bitcoinStatus,
+      blockHeight: bitcoinHeight,
+      avgBlockTime: '9.8 minutes',
+      mempoolSize: 2340,
+      feeRate: {
+        slow: 1,
+        medium: 2,
+        fast: 5
+      },
+      lastUpdate: 'Just now',
+      uptime: '99.8%'
+    },
+    {
+      name: 'Ethereum Sepolia',
+      icon: <div className="h-6 w-6 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold text-xs">ETH</div>,
+      status: 'operational',
+      blockHeight: 4500000,
+      avgBlockTime: '12.0 seconds',
+      mempoolSize: 8500,
+      feeRate: {
+        slow: 1,
+        medium: 2,
+        fast: 3
+      },
+      lastUpdate: 'Just now',
+      uptime: '99.9%'
+    }
+  ];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -164,10 +151,10 @@ export default function NetworkStatusPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         {/* Breadcrumb */}
-        <Breadcrumb 
+        <Breadcrumb
           items={[
             { label: 'Network Status' }
           ]}
@@ -228,25 +215,25 @@ export default function NetworkStatusPage() {
             <h3 className="text-2xl font-bold text-white">{bridgeMetrics.totalBridges.toLocaleString()}</h3>
             <p className="text-gray-400 text-sm">Total Bridges</p>
           </div>
-          
+
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 text-center">
             <TrendingUp className="h-8 w-8 text-green-500 mx-auto mb-3" />
             <h3 className="text-2xl font-bold text-white">{bridgeMetrics.successRate}%</h3>
             <p className="text-gray-400 text-sm">Success Rate</p>
           </div>
-          
+
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 text-center">
             <Clock className="h-8 w-8 text-purple-500 mx-auto mb-3" />
             <h3 className="text-2xl font-bold text-white">{bridgeMetrics.avgBridgeTime}</h3>
             <p className="text-gray-400 text-sm">Avg Bridge Time</p>
           </div>
-          
+
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 text-center">
             <TrendingUp className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
             <h3 className="text-2xl font-bold text-white">{bridgeMetrics.totalVolume}</h3>
             <p className="text-gray-400 text-sm">Total Volume</p>
           </div>
-          
+
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 text-center">
             <Activity className="h-8 w-8 text-pink-500 mx-auto mb-3" />
             <h3 className="text-2xl font-bold text-white">{bridgeMetrics.activeUsers.toLocaleString()}</h3>
@@ -261,7 +248,7 @@ export default function NetworkStatusPage() {
           transition={{ delay: 0.3 }}
           className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12"
         >
-          {mockNetworkData.map((network, index) => (
+          {networkData.map((network, index) => (
             <motion.div
               key={network.name}
               initial={{ opacity: 0, y: 20 }}
@@ -319,8 +306,8 @@ export default function NetworkStatusPage() {
 
               <div className="flex items-center justify-between text-sm text-gray-400">
                 <span>Last updated: {network.lastUpdate}</span>
-                <a 
-                  href="#" 
+                <a
+                  href="#"
                   className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
                 >
                   View Explorer
@@ -341,7 +328,7 @@ export default function NetworkStatusPage() {
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Historical Performance
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="bg-green-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -350,7 +337,7 @@ export default function NetworkStatusPage() {
               <h3 className="text-lg font-semibold text-white mb-2">99.2% Uptime</h3>
               <p className="text-gray-400 text-sm">Last 30 days</p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-blue-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Clock className="h-8 w-8 text-blue-400" />
@@ -358,7 +345,7 @@ export default function NetworkStatusPage() {
               <h3 className="text-lg font-semibold text-white mb-2">8.5 min</h3>
               <p className="text-gray-400 text-sm">Average bridge time</p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-purple-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Activity className="h-8 w-8 text-purple-400" />

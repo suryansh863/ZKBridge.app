@@ -21,14 +21,14 @@ import { bitcoinTestnetService, BitcoinTransaction as TestnetTransaction, Merkle
 // };
 
 export class BitcoinService {
-  private client: Client;
+  private client: any;
   private network: bitcoin.Network;
   private blockstreamApiUrl: string;
 
   constructor() {
     // Configure Bitcoin testnet
     this.network = bitcoin.networks.testnet;
-    
+
     // Initialize Bitcoin Core client
     this.client = new Client({
       network: process.env.BITCOIN_NETWORK || 'testnet',
@@ -36,7 +36,7 @@ export class BitcoinService {
       password: process.env.BITCOIN_RPC_PASSWORD || 'password',
       port: parseInt(process.env.BITCOIN_RPC_PORT || '18332'),
       host: process.env.BITCOIN_RPC_HOST || 'localhost',
-    });
+    } as any) as any;
 
     // Blockstream API for testnet
     this.blockstreamApiUrl = process.env.BITCOIN_API_URL || 'https://blockstream.info/testnet/api';
@@ -47,9 +47,9 @@ export class BitcoinService {
       // Use the new testnet service for real Bitcoin data
       const testnetTx = await bitcoinTestnetService.getTransaction(txid);
       const confirmations = await bitcoinTestnetService.getConfirmationCount(txid);
-      
+
       // Calculate amount from outputs for outputs array
-      
+
       return {
         txHash: testnetTx.txid,
         blockHash: testnetTx.status.block_hash || '',
@@ -115,7 +115,7 @@ export class BitcoinService {
   }> {
     try {
       const tx = await this.getTransaction(txid);
-      
+
       // Validate transaction format
       if (!this.validateTransactionFormat(tx)) {
         return { isValid: false, details: { error: 'Invalid transaction format' } };
@@ -124,21 +124,21 @@ export class BitcoinService {
       // Check if the transaction involves the specified address
       const inputAddresses = await this.getInputAddresses(txid);
       const outputAddresses = await this.getOutputAddresses(txid);
-      
-      const isCorrectAddress = 
-        inputAddresses.includes(address) || 
+
+      const isCorrectAddress =
+        inputAddresses.includes(address) ||
         outputAddresses.includes(address);
-      
+
       // Check amount with tolerance (allow for fees)
       const totalOutputAmount = tx.outputs.reduce((sum, output) => sum + output.amount, 0);
       const tolerance = Math.max(1000, Math.floor(amount * 0.01)); // 1% tolerance or 1000 sats minimum
       const isCorrectAmount = Math.abs(totalOutputAmount - amount) <= tolerance;
-      
+
       // Check confirmations
       const hasEnoughConfirmations = tx.confirmations >= 6; // 6 confirmations for security
-      
+
       const isValid = isCorrectAddress && isCorrectAmount && hasEnoughConfirmations;
-      
+
       return {
         isValid,
         details: {
@@ -166,7 +166,7 @@ export class BitcoinService {
     try {
       const response = await axios.get(`${this.blockstreamApiUrl}/tx/${txid}`);
       const tx = response.data;
-      
+
       const addresses: string[] = [];
       if (tx.vin) {
         for (const input of tx.vin) {
@@ -186,7 +186,7 @@ export class BitcoinService {
     try {
       const response = await axios.get(`${this.blockstreamApiUrl}/tx/${txid}`);
       const tx = response.data;
-      
+
       const addresses: string[] = [];
       if (tx.vout) {
         for (const output of tx.vout) {
@@ -206,11 +206,15 @@ export class BitcoinService {
     try {
       // Use the new testnet service for real Merkle proof generation
       const testnetProof = await bitcoinTestnetService.generateMerkleProof(txid);
-      
+
       return {
+        txHash: testnetProof.transactionHash,
+        blockHash: '', // Will be filled if available
+        merkleRoot: testnetProof.merkleRoot,
+        index: testnetProof.proofIndex,
         leaf: testnetProof.transactionHash,
         path: testnetProof.proofPath,
-        indices: [testnetProof.proofIndex], // Convert to array format expected by existing code
+        indices: [testnetProof.proofIndex],
         root: testnetProof.merkleRoot
       };
     } catch (error: any) {
@@ -221,7 +225,7 @@ export class BitcoinService {
 
   async verifyMerkleProof(proof: MerkleProof): Promise<boolean> {
     try {
-      return verifyMerkleProof(proof.leaf, proof.path, proof.indices, proof.root);
+      return verifyMerkleProof(proof);
     } catch (error: any) {
       logger.error('Error verifying Merkle proof:', error);
       return false;
@@ -290,12 +294,6 @@ export class BitcoinService {
     return bitcoinTestnetService.validateTransactionHash(txHash);
   }
 
-  /**
-   * Get sample transactions for demo
-   */
-  async getSampleTransactions(): Promise<Array<{txHash: string, description: string}>> {
-    return await bitcoinTestnetService.getSampleTransactions();
-  }
 
   /**
    * Get detailed transaction information with all inputs/outputs

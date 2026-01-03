@@ -8,7 +8,7 @@
 export function formatAddress(address: string, length: number = 6): string {
   if (!address) return '';
   if (address.length <= length * 2) return address;
-  
+
   return `${address.slice(0, length)}...${address.slice(-length)}`;
 }
 
@@ -17,11 +17,11 @@ export function formatAddress(address: string, length: number = 6): string {
  */
 export function formatBalance(balance: string | number, decimals: number = 4): string {
   const num = typeof balance === 'string' ? parseFloat(balance) : balance;
-  
+
   if (isNaN(num)) return '0';
   if (num === 0) return '0';
   if (num < 0.0001) return '< 0.0001';
-  
+
   return num.toFixed(decimals);
 }
 
@@ -60,12 +60,12 @@ export function formatPercentage(value: number, decimals: number = 2): string {
 export function formatTimeAgo(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
+
   if (diffInSeconds < 60) return 'Just now';
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
   if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  
+
   return date.toLocaleDateString();
 }
 
@@ -75,7 +75,7 @@ export function formatTimeAgo(date: Date): string {
 export function formatTxHash(hash: string, length: number = 8): string {
   if (!hash) return '';
   if (hash.length <= length * 2) return hash;
-  
+
   return `${hash.slice(0, length)}...${hash.slice(-length)}`;
 }
 
@@ -84,11 +84,11 @@ export function formatTxHash(hash: string, length: number = 8): string {
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
@@ -138,7 +138,6 @@ export function formatWalletType(type: string): string {
     case 'trust': return 'Trust Wallet';
     case 'walletconnect': return 'WalletConnect';
     case 'exodus': return 'Exodus';
-    case 'coindcx': return 'CoinDCX';
     default: return type.charAt(0).toUpperCase() + type.slice(1);
   }
 }
@@ -171,13 +170,13 @@ export function formatErrorMessage(error: any): string {
  */
 export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  
+
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
@@ -187,7 +186,7 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 export function formatGasPrice(gasPrice: string | number): string {
   const price = typeof gasPrice === 'string' ? parseInt(gasPrice, 16) : gasPrice;
   const gwei = price / 1e9;
-  
+
   if (gwei < 1) return `${gwei.toFixed(2)} Gwei`;
   if (gwei < 10) return `${gwei.toFixed(1)} Gwei`;
   return `${Math.round(gwei)} Gwei`;

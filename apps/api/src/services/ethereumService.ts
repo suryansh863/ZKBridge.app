@@ -9,7 +9,7 @@ export class EthereumService {
   constructor() {
     const rpcUrl = process.env.ETHEREUM_RPC_URL || 'http://localhost:8545';
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
-    
+
     if (process.env.ETHEREUM_PRIVATE_KEY && process.env.ETHEREUM_PRIVATE_KEY !== 'your_private_key_here') {
       try {
         this.wallet = new ethers.Wallet(process.env.ETHEREUM_PRIVATE_KEY, this.provider);
@@ -49,12 +49,12 @@ export class EthereumService {
   async verifyTransaction(hash: string, address: string, amount: string): Promise<boolean> {
     try {
       const tx = await this.getTransaction(hash);
-      
+
       // Check if the transaction involves the specified address and amount
-      const isCorrectAddress = tx.fromAddress.toLowerCase() === address.toLowerCase() || 
-                              tx.toAddress.toLowerCase() === address.toLowerCase();
+      const isCorrectAddress = tx.fromAddress.toLowerCase() === address.toLowerCase() ||
+        tx.toAddress.toLowerCase() === address.toLowerCase();
       const isCorrectAmount = tx.amount === amount;
-      
+
       return isCorrectAddress && isCorrectAmount;
     } catch (error: any) {
       logger.error('Error verifying Ethereum transaction:', error);
@@ -66,13 +66,14 @@ export class EthereumService {
     try {
       const network = await this.provider.getNetwork();
       const blockNumber = await this.provider.getBlockNumber();
-      const gasPrice = await this.provider.getGasPrice();
+      const feeData = await this.provider.getFeeData();
+      const gasPrice = feeData.gasPrice;
 
       return {
         chainId: network.chainId.toString(),
         name: network.name,
         blockNumber,
-        gasPrice: gasPrice.toString()
+        gasPrice: gasPrice ? gasPrice.toString() : '0'
       };
     } catch (error: any) {
       logger.error('Error getting Ethereum network info:', error);
@@ -92,8 +93,8 @@ export class EthereumService {
 
   async getGasPrice(): Promise<string> {
     try {
-      const gasPrice = await this.provider.getGasPrice();
-      return gasPrice.toString();
+      const feeData = await this.provider.getFeeData();
+      return feeData.gasPrice?.toString() || '0';
     } catch (error: any) {
       logger.error('Error getting gas price:', error);
       throw new Error(`Failed to get gas price: ${error.message}`);

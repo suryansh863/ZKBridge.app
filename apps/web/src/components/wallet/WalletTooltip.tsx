@@ -19,10 +19,10 @@ interface WalletTooltipProps {
   disabled?: boolean;
 }
 
-export function WalletTooltip({ 
-  content, 
-  title, 
-  type = 'info', 
+export function WalletTooltip({
+  content,
+  title,
+  type = 'info',
   position = 'top',
   maxWidth = '300px',
   children,
@@ -138,7 +138,7 @@ export function WalletTooltip({
   }
 
   return (
-    <div 
+    <div
       ref={triggerRef}
       className="relative inline-block"
       onMouseEnter={() => setIsVisible(true)}
@@ -146,7 +146,7 @@ export function WalletTooltip({
       onClick={() => setIsPinned(!isPinned)}
     >
       {children}
-      
+
       <AnimatePresence>
         {(isVisible || isPinned) && (
           <motion.div
@@ -160,7 +160,7 @@ export function WalletTooltip({
             <div className={`relative p-3 rounded-lg border ${styles.bg} ${styles.border} shadow-lg`}>
               {/* Arrow */}
               <div className={`absolute w-0 h-0 border-4 ${getArrowClasses()}`} />
-              
+
               {/* Content */}
               <div className="flex items-start gap-2">
                 <div className={`w-6 h-6 rounded-full ${styles.iconBg} flex items-center justify-center flex-shrink-0`}>
@@ -168,7 +168,7 @@ export function WalletTooltip({
                     {getIcon()}
                   </div>
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   {title && (
                     <h4 className="text-sm font-semibold text-white mb-1">
@@ -179,7 +179,7 @@ export function WalletTooltip({
                     {typeof content === 'string' ? content : content}
                   </div>
                 </div>
-                
+
                 {isPinned && (
                   <button
                     onClick={(e) => {
@@ -244,43 +244,32 @@ export const WalletTooltips = {
     title: 'Connect Your Wallet',
     content: 'Connect your crypto wallet to interact with BridgeSpark. We support MetaMask, Coinbase Wallet, Trust Wallet, and more.'
   },
-  
+
   // Security tooltips
   privateKeys: {
     title: 'Your Private Keys Stay Safe',
     content: 'BridgeSpark never has access to your private keys. All transactions are signed locally in your wallet.'
   },
-  
+
   // Network tooltips
   networkSwitch: {
     title: 'Network Requirements',
     content: 'Make sure you\'re connected to the correct network. BridgeSpark works on Ethereum, Polygon, Arbitrum, and other EVM-compatible chains.'
   },
-  
+
   // Gas tooltips
   gasFees: {
     title: 'Gas Fees',
     content: 'Gas fees are required for blockchain transactions. Fees vary based on network congestion and transaction complexity.'
   },
-  
-  // Exchange tooltips
-  exchangeConnection: {
-    title: 'Exchange Integration',
-    content: 'Connect your exchange account to access your trading balances and execute trades directly from BridgeSpark.'
-  },
-  
-  // CoinDCX specific
-  coindcxApiKeys: {
-    title: 'CoinDCX API Keys',
-    content: 'Generate API keys in your CoinDCX account settings. Make sure to set appropriate permissions and never share your API secret.'
-  },
-  
+
+
   // Transaction tooltips
   transactionStatus: {
     title: 'Transaction Status',
     content: 'Track your transaction status in real-time. Pending transactions may take a few minutes to confirm on the blockchain.'
   },
-  
+
   // Bridge tooltips
   bridgeProcess: {
     title: 'Bridge Process',

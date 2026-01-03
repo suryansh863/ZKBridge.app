@@ -3,38 +3,31 @@
  * Manages wallet connections, state, and provider integrations
  */
 
-import { 
-  WalletInfo, 
-  WalletConnection, 
-  WalletState, 
-  WalletError, 
-  WalletType, 
+import {
+  WalletInfo,
+  WalletConnection,
+  WalletState,
+  WalletError,
+  WalletType,
   WalletCategory,
   NetworkType,
-  ConnectionStatus,
-  CoinDCXCredentials,
-  ExchangeConnection,
-  CoinDCXAccount,
-  CoinDCXBalance,
-  CoinDCXApiResponse
+  ConnectionStatus
 } from '@/types/wallet';
 
 class WalletService {
   private state: WalletState = {
     connections: [],
-    exchangeConnections: [],
     errors: [],
     isConnecting: false,
     supportedWallets: []
   };
 
   private listeners: Set<(state: WalletState) => void> = new Set();
-  private coinDCXApiUrl = 'https://api.coindcx.com';
 
   constructor() {
     // Initialize supported wallets first
     this.state.supportedWallets = this.getSupportedWalletConfigs();
-    
+
     // Only initialize service in browser environment
     if (typeof window !== 'undefined') {
       this.initializeService();
@@ -45,21 +38,11 @@ class WalletService {
    * Initialize the wallet service
    */
   private initializeService(): void {
-    // Only initialize in browser environment
-    if (typeof window === 'undefined') {
-      return;
-    }
-    
     // Load persisted connections from localStorage
     this.loadPersistedConnections();
-    
+
     // Set up event listeners for wallet events
     this.setupEventListeners();
-    
-    // Auto-connect if enabled
-    if (this.shouldAutoConnect()) {
-      this.autoConnect();
-    }
   }
 
   /**
@@ -215,7 +198,7 @@ class WalletService {
 
       // Add connection to state
       const updatedConnections = [...this.state.connections, connection];
-      this.setState({ 
+      this.setState({
         connections: updatedConnections,
         activeConnection: connection,
         isConnecting: false
@@ -242,19 +225,19 @@ class WalletService {
     }
 
     const ethereum = (window as any).ethereum;
-    
+
     try {
       // Request account access with error handling
-      const accounts = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_requestAccounts' 
+      const accounts = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_requestAccounts'
       });
-      
+
       if (!accounts.length) {
         throw new Error('No accounts found');
       }
 
-      const chainId = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_chainId' 
+      const chainId = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_chainId'
       });
       const balance = await this.getBalance(accounts[0]);
 
@@ -283,18 +266,18 @@ class WalletService {
     }
 
     const ethereum = (window as any).ethereum;
-    
+
     try {
-      const accounts = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_requestAccounts' 
+      const accounts = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_requestAccounts'
       });
-      
+
       if (!accounts.length) {
         throw new Error('No accounts found');
       }
 
-      const chainId = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_chainId' 
+      const chainId = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_chainId'
       });
       const balance = await this.getBalance(accounts[0]);
 
@@ -323,7 +306,7 @@ class WalletService {
     }
 
     const ethereum = (window as any).ethereum;
-    
+
     const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     if (!accounts.length) {
       throw new Error('No accounts found');
@@ -362,7 +345,7 @@ class WalletService {
     }
 
     const ethereum = (window as any).ethereum;
-    
+
     const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     if (!accounts.length) {
       throw new Error('No accounts found');
@@ -392,18 +375,18 @@ class WalletService {
     }
 
     const ethereum = (window as any).okxwallet.ethereum;
-    
+
     try {
-      const accounts = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_requestAccounts' 
+      const accounts = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_requestAccounts'
       });
-      
+
       if (!accounts.length) {
         throw new Error('No accounts found');
       }
 
-      const chainId = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_chainId' 
+      const chainId = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_chainId'
       });
       const balance = await this.getBalance(accounts[0]);
 
@@ -432,18 +415,18 @@ class WalletService {
     }
 
     const ethereum = (window as any).bitkeep.ethereum;
-    
+
     try {
-      const accounts = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_requestAccounts' 
+      const accounts = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_requestAccounts'
       });
-      
+
       if (!accounts.length) {
         throw new Error('No accounts found');
       }
 
-      const chainId = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_chainId' 
+      const chainId = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_chainId'
       });
       const balance = await this.getBalance(accounts[0]);
 
@@ -472,18 +455,18 @@ class WalletService {
     }
 
     const ethereum = (window as any).BinanceChain;
-    
+
     try {
-      const accounts = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_requestAccounts' 
+      const accounts = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_requestAccounts'
       });
-      
+
       if (!accounts.length) {
         throw new Error('No accounts found');
       }
 
-      const chainId = await this.safeEthereumRequest(ethereum, { 
-        method: 'eth_chainId' 
+      const chainId = await this.safeEthereumRequest(ethereum, {
+        method: 'eth_chainId'
       });
       const balance = await this.getBalance(accounts[0]);
 
@@ -504,84 +487,6 @@ class WalletService {
   }
 
   /**
-   * Connect to CoinDCX exchange
-   */
-  async connectCoinDCX(credentials: CoinDCXCredentials): Promise<void> {
-    try {
-      this.setState({ isConnecting: true });
-      this.clearErrors();
-
-      // Validate credentials
-      if (!credentials.apiKey || !credentials.apiSecret) {
-        throw new Error('API Key and Secret are required');
-      }
-
-      // Test API connection
-      const account = await this.testCoinDCXConnection(credentials);
-      
-      const exchangeConnection: ExchangeConnection = {
-        exchangeId: 'coindcx',
-        name: 'CoinDCX',
-        type: 'coindcx',
-        credentials,
-        account,
-        status: 'connected',
-        connectedAt: new Date()
-      };
-
-      const updatedConnections = [...this.state.exchangeConnections, exchangeConnection];
-      this.setState({ 
-        exchangeConnections: updatedConnections,
-        activeExchange: exchangeConnection,
-        isConnecting: false
-      });
-
-      // Persist connection
-      this.persistConnections();
-
-    } catch (error) {
-      this.handleError(error as Error, 'connectCoinDCX');
-      this.setState({ isConnecting: false });
-    }
-  }
-
-  /**
-   * Test CoinDCX API connection
-   */
-  private async testCoinDCXConnection(credentials: CoinDCXCredentials): Promise<CoinDCXAccount> {
-    try {
-      // This would make actual API calls to CoinDCX
-      // For now, return mock data
-      const mockAccount: CoinDCXAccount = {
-        id: 'mock-user-id',
-        email: 'user@example.com',
-        balances: [
-          {
-            currency: 'BTC',
-            balance: '0.5',
-            available: '0.5',
-            locked: '0',
-            usdValue: 15000
-          },
-          {
-            currency: 'ETH',
-            balance: '2.0',
-            available: '2.0',
-            locked: '0',
-            usdValue: 4000
-          }
-        ],
-        tradingEnabled: true,
-        kycStatus: 'approved'
-      };
-
-      return mockAccount;
-    } catch (error) {
-      throw new Error(`Failed to connect to CoinDCX: ${error}`);
-    }
-  }
-
-  /**
    * Disconnect a wallet
    */
   async disconnectWallet(walletId: string): Promise<void> {
@@ -590,7 +495,7 @@ class WalletService {
         conn => conn.walletId !== walletId
       );
 
-      this.setState({ 
+      this.setState({
         connections: updatedConnections,
         activeConnection: updatedConnections.length > 0 ? updatedConnections[0] : undefined
       });
@@ -600,27 +505,6 @@ class WalletService {
 
     } catch (error) {
       this.handleError(error as Error, 'disconnectWallet');
-    }
-  }
-
-  /**
-   * Disconnect an exchange
-   */
-  async disconnectExchange(exchangeId: string): Promise<void> {
-    try {
-      const updatedConnections = this.state.exchangeConnections.filter(
-        conn => conn.exchangeId !== exchangeId
-      );
-
-      this.setState({ 
-        exchangeConnections: updatedConnections,
-        activeExchange: updatedConnections.length > 0 ? updatedConnections[0] : undefined
-      });
-
-      this.persistConnections();
-
-    } catch (error) {
-      this.handleError(error as Error, 'disconnectExchange');
     }
   }
 
@@ -731,7 +615,7 @@ class WalletService {
    */
   private handleWalletError(error: any, walletName: string): void {
     let errorMessage = error.message || 'Unknown error';
-    
+
     // Common error patterns
     if (errorMessage.includes('message port closed')) {
       errorMessage = `${walletName} extension connection was interrupted. Please ensure the extension is running and try again.`;
@@ -744,10 +628,10 @@ class WalletService {
     const walletError: WalletError = {
       code: 'WALLET_CONNECTION_ERROR',
       message: errorMessage,
-      details: { 
-        walletName, 
+      details: {
+        walletName,
         originalError: error.message,
-        stack: error.stack 
+        stack: error.stack
       },
       timestamp: new Date()
     };
@@ -796,7 +680,7 @@ class WalletService {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
       return;
     }
-    
+
     try {
       const persisted = localStorage.getItem('bridgespark-wallet-connections');
       if (persisted) {
@@ -820,7 +704,7 @@ class WalletService {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
       return;
     }
-    
+
     try {
       // Only persist non-sensitive data
       const data = {
@@ -831,13 +715,6 @@ class WalletService {
           network: conn.network,
           connectedAt: conn.connectedAt,
           lastUsed: conn.lastUsed
-        })),
-        exchangeConnections: this.state.exchangeConnections.map(conn => ({
-          exchangeId: conn.exchangeId,
-          name: conn.name,
-          type: conn.type,
-          status: conn.status,
-          connectedAt: conn.connectedAt
         }))
       };
 
@@ -874,7 +751,7 @@ class WalletService {
       (window as any).ethereum.on('accountsChanged', (accounts: string[]) => {
         if (accounts.length === 0) {
           // User disconnected
-          this.setState({ 
+          this.setState({
             connections: [],
             activeConnection: undefined
           });
@@ -901,30 +778,24 @@ export const getWalletService = (): WalletService => {
     return {
       getState: () => ({
         connections: [],
-        exchangeConnections: [],
         errors: [],
         isConnecting: false,
         supportedWallets: []
       }),
-      subscribe: () => () => {},
-      connectWallet: async () => {},
-      disconnectWallet: async () => {},
+      subscribe: () => () => { },
+      connectWallet: async () => { },
+      disconnectWallet: async () => { },
       getSupportedWallets: () => [],
       getWalletInfo: () => undefined,
       isWalletInstalled: () => false,
-      connectExchange: async () => {},
-      disconnectExchange: async () => {},
-      getExchangeConnections: () => [],
-      getConnectionHistory: () => [],
-      clearErrors: () => {},
-      getErrors: () => []
+      clearErrors: () => { }
     } as any;
   }
-  
+
   if (!walletServiceInstance) {
     walletServiceInstance = new WalletService();
   }
-  
+
   return walletServiceInstance;
 };
 

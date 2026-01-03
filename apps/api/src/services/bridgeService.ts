@@ -168,9 +168,9 @@ export class BridgeService {
 
       // Wait for sufficient confirmations
       if (confirmations < 6) {
-        logger.info('Waiting for more confirmations', { 
-          bridgeTxId, 
-          confirmations 
+        logger.info('Waiting for more confirmations', {
+          bridgeTxId,
+          confirmations
         });
         return;
       }
@@ -211,10 +211,26 @@ export class BridgeService {
       };
 
       // Generate ZK proof
-      const zkProof = await this.zkProofService.generateBridgeProof(proofData, {
-        address: bridgeTx.targetAddress,
-        amount: bridgeTx.targetAmount || bridgeTx.sourceAmount
-      });
+      const zkProof = await this.zkProofService.generateBitcoinTransactionProof(
+        {
+          txHash: bridgeTx.sourceTxHash,
+          merkleRoot: bridgeTx.merkleRoot || '',
+          merkleProof: bridgeTx.merkleProof ? JSON.parse(bridgeTx.merkleProof) : [],
+          proofIndex: 0,
+          blockHeight: bridgeTx.blockHeight || 0,
+          blockHash: bridgeTx.blockHash || '',
+          inputs: [],
+          outputs: [],
+          fee: '0',
+          size: 0
+        },
+        bridgeTx.sourceAmount || '0',
+        bridgeTx.targetAddress || '',
+        // The privateSecret should ideally be provided by the user or generated securely
+        // during the bridge initiation. For this phase, we use a placeholder that 
+        // indicates it's a private input for the ZK circuit.
+        process.env.BRIDGE_PRIVATE_SECRET || 'zk-private-secret-placeholder'
+      );
 
       // Store proof in database
       await this.prisma.bridgeTransaction.update({
@@ -323,23 +339,23 @@ export class BridgeService {
     const bech32Regex = /^bc1[a-z0-9]{39,59}$/;
     const testnetRegex = /^[mn2][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
     const testnetBech32Regex = /^tb1[a-z0-9]{39,59}$/;
-    
-    return p2pkhRegex.test(address) || 
-           p2shRegex.test(address) || 
-           bech32Regex.test(address) ||
-           testnetRegex.test(address) ||
-           testnetBech32Regex.test(address);
+
+    return p2pkhRegex.test(address) ||
+      p2shRegex.test(address) ||
+      bech32Regex.test(address) ||
+      testnetRegex.test(address) ||
+      testnetBech32Regex.test(address);
   }
 
   private isValidEthereumAddress(address: string): boolean {
     return /^0x[a-fA-F0-9]{40}$/.test(address);
   }
 
-  private async updateBridgeStatus(txId: string, status: TransactionStatus, error?: string): Promise<void> {
+  private async updateBridgeStatus(txId: string, status: TransactionStatus | string, error?: string): Promise<void> {
     await this.prisma.bridgeTransaction.update({
       where: { id: txId },
       data: {
-        status,
+        status: status as any,
         ...(error && { error })
       }
     });
@@ -374,9 +390,9 @@ export class BridgeService {
   }
 
   /**
-   * Update bridge transaction status
+   * Update bridge transaction status (Public)
    */
-  async updateBridgeStatus(bridgeId: string, updateData: any): Promise<any> {
+  async updateBridgeStatusPublic(bridgeId: string, updateData: any): Promise<any> {
     try {
       const updatedBridge = await this.prisma.bridgeTransaction.update({
         where: { id: bridgeId },
@@ -392,6 +408,24 @@ export class BridgeService {
       logger.error('Error updating bridge status:', error);
       throw new Error(`Failed to update bridge status: ${error.message}`);
     }
+  }
+
+  /**
+   * Format bridge transaction for response
+   */
+  private formatBridgeTransaction(bridge: any): BridgeStatus {
+    return {
+      id: bridge.id,
+      status: bridge.status,
+      fromChain: this.getChainName(bridge.direction as BridgeDirection, 'from'),
+      toChain: this.getChainName(bridge.direction as BridgeDirection, 'to'),
+      sourceTxHash: bridge.sourceTxHash,
+      targetTxHash: bridge.targetTxHash || undefined,
+      amount: bridge.sourceAmount,
+      confirmations: bridge.confirmations,
+      createdAt: bridge.createdAt,
+      updatedAt: bridge.updatedAt
+    };
   }
 
   /**
@@ -428,7 +462,7 @@ export class BridgeService {
         }
       });
 
-      logger.info('Bridge attempt stored', { bridgeId: bridge.id, bitcoinTx: bitcoinTx.txHash });
+      logger.info('Bridge attempt stored', { bridgeId: bridge.id, bitcoinTx: bitcoinTx.txid });
       return bridge.id;
     } catch (error: any) {
       logger.error('Error storing bridge attempt:', error);

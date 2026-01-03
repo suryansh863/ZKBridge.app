@@ -43,9 +43,9 @@ export interface ZKProofInputs {
 
 export interface ZKProofResult {
   proof: {
-    pi_a: [string, string, string];
-    pi_b: [[string, string], [string, string], [string, string]];
-    pi_c: [string, string, string];
+    pi_a: string[];
+    pi_b: string[][];
+    pi_c: string[];
   };
   publicSignals: string[];
   verificationKey: any;

@@ -57,39 +57,19 @@ export default function BridgePage() {
   const [proofGenerated, setProofGenerated] = useState(false)
   const [bridgeTxHash, setBridgeTxHash] = useState('')
   const [merkleProof, setMerkleProof] = useState<MerkleProof | null>(null)
-  const [sampleTransactions, setSampleTransactions] = useState<Array<{txHash: string, description: string}>>([])
-  const [showSampleTransactions, setShowSampleTransactions] = useState(false)
-  const [loadingSamples, setLoadingSamples] = useState(true)
   const [showQRScanner, setShowQRScanner] = useState(false)
   const [clipboardDetected, setClipboardDetected] = useState('')
   const [showHelpTooltip, setShowHelpTooltip] = useState(false)
   const [clipboardError, setClipboardError] = useState('')
   const [qrScannerError, setQrScannerError] = useState('')
 
-  useEffect(() => {
-    // Load sample transactions for demo
-    const loadSampleTransactions = async () => {
-      try {
-        const response = await fetch('/api/bitcoin/sample-transactions')
-        if (response.ok) {
-          const data = await response.json()
-          setSampleTransactions(data.data || [])
-        }
-      } catch (error) {
-        console.error('Failed to load sample transactions:', error)
-      } finally {
-        setLoadingSamples(false)
-      }
-    }
-    
-    loadSampleTransactions()
-  }, [])
+  // Component logic for bridge page
 
   // Auto-detect Bitcoin transaction IDs from clipboard and URLs
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const text = e.clipboardData?.getData('text') || ''
-      
+
       // Check if pasted text contains a Bitcoin transaction ID
       const txIdMatch = text.match(/\b[a-fA-F0-9]{64}\b/)
       if (txIdMatch) {
@@ -98,7 +78,7 @@ export default function BridgePage() {
         setTimeout(() => setClipboardDetected(''), 3000)
         return
       }
-      
+
       // Check if pasted text is a Bitcoin explorer URL
       const urlPatterns = [
         /blockstream\.info\/testnet\/tx\/([a-fA-F0-9]{64})/,
@@ -106,7 +86,7 @@ export default function BridgePage() {
         /mempool\.space\/testnet\/tx\/([a-fA-F0-9]{64})/,
         /btc\.com\/btc-testnet\/tx\/([a-fA-F0-9]{64})/
       ]
-      
+
       for (const pattern of urlPatterns) {
         const match = text.match(pattern)
         if (match) {
@@ -125,12 +105,12 @@ export default function BridgePage() {
   // Function to extract transaction ID from various formats
   const extractTransactionId = (input: string): string | null => {
     if (!input) return null
-    
+
     // Direct transaction ID
     if (/^[a-fA-F0-9]{64}$/.test(input.trim())) {
       return input.trim()
     }
-    
+
     // Bitcoin explorer URLs
     const urlPatterns = [
       /blockstream\.info\/testnet\/tx\/([a-fA-F0-9]{64})/,
@@ -139,14 +119,14 @@ export default function BridgePage() {
       /btc\.com\/btc-testnet\/tx\/([a-fA-F0-9]{64})/,
       /tx\/([a-fA-F0-9]{64})/
     ]
-    
+
     for (const pattern of urlPatterns) {
       const match = input.match(pattern)
       if (match) {
         return match[1]
       }
     }
-    
+
     // Look for transaction ID anywhere in the text
     const txIdMatch = input.match(/\b[a-fA-F0-9]{64}\b/)
     return txIdMatch ? txIdMatch[0] : null
@@ -157,19 +137,19 @@ export default function BridgePage() {
     try {
       setClipboardError('')
       setClipboardDetected('')
-      
+
       let clipboardText = ''
-      
+
       // Method 1: Modern Clipboard API (preferred)
       if (navigator.clipboard && navigator.clipboard.readText) {
         try {
           // Request permission first
           const permission = await navigator.permissions.query({ name: 'clipboard-read' as PermissionName }).catch(() => null)
-          
+
           if (permission && permission.state === 'denied') {
             throw new Error('Clipboard access denied by user')
           }
-          
+
           clipboardText = await navigator.clipboard.readText()
         } catch (apiError) {
           console.log('Clipboard API failed, trying fallback:', apiError)
@@ -178,7 +158,7 @@ export default function BridgePage() {
       } else {
         throw new Error('Clipboard API not available')
       }
-      
+
       // If we got text from clipboard
       if (clipboardText && clipboardText.trim()) {
         const txId = extractTransactionId(clipboardText)
@@ -194,10 +174,10 @@ export default function BridgePage() {
         setClipboardError('Clipboard is empty')
         setTimeout(() => setClipboardError(''), 3000)
       }
-      
+
     } catch (error: any) {
       console.error('Clipboard read error:', error)
-      
+
       // Method 2: Fallback - Create a temporary textarea and use execCommand
       try {
         const textarea = document.createElement('textarea')
@@ -206,11 +186,11 @@ export default function BridgePage() {
         textarea.style.top = '-999999px'
         textarea.style.opacity = '0'
         document.body.appendChild(textarea)
-        
+
         // Focus and paste
         textarea.focus()
         const success = document.execCommand('paste')
-        
+
         if (success && textarea.value) {
           const txId = extractTransactionId(textarea.value)
           if (txId) {
@@ -224,12 +204,12 @@ export default function BridgePage() {
         } else {
           throw new Error('execCommand paste failed')
         }
-        
+
         document.body.removeChild(textarea)
-        
+
       } catch (fallbackError) {
         console.error('Fallback clipboard method failed:', fallbackError)
-        
+
         // Method 3: Show user-friendly error with manual instructions
         setClipboardError('Please paste manually (Ctrl+V or Cmd+V) into the input field')
         setTimeout(() => setClipboardError(''), 5000)
@@ -301,7 +281,7 @@ export default function BridgePage() {
     try {
       // Get real Bitcoin transaction data
       const response = await fetch(`/api/bitcoin/detailed-transaction/${bitcoinTx}`)
-      
+
       if (!response.ok) {
         let errorMessage = 'Failed to fetch transaction'
         try {
@@ -314,7 +294,7 @@ export default function BridgePage() {
         }
         throw new Error(errorMessage)
       }
-      
+
       let data
       try {
         data = await response.json()
@@ -322,13 +302,13 @@ export default function BridgePage() {
         console.error('Failed to parse JSON response:', jsonError)
         throw new Error('Invalid response format from server')
       }
-      
+
       if (!data.success || !data.data) {
         throw new Error(data.message || 'Invalid transaction data received')
       }
-      
+
       const txData = data.data
-      
+
       // Convert to our interface format
       const transactionInfo: BitcoinTransaction = {
         txid: txData.txid,
@@ -348,14 +328,14 @@ export default function BridgePage() {
         fee: txData.fee / 100000000,
         size: txData.size
       }
-      
+
       // Get confirmation count
       const confirmResponse = await fetch(`/api/bitcoin/transaction/${bitcoinTx}`)
       if (confirmResponse.ok) {
         const confirmData = await confirmResponse.json()
         transactionInfo.confirmations = confirmData.data.confirmations
       }
-      
+
       setTransaction(transactionInfo)
       setCurrentStep(2)
     } catch (error) {
@@ -368,20 +348,20 @@ export default function BridgePage() {
 
   const handleGenerateProof = async () => {
     if (!transaction) return
-    
+
     setIsLoading(true)
     try {
       // Generate real Merkle proof
       const response = await fetch(`/api/bitcoin/detailed-merkle-proof/${transaction.txid}`)
-      
+
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.message || 'Failed to generate Merkle proof')
       }
-      
+
       const data = await response.json()
       const proofData = data.data
-      
+
       // Convert to our interface format
       const merkleProofInfo: MerkleProof = {
         merkleRoot: proofData.merkleRoot,
@@ -391,7 +371,7 @@ export default function BridgePage() {
         blockHeight: proofData.blockHeight,
         blockHash: proofData.blockHash
       }
-      
+
       setMerkleProof(merkleProofInfo)
       setProofGenerated(true)
       setCurrentStep(3)
@@ -403,10 +383,6 @@ export default function BridgePage() {
     }
   }
 
-  const handleSampleTransaction = (txHash: string) => {
-    setBitcoinTx(txHash)
-    setShowSampleTransactions(false)
-  }
 
   const handleBridgeToEthereum = async () => {
     if (!isConnected) {
@@ -440,14 +416,14 @@ export default function BridgePage() {
 
       const storeData = await storeResponse.json()
       console.log('Bridge attempt stored:', storeData.data.bridgeId)
-      
+
       // Simulate bridge transaction (in real implementation, this would interact with smart contracts)
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       // Mock bridge transaction hash
       const mockHash = '0x' + Math.random().toString(16).substr(2, 40)
       setBridgeTxHash(mockHash)
-      
+
       // Update the bridge transaction status to completed
       try {
         const updateResponse = await fetch(`/api/bridge/${storeData.data.bridgeId}/status`, {
@@ -469,7 +445,7 @@ export default function BridgePage() {
       } catch (updateError) {
         console.error('Error updating bridge status:', updateError)
       }
-      
+
       setCurrentStep(4)
     } catch (error) {
       console.error('Error bridging to Ethereum:', error)
@@ -486,7 +462,7 @@ export default function BridgePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         {/* Header Section */}
         <motion.div
@@ -498,7 +474,7 @@ export default function BridgePage() {
             Bitcoin Bridge
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Securely bridge your Bitcoin to Ethereum using Zero-Knowledge proofs. 
+            Securely bridge your Bitcoin to Ethereum using Zero-Knowledge proofs.
             Trustless, fast, and secure.
           </p>
         </motion.div>
@@ -517,27 +493,24 @@ export default function BridgePage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className={`flex items-center space-x-3 p-3 rounded-lg transition-all ${
-                        step.status === 'active' 
-                          ? 'bg-blue-500/20 border border-blue-500/30' 
+                      className={`flex items-center space-x-3 p-3 rounded-lg transition-all ${step.status === 'active'
+                          ? 'bg-blue-500/20 border border-blue-500/30'
                           : step.status === 'completed'
-                          ? 'bg-green-500/20 border border-green-500/30'
-                          : 'bg-gray-800/50 border border-gray-700/50'
-                      }`}
+                            ? 'bg-green-500/20 border border-green-500/30'
+                            : 'bg-gray-800/50 border border-gray-700/50'
+                        }`}
                     >
-                      <div className={`p-2 rounded-full ${
-                        step.status === 'active' 
-                          ? 'bg-blue-500 text-white' 
+                      <div className={`p-2 rounded-full ${step.status === 'active'
+                          ? 'bg-blue-500 text-white'
                           : step.status === 'completed'
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-600 text-gray-300'
-                      }`}>
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-600 text-gray-300'
+                        }`}>
                         {step.icon}
                       </div>
                       <div>
-                        <h3 className={`font-medium ${
-                          step.status === 'active' ? 'text-blue-400' : 'text-white'
-                        }`}>
+                        <h3 className={`font-medium ${step.status === 'active' ? 'text-blue-400' : 'text-white'
+                          }`}>
                           {step.title}
                         </h3>
                         <p className="text-sm text-gray-400">{step.description}</p>
@@ -558,7 +531,7 @@ export default function BridgePage() {
                     <span className="text-sm text-gray-400">{Math.round((currentStep / 3) * 100)}% Complete</span>
                   </div>
                   <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
                       style={{ width: `${(currentStep / 3) * 100}%` }}
                     />
@@ -576,85 +549,32 @@ export default function BridgePage() {
                     className="space-y-6"
                   >
                     <h2 className="text-2xl font-bold text-white mb-6">Verify Bitcoin Transaction</h2>
-                    
+
                     {/* Sample Transactions */}
-                    <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-4 md:p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold text-blue-400 mb-1">🎯 Try Sample Transactions</h3>
-                          <p className="text-sm text-gray-400">Test the bridge with real Bitcoin testnet transactions</p>
-                        </div>
-                        {!loadingSamples && sampleTransactions.length > 0 && (
-                          <button
-                            onClick={() => setShowSampleTransactions(!showSampleTransactions)}
-                            className="text-blue-400 hover:text-blue-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-blue-500/10 transition-colors"
-                          >
-                            {showSampleTransactions ? 'Hide' : 'Show'} Samples
-                          </button>
-                        )}
+                    {/* Bridge Instructions */}
+                    <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-4 md:p-6 mb-6">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <Info className="w-6 h-6 text-blue-400" />
+                        <h3 className="text-lg font-semibold text-white">How it works</h3>
                       </div>
-                      
-                      {loadingSamples ? (
-                        <div className="flex items-center justify-center py-6">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                          <span className="ml-3 text-blue-400 text-sm">Loading sample transactions...</span>
-                        </div>
-                      ) : showSampleTransactions && sampleTransactions.length > 0 ? (
-                        <div className="space-y-3">
-                          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4">
-                            <p className="text-blue-400 text-sm font-medium flex items-center">
-                              <Info className="w-4 h-4 mr-2" />
-                              Demo Transactions Available
-                            </p>
-                            <p className="text-blue-300/80 text-xs mt-1">
-                              Click &quot;Use This Transaction&quot; to try the bridge with pre-loaded test data
-                            </p>
-                          </div>
-                          
-                          {sampleTransactions.map((sample, index) => (
-                            <div key={index} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-blue-500/30 transition-all hover:shadow-lg hover:shadow-blue-500/10">
-                              <div className="space-y-4">
-                                <div className="flex items-start mb-3">
-                                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2 mt-2 flex-shrink-0"></div>
-                                  <p className="text-sm text-gray-300 font-medium leading-relaxed">{sample.description}</p>
-                                </div>
-                                <div className="space-y-3">
-                                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                                    <code className="text-xs text-blue-400 font-mono bg-gray-900/50 px-3 py-2 rounded break-all flex-1 min-w-0">
-                                      {sample.txHash}
-                                    </code>
-                                    <button
-                                      onClick={() => navigator.clipboard.writeText(sample.txHash)}
-                                      className="p-2 text-gray-400 hover:text-gray-300 transition-colors flex-shrink-0"
-                                      title="Copy full transaction ID"
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                  <button
-                                    onClick={() => handleSampleTransaction(sample.txHash)}
-                                    className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all hover:scale-105 flex items-center justify-center space-x-2"
-                                  >
-                                    <span>Use This Transaction</span>
-                                    <ArrowRight className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                          
-                          <div className="bg-gray-700/30 rounded-lg p-3 mt-4">
-                            <p className="text-gray-400 text-xs">
-                              💡 <strong>Tip:</strong> These are demo transactions for testing. In real usage, you&apos;ll use your own Bitcoin transaction IDs from your wallet.
-                            </p>
-                          </div>
-                        </div>
-                      ) : !loadingSamples && sampleTransactions.length === 0 ? (
-                        <div className="text-center py-6">
-                          <p className="text-gray-400 text-sm mb-2">No sample transactions available</p>
-                          <p className="text-xs text-gray-500">You can still enter your own Bitcoin testnet transaction ID</p>
-                        </div>
-                      ) : null}
+                      <ul className="space-y-3 text-sm text-gray-300">
+                        <li className="flex items-start space-x-2">
+                          <span className="text-blue-400 font-bold">1.</span>
+                          <span>Send Bitcoin to the vault address on Bitcoin Testnet.</span>
+                        </li>
+                        <li className="flex items-start space-x-2">
+                          <span className="text-blue-400 font-bold">2.</span>
+                          <span>Verify the transaction here using its TXID once it has at least 1 confirmation.</span>
+                        </li>
+                        <li className="flex items-start space-x-2">
+                          <span className="text-blue-400 font-bold">3.</span>
+                          <span>Generate a Zero-Knowledge proof of your transaction and its inclusion in a block.</span>
+                        </li>
+                        <li className="flex items-start space-x-2">
+                          <span className="text-blue-400 font-bold">4.</span>
+                          <span>Submit the proof to the Ethereum bridge contract to release the corresponding tokens.</span>
+                        </li>
+                      </ul>
                     </div>
 
                     <div className="space-y-6">
@@ -675,26 +595,26 @@ export default function BridgePage() {
                                 <div className="space-y-3">
                                   <p className="font-medium text-white text-sm">Easy ways to enter your transaction ID:</p>
                                   <ul className="space-y-2">
-                                  <li className="flex items-start space-x-2">
-                                    <span className="text-blue-400">•</span>
-                                    <span><strong>📱 Scan QR code:</strong> Click the QR button to scan with your camera</span>
-                                  </li>
-                                  <li className="flex items-start space-x-2">
-                                    <span className="text-blue-400">•</span>
-                                    <span><strong>📋 Click clipboard button:</strong> Automatically reads from your clipboard</span>
-                                  </li>
-                                  <li className="flex items-start space-x-2">
-                                    <span className="text-blue-400">•</span>
-                                    <span><strong>⌨️ Manual paste:</strong> Copy any Bitcoin explorer URL and paste (Ctrl+V)</span>
-                                  </li>
-                                  <li className="flex items-start space-x-2">
-                                    <span className="text-blue-400">•</span>
-                                    <span><strong>🎯 Use samples:</strong> Click &quot;Use This Transaction&quot; from the list above</span>
-                                  </li>
-                                  <li className="flex items-start space-x-2">
-                                    <span className="text-blue-400">•</span>
-                                    <span><strong>✏️ Type manually:</strong> Enter the 64-character transaction ID directly</span>
-                                  </li>
+                                    <li className="flex items-start space-x-2">
+                                      <span className="text-blue-400">•</span>
+                                      <span><strong>📱 Scan QR code:</strong> Click the QR button to scan with your camera</span>
+                                    </li>
+                                    <li className="flex items-start space-x-2">
+                                      <span className="text-blue-400">•</span>
+                                      <span><strong>📋 Click clipboard button:</strong> Automatically reads from your clipboard</span>
+                                    </li>
+                                    <li className="flex items-start space-x-2">
+                                      <span className="text-blue-400">•</span>
+                                      <span><strong>⌨️ Manual paste:</strong> Copy any Bitcoin explorer URL and paste (Ctrl+V)</span>
+                                    </li>
+                                    <li className="flex items-start space-x-2">
+                                      <span className="text-blue-400">•</span>
+                                      <span><strong>🎯 Use samples:</strong> Click &quot;Use This Transaction&quot; from the list above</span>
+                                    </li>
+                                    <li className="flex items-start space-x-2">
+                                      <span className="text-blue-400">•</span>
+                                      <span><strong>✏️ Type manually:</strong> Enter the 64-character transaction ID directly</span>
+                                    </li>
                                   </ul>
                                   <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3 mt-3">
                                     <p className="text-blue-400 font-medium text-sm">💡 Pro Tip:</p>
@@ -705,7 +625,7 @@ export default function BridgePage() {
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="relative">
                           <input
                             type="text"
@@ -760,7 +680,7 @@ export default function BridgePage() {
                             )}
                           </div>
                         </div>
-                        
+
                         {clipboardDetected && (
                           <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg">
                             <p className="text-green-400 text-xs flex items-center">
@@ -769,7 +689,7 @@ export default function BridgePage() {
                             </p>
                           </div>
                         )}
-                        
+
                         {clipboardError && (
                           <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
                             <p className="text-red-400 text-xs flex items-center">
@@ -778,7 +698,7 @@ export default function BridgePage() {
                             </p>
                           </div>
                         )}
-                        
+
                         {qrScannerError && (
                           <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
                             <p className="text-red-400 text-xs flex items-center">
@@ -787,7 +707,7 @@ export default function BridgePage() {
                             </p>
                           </div>
                         )}
-                        
+
                         <div className="mt-2 flex flex-wrap gap-2">
                           <div className="text-xs text-gray-500">
                             💡 <strong>Easy options:</strong> Paste any Bitcoin explorer URL, copy transaction ID from your wallet, or use sample transactions above
@@ -844,7 +764,7 @@ export default function BridgePage() {
                     className="space-y-6"
                   >
                     <h2 className="text-2xl font-bold text-white mb-6">Transaction Verified</h2>
-                    
+
                     <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4 mb-6">
                       <div className="flex items-center space-x-2">
                         <CheckCircle className="w-5 h-5 text-green-400" />
@@ -1009,7 +929,7 @@ export default function BridgePage() {
                     className="space-y-6"
                   >
                     <h2 className="text-2xl font-bold text-white mb-6">Bridge to Ethereum</h2>
-                    
+
                     <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4 mb-6">
                       <div className="flex items-center space-x-2">
                         <CheckCircle className="w-5 h-5 text-purple-400" />

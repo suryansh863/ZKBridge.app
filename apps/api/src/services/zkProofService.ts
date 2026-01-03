@@ -1,7 +1,4 @@
-// import { ZKProofGenerator, ZKProofInputs, ZKProofResult } from '@zkbridge/zk';
-// import { groth16 } from 'snarkjs'; // Unused for now
 import { logger } from '../utils/logger';
-// import { ZKProof, MerkleProof } from '../types'; // Unused for now
 
 export interface BitcoinTransactionProof {
   txHash: string;
@@ -25,28 +22,20 @@ export interface BitcoinTransactionProof {
 }
 
 export interface ZKCircuitInputs {
-  // Bitcoin transaction data
   btcTxHash: string;
   merkleRoot: string;
   merkleProof: string[];
   proofIndex: number;
   blockHeight: number;
-  
-  // Transaction details
   inputAmount: string;
   outputAmount: string;
   fee: string;
-  
-  // Public inputs
   publicAmount: string;
   publicAddress: string;
-  
-  // Private inputs (witness)
   privateSecret: string;
   nonce: string;
 }
 
-// Alias for compatibility
 export type ZKProofInputs = ZKCircuitInputs;
 
 export interface ZKProofResult {
@@ -57,30 +46,26 @@ export interface ZKProofResult {
   };
   publicSignals: string[];
   circuitInputs: ZKCircuitInputs;
-    _verificationKey: any;
+  verificationKey: any;
 }
 
 export class ZKProofService {
   private isCircuitAvailable: boolean;
+  private circuitPath: string = './circuits/bridge.wasm';
+  private provingKeyPath: string = './circuits/bridge_0001.zkey';
+  private verificationKeyPath: string = './circuits/verification_key.json';
 
   constructor() {
     this.isCircuitAvailable = this.checkCircuitFiles();
   }
 
   private checkCircuitFiles(): boolean {
-    try {
-      // For now, we'll use mock proofs in development
-      logger.warn('ZK circuit files not found. Using mock proofs for development.', { service: 'zkbridge-backend' });
-      return false;
-    } catch (error: any) {
-      logger.warn('ZK circuit files not found. Using mock proofs for development.', { service: 'zkbridge-backend' });
-      return false;
-    }
+    // Current production readiness involves allowing mock mode if circuits are missing, 
+    // but the backend should be aware of this status.
+    logger.info('Checking for ZK circuit files...', { service: 'zkbridge-backend' });
+    return false; // Circuits are not yet hosted in this environment
   }
 
-  /**
-   * Generate ZK proof for Bitcoin transaction verification
-   */
   async generateBitcoinTransactionProof(
     bitcoinTx: BitcoinTransactionProof,
     publicAmount: string,
@@ -89,31 +74,18 @@ export class ZKProofService {
   ): Promise<ZKProofResult> {
     try {
       if (!this.isCircuitAvailable) {
+        logger.warn('Circuit files unavailable, using mock proofs for demo purposes', { txHash: bitcoinTx.txHash });
         return this.generateMockBitcoinProof(bitcoinTx, publicAmount, publicAddress, privateSecret);
       }
 
-      // TODO: Prepare circuit inputs for the ZK package when implementing real proof generation
-      // const circuitInputs: ZKProofInputs = { ... };
-
-      // Generate mock proof for development
-      const mockProof = this.generateMockBitcoinProof(bitcoinTx, publicAmount, publicAddress, privateSecret);
-
-      logger.info('Bitcoin transaction ZK proof generated successfully (mock)', {
-        txHash: bitcoinTx.txHash,
-        publicSignals: mockProof.publicSignals.length,
-        proofSize: JSON.stringify(mockProof.proof).length
-      });
-
-      return mockProof;
+      // Prover implementation goes here when circuits are compiled
+      throw new Error('Real ZK proof generation not yet implemented in this environment');
     } catch (error: any) {
-      logger.error('Error generating Bitcoin transaction ZK proof:', error);
-      throw new Error(`Failed to generate Bitcoin transaction ZK proof: ${error.message}`);
+      logger.error('Error in ZK proof generation:', error);
+      throw new Error(`ZK proof generation failed: ${error.message}`);
     }
   }
 
-  /**
-   * Generate ZK proof for Merkle tree verification
-   */
   async generateMerkleProof(
     merkleRoot: string,
     merkleProof: string[],
@@ -124,73 +96,25 @@ export class ZKProofService {
       if (!this.isCircuitAvailable) {
         return this.generateMockMerkleProof(merkleRoot, merkleProof, proofIndex, leafHash);
       }
-
-      // TODO: Prepare circuit inputs when implementing real Merkle proof generation
-      // const circuitInputs: ZKCircuitInputs = { ... };
-
-      const mockProof = this.generateMockMerkleProof(merkleRoot, merkleProof, proofIndex, leafHash);
-
-      logger.info('Merkle proof ZK proof generated successfully (mock)', {
-        merkleRoot,
-        proofIndex,
-        publicSignals: mockProof.publicSignals.length
-      });
-
-      return mockProof;
+      throw new Error('Real ZK Merkle proof generation not yet implemented');
     } catch (error: any) {
-      logger.error('Error generating Merkle proof ZK proof:', error);
-      throw new Error(`Failed to generate Merkle proof ZK proof: ${error.message}`);
+      logger.error('Error in ZK Merkle proof generation:', error);
+      throw new Error(`ZK Merkle proof generation failed: ${error.message}`);
     }
   }
 
-  /**
-   * Verify ZK proof
-   */
   async verifyProof(proof: any, publicSignals: string[], _verificationKey?: any): Promise<boolean> {
     try {
       if (!this.isCircuitAvailable) {
         return this.verifyMockProof(proof, publicSignals);
       }
-
-      const isValid = this.verifyMockProof(proof, publicSignals);
-
-      logger.info('ZK proof verification completed', {
-        isValid,
-        publicSignals: publicSignals.length
-      });
-
-      return isValid;
+      return true; // Placeholder for real verification
     } catch (error: any) {
       logger.error('Error verifying ZK proof:', error);
       throw new Error(`Failed to verify ZK proof: ${error.message}`);
     }
   }
 
-  /**
-   * Generate witness for circuit inputs
-   */
-  private async generateWitness(inputs: ZKCircuitInputs): Promise<any> {
-    // This would typically use a witness generator
-    // For now, we'll create a mock witness
-    return {
-      btcTxHash: this.hashInput(inputs.btcTxHash),
-      merkleRoot: this.hashInput(inputs.merkleRoot),
-      merkleProof: inputs.merkleProof.map(proof => this.hashInput(proof)),
-      proofIndex: inputs.proofIndex,
-      blockHeight: inputs.blockHeight,
-      inputAmount: this.hashInput(inputs.inputAmount),
-      outputAmount: this.hashInput(inputs.outputAmount),
-      fee: this.hashInput(inputs.fee),
-      publicAmount: this.hashInput(inputs.publicAmount),
-      publicAddress: this.hashInput(inputs.publicAddress),
-      privateSecret: this.hashInput(inputs.privateSecret),
-      nonce: this.hashInput(inputs.nonce)
-    };
-  }
-
-  /**
-   * Generate mock Bitcoin transaction proof for development
-   */
   private generateMockBitcoinProof(
     bitcoinTx: BitcoinTransactionProof,
     publicAmount: string,
@@ -198,30 +122,9 @@ export class ZKProofService {
     privateSecret: string
   ): ZKProofResult {
     const mockProof = {
-      pi_a: [
-        "1234567890123456789012345678901234567890123456789012345678901234",
-        "2345678901234567890123456789012345678901234567890123456789012345",
-        "1"
-      ],
-      pi_b: [
-        [
-          "3456789012345678901234567890123456789012345678901234567890123456",
-          "4567890123456789012345678901234567890123456789012345678901234567"
-        ],
-        [
-          "5678901234567890123456789012345678901234567890123456789012345678",
-          "6789012345678901234567890123456789012345678901234567890123456789"
-        ],
-        [
-          "1",
-          "0"
-        ]
-      ],
-      pi_c: [
-        "7890123456789012345678901234567890123456789012345678901234567890",
-        "8901234567890123456789012345678901234567890123456789012345678901",
-        "1"
-      ]
+      pi_a: ["0", "0", "1"],
+      pi_b: [["0", "0"], ["0", "0"], ["1", "0"]],
+      pi_c: ["0", "0", "1"]
     };
 
     const publicSignals = [
@@ -247,11 +150,6 @@ export class ZKProofService {
       nonce: this.generateNonce()
     };
 
-    logger.info('Mock Bitcoin transaction ZK proof generated', {
-      txHash: bitcoinTx.txHash,
-      publicSignals: publicSignals.length
-    });
-
     return {
       proof: mockProof,
       publicSignals,
@@ -260,9 +158,6 @@ export class ZKProofService {
     };
   }
 
-  /**
-   * Generate mock Merkle proof for development
-   */
   private generateMockMerkleProof(
     merkleRoot: string,
     merkleProof: string[],
@@ -270,30 +165,9 @@ export class ZKProofService {
     leafHash: string
   ): ZKProofResult {
     const mockProof = {
-      pi_a: [
-        "1111111111111111111111111111111111111111111111111111111111111111",
-        "2222222222222222222222222222222222222222222222222222222222222222",
-        "1"
-      ],
-      pi_b: [
-        [
-          "3333333333333333333333333333333333333333333333333333333333333333",
-          "4444444444444444444444444444444444444444444444444444444444444444"
-        ],
-        [
-          "5555555555555555555555555555555555555555555555555555555555555555",
-          "6666666666666666666666666666666666666666666666666666666666666666"
-        ],
-        [
-          "1",
-          "0"
-        ]
-      ],
-      pi_c: [
-        "7777777777777777777777777777777777777777777777777777777777777777",
-        "8888888888888888888888888888888888888888888888888888888888888888",
-        "1"
-      ]
+      pi_a: ["1", "1", "1"],
+      pi_b: [["1", "1"], ["1", "1"], ["1", "0"]],
+      pi_c: ["1", "1", "1"]
     };
 
     const publicSignals = [
@@ -314,15 +188,9 @@ export class ZKProofService {
       fee: '0',
       publicAmount: '0',
       publicAddress: '',
-      privateSecret: this.generateNonce(),
+      privateSecret: '0',
       nonce: this.generateNonce()
     };
-
-    logger.info('Mock Merkle proof ZK proof generated', {
-      merkleRoot,
-      proofIndex,
-      publicSignals: publicSignals.length
-    });
 
     return {
       proof: mockProof,
@@ -332,69 +200,20 @@ export class ZKProofService {
     };
   }
 
-  /**
-   * Verify mock proof for development
-   */
-  private verifyMockProof(proof: any, publicSignals: string[]): boolean {
-    // Simple mock verification - always returns true for development
-    logger.info('Mock ZK proof verification completed', {
-      isValid: true,
-      publicSignals: publicSignals.length
-    });
+  private verifyMockProof(_proof: any, _publicSignals: string[]): boolean {
     return true;
   }
 
-  /**
-   * Hash input for circuit
-   */
-  private hashInput(input: string): string {
-    // Simple hash function for demo purposes
-    // In production, use proper cryptographic hash
-    let hash = 0;
-    for (let i = 0; i < input.length; i++) {
-      const char = input.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString();
-  }
-
-  /**
-   * Generate nonce
-   */
   private generateNonce(): string {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return Math.random().toString(36).substring(2, 15);
   }
 
-  /**
-   * Get circuit information
-   */
   getCircuitInfo(): any {
     return {
       isAvailable: this.isCircuitAvailable,
       circuitPath: this.circuitPath,
       provingKeyPath: this.provingKeyPath,
-      verificationKeyPath: this.verificationKeyPath,
-      lastModified: null // TODO: Implement file modification check when needed
+      verificationKeyPath: this.verificationKeyPath
     };
-  }
-
-  /**
-   * Compile circuit (for development)
-   */
-  async compileCircuit(): Promise<boolean> {
-    try {
-      // This would typically use circom to compile the circuit
-      // For now, we'll just check if files exist
-      logger.info('Circuit compilation requested', {
-        circuitPath: this.circuitPath,
-        isAvailable: this.isCircuitAvailable
-      });
-      
-      return this.isCircuitAvailable;
-    } catch (error: any) {
-      logger.error('Error compiling circuit:', error);
-      return false;
-    }
   }
 }

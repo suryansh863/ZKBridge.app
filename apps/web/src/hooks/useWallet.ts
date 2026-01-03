@@ -63,7 +63,7 @@ export function useWallet() {
         8453: 'Base',
         84532: 'Base Sepolia',
       };
-      
+
       return {
         chainId,
         networkName: networkNames[chainId] || `Unknown Network (${chainId})`,
@@ -71,20 +71,20 @@ export function useWallet() {
         isTestnet: chainId !== 1,
       };
     },
-    
+
     // Additional functions for compatibility
     connectWallet: async (walletId: string) => {
       try {
         console.log('=== WALLET CONNECTION DEBUG ===');
         console.log('Requested wallet:', walletId);
-        console.log('Available connectors:', connectors.map(c => ({ 
-          id: c.id, 
+        console.log('Available connectors:', connectors.map(c => ({
+          id: c.id,
           name: c.name
         })));
-        
+
         // Try multiple approaches to find the right connector
         let targetConnector = null;
-        
+
         // Approach 1: Direct index-based selection (most reliable)
         if (walletId === 'metaMask') {
           targetConnector = connectors[0]; // MetaMask is first
@@ -97,66 +97,66 @@ export function useWallet() {
           // Exodus is last
           targetConnector = connectors[connectors.length - 1];
         }
-        
+
         // Approach 2: Try to find by exact ID match
         if (!targetConnector) {
           targetConnector = connectors.find(c => c.id === walletId);
         }
-        
+
         // Approach 3: Try to find by name match
         if (!targetConnector) {
           targetConnector = connectors.find(c => c.name === walletId);
         }
-        
+
         // Approach 4: Try to find by partial match
         if (!targetConnector) {
-          targetConnector = connectors.find(c => 
-            c.id.includes(walletId) || 
+          targetConnector = connectors.find(c =>
+            c.id.includes(walletId) ||
             c.name.includes(walletId) ||
             walletId.includes(c.id) ||
             walletId.includes(c.name)
           );
         }
-        
+
         // Approach 5: For mobile wallets, try WalletConnect
         if (!targetConnector && (walletId === 'trustWallet' || walletId === 'rainbow')) {
           targetConnector = connectors.find(c => c.id === 'walletConnect' || c.name === 'WalletConnect');
         }
-        
+
         if (targetConnector) {
           console.log(`✅ Found connector for ${walletId}:`, {
             id: targetConnector.id,
             name: targetConnector.name
           });
-          
+
           // Use wagmi's connect function directly
-             await connect({ connector: targetConnector });
-             console.log(`🎉 Successfully connected to ${walletId}`);
-             
-             // Log network information after connection
-             setTimeout(() => {
-               const networkInfo = {
-                 chainId,
-                 networkName: {
-                   1: 'Ethereum Mainnet',
-                   11155111: 'Sepolia Testnet',
-                   5: 'Goerli Testnet',
-                   137: 'Polygon Mainnet',
-                   80001: 'Polygon Mumbai Testnet',
-                   56: 'BSC Mainnet',
-                   97: 'BSC Testnet',
-                   42161: 'Arbitrum One',
-                   421614: 'Arbitrum Sepolia',
-                   10: 'Optimism',
-                   420: 'Optimism Sepolia',
-                   8453: 'Base',
-                   84532: 'Base Sepolia',
-                 }[chainId] || `Unknown Network (${chainId})`,
-                 isMainnet: chainId === 1,
-                 isTestnet: chainId !== 1,
-               };
-               console.log('🌐 Network Information:', networkInfo);
-             }, 1000);
+          await connect({ connector: targetConnector });
+          console.log(`🎉 Successfully connected to ${walletId}`);
+
+          // Log network information after connection
+          setTimeout(() => {
+            const networkInfo = {
+              chainId,
+              networkName: {
+                1: 'Ethereum Mainnet',
+                11155111: 'Sepolia Testnet',
+                5: 'Goerli Testnet',
+                137: 'Polygon Mainnet',
+                80001: 'Polygon Mumbai Testnet',
+                56: 'BSC Mainnet',
+                97: 'BSC Testnet',
+                42161: 'Arbitrum One',
+                421614: 'Arbitrum Sepolia',
+                10: 'Optimism',
+                420: 'Optimism Sepolia',
+                8453: 'Base',
+                84532: 'Base Sepolia',
+              }[chainId] || `Unknown Network (${chainId})`,
+              isMainnet: chainId === 1,
+              isTestnet: chainId !== 1,
+            };
+            console.log('🌐 Network Information:', networkInfo);
+          }, 1000);
         } else {
           console.error(`❌ No connector found for ${walletId}`);
           console.log('Available connectors:', connectors.map(c => `${c.id} (${c.name})`));
@@ -182,18 +182,38 @@ export function useWallet() {
 }
 
 // Export individual hooks for specific use cases
+
+export function useWalletBalance() {
+  const { address } = useAccount();
+  const { data: balance, refetch, isRefetching } = useBalance({
+    address: address,
+  });
+
+  return {
+    balance,
+    isRefreshing: isRefetching,
+    refresh: refetch,
+  };
+}
+
+export function useWalletErrors() {
+  return {
+    errors: [],
+    clearErrors: () => { },
+  };
+}
+
 export function useWalletConnection() {
   const { isConnected, address, connector } = useAccount();
   const { connect, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
-
-  // Mock chainId for now - you can get this from useNetwork hook if needed
-  const chainId = 1; // Default to Ethereum mainnet
+  const chainId = useChainId();
 
   // Get network name from chainId
-  const getNetworkName = (chainId?: number) => {
-    switch (chainId) {
+  const getNetworkName = (id?: number) => {
+    switch (id) {
       case 1: return 'ethereum';
+      case 11155111: return 'sepolia';
       case 137: return 'polygon';
       case 42161: return 'arbitrum';
       case 10: return 'optimism';
@@ -212,104 +232,9 @@ export function useWalletConnection() {
     disconnect,
     connectors,
     connectError,
-    isConnecting: false, // Mock for now
+    isConnecting: false,
     hasErrors: !!connectError,
     latestError: connectError,
-  };
-}
-
-export function useWalletBalance() {
-  const { address } = useAccount();
-  const { data: balance, isLoading, error, refetch } = useBalance({
-    address: address,
-  });
-
-  return {
-    balance,
-    isLoading,
-    isRefreshing: isLoading,
-    error,
-    address,
-    refresh: refetch,
-  };
-}
-
-export function useWalletErrors() {
-  const { error: connectError } = useConnect();
-  const { error: disconnectError } = useDisconnect();
-
-  // Mock errors array for now - you can implement proper error tracking
-  const errors = [];
-  if (connectError) {
-    errors.push({
-      message: connectError.message,
-      timestamp: Date.now(),
-    });
-  }
-  if (disconnectError) {
-    errors.push({
-      message: disconnectError.message,
-      timestamp: Date.now(),
-    });
-  }
-
-  return {
-    connectError,
-    disconnectError,
-    errors,
-    clearErrors: () => {}, // Implement proper error clearing
-  };
-}
-
-// CoinDCX hook placeholder - you can implement this based on your CoinDCX integration
-export function useCoinDCX() {
-  // This is a placeholder - implement based on your CoinDCX SDK integration
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [credentials, setCredentials] = useState<any>(null);
-  const [account, setAccount] = useState<any>(null);
-
-  const connect = async () => {
-    setIsConnecting(true);
-    setError(null);
-    
-    try {
-      // Simulate connection process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setIsConnected(true);
-      setAccount({
-        email: 'user@example.com',
-        tradingEnabled: true,
-        kycStatus: 'approved'
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Connection failed');
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const disconnect = async () => {
-    setIsConnected(false);
-    setAccount(null);
-    setCredentials(null);
-    setError(null);
-  };
-
-  const updateCredentials = (newCredentials: any) => {
-    setCredentials(newCredentials);
-  };
-
-  return {
-    isConnected,
-    isConnecting,
-    error,
-    credentials,
-    account,
-    connect,
-    disconnect,
-    updateCredentials,
   };
 }
 

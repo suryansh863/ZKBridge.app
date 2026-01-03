@@ -7,11 +7,11 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  ChevronLeft, 
-  ChevronRight, 
-  ExternalLink, 
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
   Download,
   Smartphone,
   Monitor,
@@ -112,7 +112,7 @@ export function Guide({ info, isOpen, onClose }: GuideProps) {
               </span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2">
-              <div 
+              <div
                 className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentStep + 1) / guide.steps.length) * 100}%` }}
               />
@@ -133,8 +133,8 @@ export function Guide({ info, isOpen, onClose }: GuideProps) {
             {/* Step Image/Video */}
             {guide.steps[currentStep].image && (
               <div className="mb-6">
-                <img 
-                  src={guide.steps[currentStep].image} 
+                <img
+                  src={guide.steps[currentStep].image}
                   alt={guide.steps[currentStep].title}
                   className="w-full rounded-lg border border-gray-700"
                 />
@@ -368,48 +368,6 @@ function getGuide(Type: string): GuideType {
         }
       ]
     },
-    coindcx: {
-      Id: 'coindcx',
-      title: 'CoinDCX Exchange Setup Guide',
-      steps: [
-        {
-          title: 'Create CoinDCX Account',
-          description: 'Sign up for a CoinDCX account and complete the KYC verification process.',
-          image: '/guides/coindcx/signup.png'
-        },
-        {
-          title: 'Generate API Keys',
-          description: 'Go to API settings in your CoinDCX account and create new API keys with trading permissions.',
-          image: '/guides/coindcx/api-keys.png'
-        },
-        {
-          title: 'Configure API Permissions',
-          description: 'Set appropriate permissions for your API keys (read, trade, withdraw) based on your needs.',
-          image: '/guides/coindcx/permissions.png'
-        },
-        {
-          title: 'Connect to BridgeSpark',
-          description: 'Enter your API Key and Secret in the CoinDCX connection form on BridgeSpark.',
-          image: '/guides/coindcx/connect.png'
-        }
-      ],
-      tips: [
-        'Never share your API secret with anyone',
-        'Use IP restrictions for added security',
-        'Start with read-only permissions for testing',
-        'Regularly rotate your API keys'
-      ],
-      troubleshooting: [
-        {
-          problem: 'API connection failed',
-          solution: 'Verify your API keys are correct and have the necessary permissions enabled.'
-        },
-        {
-          problem: 'KYC verification pending',
-          solution: 'Complete the KYC process in your CoinDCX account before connecting to BridgeSpark.'
-        }
-      ]
-    }
   };
 
   return guides[Type] || {

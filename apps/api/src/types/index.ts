@@ -61,25 +61,30 @@ export interface MerkleProof {
   merkleRoot: string;
   path: string[];
   index: number;
+  // Added for compatibility with bitcoinService.ts
+  leaf?: string;
+  root?: string;
+  indices?: number[];
 }
 
 export interface EthereumTransaction {
-  txHash: string;
-  blockNumber: number;
-  blockHash: string;
-  from: string;
-  to: string;
-  value: string;
-  gasUsed: number;
-  gasPrice: string;
+  hash: string;
+  amount: string;
+  fromAddress: string;
+  toAddress: string;
+  blockNumber?: number;
+  confirmations: number;
   timestamp: number;
+  gasUsed?: string;
+  gasPrice?: string;
 }
 
 export interface ZKProof {
-  circuitId: string;
-  proof: string;
-  publicInputs: string[];
-  verificationKey: string;
+  circuitId?: string;
+  proof: any;
+  publicSignals: string[];
+  publicInputs?: string[];
+  verificationKey?: string;
 }
 
 // Utility functions

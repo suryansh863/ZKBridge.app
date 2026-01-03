@@ -60,6 +60,8 @@ export interface BitcoinBlock {
   size: number;
   weight: number;
   fee: number;
+  hash?: string;
+  nextblockhash?: string;
 }
 
 export interface MerkleProof {
@@ -75,17 +77,6 @@ export class BitcoinTestnetService {
   private cache = new Map<string, any>();
   private readonly CACHE_TTL = 10 * 60 * 1000; // 10 minutes for better performance
 
-  /**
-   * Validate Bitcoin testnet address
-   */
-  validateAddress(address: string): boolean {
-    try {
-      bitcoin.address.toOutputScript(address, TESTNET);
-      return true;
-    } catch (error: any) {
-      return false;
-    }
-  }
 
   /**
    * Validate Bitcoin transaction hash
@@ -105,63 +96,15 @@ export class BitcoinTestnetService {
     try {
       const response = await axios.get(`${BLOCKSTREAM_API_BASE}/tx/${txHash}`);
       const tx = response.data;
-      
+
       this.setCache(cacheKey, tx);
       return tx;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        // Always create a mock transaction for demo purposes when transaction is not found
-        console.log('🎭 Demo mode: Creating mock transaction for:', txHash);
-        const mockTx = this.createMockTransaction(txHash);
-        this.setCache(cacheKey, mockTx);
-        return mockTx;
+        throw new Error(`Transaction ${txHash} not found on Bitcoin testnet`);
       }
-      throw new Error(`Failed to fetch transaction: ${error}`);
+      throw new Error(`Failed to fetch transaction: ${error.message}`);
     }
-  }
-
-  private createMockTransaction(txHash: string): BitcoinTransaction {
-    return {
-      txid: txHash,
-      version: 2,
-      locktime: 0,
-      vin: [
-        {
-          txid: 'previous_tx_id_1234567890abcdef1234567890abcdef12345678',
-          vout: 0,
-          prevout: {
-            scriptpubkey: '76a914abcdef1234567890abcdef1234567890abcdef12ac',
-            scriptpubkey_asm: 'OP_DUP OP_HASH160 20 0xabcdef1234567890abcdef1234567890abcdef12 OP_EQUALVERIFY OP_CHECKSIG',
-            scriptpubkey_type: 'p2pkh',
-            scriptpubkey_address: 'tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx',
-            value: 100000000
-          },
-          scriptsig: '473044022100abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef120220abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12012103abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          scriptsig_asm: '3044022100abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef120220abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1201 03abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          is_coinbase: false,
-          sequence: 4294967295
-        }
-      ],
-      vout: [
-        {
-          value: 50000000,
-          n: 0,
-          scriptpubkey: '76a914abcdef1234567890abcdef1234567890abcdef12ac',
-          scriptpubkey_asm: 'OP_DUP OP_HASH160 20 0xabcdef1234567890abcdef1234567890abcdef12 OP_EQUALVERIFY OP_CHECKSIG',
-          scriptpubkey_type: 'p2pkh',
-          scriptpubkey_address: 'tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx'
-        }
-      ],
-      size: 225,
-      weight: 900,
-      fee: 1000,
-      status: {
-        confirmed: true,
-        block_height: 2500000,
-        block_hash: '0000000000000000000000000000000000000000000000000000000000000000',
-        block_time: Math.floor(Date.now() / 1000)
-      }
-    };
   }
 
   /**
@@ -175,18 +118,14 @@ export class BitcoinTestnetService {
     try {
       const response = await axios.get(`${BLOCKSTREAM_API_BASE}/block/${blockHash}`);
       const block = response.data;
-      
+
       this.setCache(cacheKey, block);
       return block;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        // Create a mock block when block is not found
-        console.log('🎭 Demo mode: Creating mock block for:', blockHash);
-        const mockBlock = this.createMockBlock(blockHash);
-        this.setCache(cacheKey, mockBlock);
-        return mockBlock;
+        throw new Error(`Block ${blockHash} not found`);
       }
-      throw new Error(`Failed to fetch block: ${error}`);
+      throw new Error(`Failed to fetch block: ${error.message}`);
     }
   }
 
@@ -202,11 +141,11 @@ export class BitcoinTestnetService {
       const response = await axios.get(`${BLOCKSTREAM_API_BASE}/block-height/${height}`);
       const blockHash = response.data;
       const block = await this.getBlock(blockHash);
-      
+
       this.setCache(cacheKey, block);
       return block;
     } catch (error: any) {
-      throw new Error(`Failed to fetch block at height ${height}: ${error}`);
+      throw new Error(`Failed to fetch block at height ${height}: ${error.message}`);
     }
   }
 
@@ -221,23 +160,14 @@ export class BitcoinTestnetService {
     try {
       const response = await axios.get(`${BLOCKSTREAM_API_BASE}/block/${blockHash}/txids`);
       const txids = response.data;
-      
+
       this.setCache(cacheKey, txids);
       return txids;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        // Create mock transaction list when block is not found
-        console.log('🎭 Demo mode: Creating mock block transactions for:', blockHash);
-        const mockTxids = [
-          'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16',
-          'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890',
-          'b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1',
-          'c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1b2'
-        ];
-        this.setCache(cacheKey, mockTxids);
-        return mockTxids;
+        throw new Error(`Block transactions not found for block ${blockHash}`);
       }
-      throw new Error(`Failed to fetch block transactions: ${error}`);
+      throw new Error(`Failed to fetch block transactions: ${error.message}`);
     }
   }
 
@@ -245,121 +175,62 @@ export class BitcoinTestnetService {
    * Generate Merkle proof for a transaction
    */
   async generateMerkleProof(txHash: string): Promise<MerkleProof> {
-    // Always create a mock proof for demo purposes
-    console.log('🎭 Demo mode: Creating mock Merkle proof for:', txHash);
-    return this.createMockMerkleProof(txHash);
-  }
-
-  /**
-   * Create mock block for demo mode
-   */
-  private createMockBlock(blockHash: string): BitcoinBlock {
-    return {
-      id: blockHash,
-      height: 2500000,
-      version: 536870912,
-      timestamp: Math.floor(Date.now() / 1000),
-      bits: 486604799,
-      nonce: 0,
-      hash: blockHash,
-      previousblockhash: '0000000000000000000000000000000000000000000000000000000000000000',
-      nextblockhash: '0000000000000000000000000000000000000000000000000000000000000000',
-      merkle_root: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-      tx_count: 4,
-      size: 1000,
-      weight: 4000,
-      fee: 1000
-    };
-  }
-
-  /**
-   * Create mock Merkle proof for demo mode
-   */
-  private createMockMerkleProof(txHash: string): MerkleProof {
-    return {
-      merkleRoot: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-      proofPath: [
-        '1111111111111111111111111111111111111111111111111111111111111111',
-        '2222222222222222222222222222222222222222222222222222222222222222',
-        '3333333333333333333333333333333333333333333333333333333333333333'
-      ],
-      proofIndex: 0,
-      transactionHash: txHash,
-      blockHeight: 2500000,
-      blockHash: '0000000000000000000000000000000000000000000000000000000000000000'
-    };
-  }
-
-  /**
-   * Calculate Merkle proof path for a transaction
-   */
-  private calculateMerkleProof(txHashes: string[], txIndex: number): string[] {
-    const proof: string[] = [];
-    let currentHashes = [...txHashes];
-    let currentIndex = txIndex;
-
-    while (currentHashes.length > 1) {
-      const nextHashes: string[] = [];
-      
-      for (let i = 0; i < currentHashes.length; i += 2) {
-        const left = currentHashes[i];
-        const right = currentHashes[i + 1] || left; // Duplicate if odd number
-        
-        // Add the sibling to proof if current transaction is in this pair
-        if (i === currentIndex || i === currentIndex - 1) {
-          if (i === currentIndex) {
-            // Current is left, add right as proof
-            proof.push(right);
-          } else {
-            // Current is right, add left as proof
-            proof.push(left);
-          }
-        }
-        
-        // Calculate parent hash
-        const parentHash = this.doubleSha256(left + right);
-        nextHashes.push(parentHash);
+    try {
+      const tx = await this.getTransaction(txHash);
+      if (!tx.status.confirmed || !tx.status.block_hash) {
+        throw new Error('Transaction must be confirmed to generate a Merkle proof');
       }
-      
-      currentHashes = nextHashes;
-      currentIndex = Math.floor(currentIndex / 2);
+
+      const txids = await this.getBlockTransactions(tx.status.block_hash);
+      const block = await this.getBlock(tx.status.block_hash);
+
+      const txIndex = txids.indexOf(txHash);
+      if (txIndex === -1) {
+        throw new Error('Transaction not found in its reported block');
+      }
+
+      // Use shared logic for proof generation
+      // Importing locally to avoid circular dependencies if any, 
+      // though typically shared is a separate layer.
+      const { generateMerkleProof: sharedGenerateProof } = require('@zkbridge/shared');
+      const proof = sharedGenerateProof(txids, txHash);
+
+      return {
+        merkleRoot: proof.root,
+        proofPath: proof.path,
+        proofIndex: txIndex,
+        transactionHash: txHash,
+        blockHeight: tx.status.block_height!,
+        blockHash: tx.status.block_hash
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to generate Merkle proof: ${error.message}`);
     }
-    
-    return proof;
   }
 
   /**
-   * Double SHA256 hash
+   * Double SHA256 hash (deprecated in favor of shared utility, but kept for internal use)
    */
   private doubleSha256(input: string): string {
-    const hash1 = crypto.createHash('sha256').update(Buffer.from(input, 'hex')).digest();
-    const hash2 = crypto.createHash('sha256').update(hash1).digest();
-    return hash2.toString('hex');
+    const { doubleSha256: sharedDoubleSha256 } = require('@zkbridge/shared');
+    return sharedDoubleSha256(input);
   }
 
   /**
    * Verify Merkle proof
    */
   verifyMerkleProof(proof: MerkleProof): boolean {
-    try {
-      let currentHash = proof.transactionHash;
-      
-      for (let i = 0; i < proof.proofPath.length; i++) {
-        const sibling = proof.proofPath[i];
-        const isLeft = (proof.proofIndex >> i) & 1 === 0;
-        
-        if (isLeft) {
-          currentHash = this.doubleSha256(currentHash + sibling);
-        } else {
-          currentHash = this.doubleSha256(sibling + currentHash);
-        }
-      }
-      
-      return currentHash === proof.merkleRoot;
-    } catch (error: any) {
-      return false;
-    }
+    const { verifyMerkleProof: sharedVerifyProof } = require('@zkbridge/shared');
+    return sharedVerifyProof(
+      proof.transactionHash,
+      proof.proofPath,
+      // Convert indices from path side if needed, but our shared logic uses 1/0 for right/left.
+      // We need to ensure proofIndex bits correspond to the path sides.
+      new Array(proof.proofPath.length).fill(0).map((_, i) => (proof.proofIndex >> i) & 1),
+      proof.merkleRoot
+    );
   }
+
 
   /**
    * Get transaction confirmation count
@@ -367,47 +238,74 @@ export class BitcoinTestnetService {
   async getConfirmationCount(txHash: string): Promise<number> {
     try {
       const tx = await this.getTransaction(txHash);
-      
+
       if (!tx.status.confirmed) {
         return 0;
       }
 
-      // Get current block height
-      const currentBlockResponse = await axios.get(`${BLOCKSTREAM_API_BASE}/blocks/tip/height`);
-      const currentHeight = currentBlockResponse.data;
-      
+      const currentHeight = await this.getBlockCount();
       return currentHeight - tx.status.block_height! + 1;
     } catch (error: any) {
-      throw new Error(`Failed to get confirmation count: ${error}`);
+      throw new Error(`Failed to get confirmation count: ${error.message}`);
     }
   }
 
   /**
-   * Get sample testnet transactions for demo
+   * Get current block count (height)
    */
-  async getSampleTransactions(): Promise<Array<{txHash: string, description: string}>> {
-    return [
-      {
-        txHash: 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16',
-        description: '📱 Mobile Wallet Transaction - Perfect for testing'
-      },
-      {
-        txHash: 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890',
-        description: '💰 Small Transfer - 0.0001 BTC (Great for beginners)'
-      },
-      {
-        txHash: 'b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1',
-        description: '⚡ Standard Transfer - 0.001 BTC (Most common)'
-      },
-      {
-        txHash: 'c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1b2',
-        description: '🏦 Large Transfer - 0.01 BTC (Advanced testing)'
-      },
-      {
-        txHash: 'd4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1b2c3',
-        description: '🎯 Exchange Withdrawal - Real-world example'
-      }
-    ];
+  async getBlockCount(): Promise<number> {
+    try {
+      const response = await axios.get(`${BLOCKSTREAM_API_BASE}/blocks/tip/height`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to get block count: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get network info
+   */
+  async getNetworkInfo(): Promise<any> {
+    try {
+      const height = await this.getBlockCount();
+      // Blockstream doesn't provide a single 'network info' endpoint like bitcoind,
+      // but we can aggregate some data.
+      return {
+        network: 'testnet',
+        chain: 'bitcoin',
+        blocks: height,
+        difficulty: 0, // Not easily available via Blockstream without block parsing
+        timestamp: Math.floor(Date.now() / 1000)
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to get network info: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get balance for an address
+   */
+  async getBalance(address: string): Promise<number> {
+    try {
+      const response = await axios.get(`${BLOCKSTREAM_API_BASE}/address/${address}`);
+      const { chain_stats, mempool_stats } = response.data;
+
+      const confirmed = (chain_stats.funded_txo_sum - chain_stats.spent_txo_sum) / 100000000;
+      const unconfirmed = (mempool_stats.funded_txo_sum - mempool_stats.spent_txo_sum) / 100000000;
+
+      return confirmed + unconfirmed;
+    } catch (error: any) {
+      throw new Error(`Failed to get balance: ${error.message}`);
+    }
+  }
+
+  /**
+   * Validate Bitcoin address
+   */
+  validateAddress(address: string): boolean {
+    const testnetRegex = /^[mn2][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
+    const testnetBech32Regex = /^tb1[a-z0-9]{39,59}$/;
+    return testnetRegex.test(address) || testnetBech32Regex.test(address);
   }
 
   /**

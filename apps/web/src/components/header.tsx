@@ -8,7 +8,6 @@ import { Menu, X, Sun, Moon, Wallet, Settings, User } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { cn } from '@/lib/utils';
 import { WalletConnectModal } from '@/components/wallet/WalletConnectModal';
-import { CoinDCXConnectModal } from '@/components/wallet/CoinDCXConnectModal';
 import { WalletStatusCompact } from '@/components/wallet/WalletStatus';
 import { useWalletConnection } from '@/hooks/useWallet';
 import { ClientOnly } from '@/components/client-only';
@@ -16,11 +15,10 @@ import { ClientOnly } from '@/components/client-only';
 // Wallet connection component to avoid hydration issues
 function WalletConnectionSection() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const [isCoinDCXModalOpen, setIsCoinDCXModalOpen] = useState(false);
   const { isConnected } = useWalletConnection();
 
   return (
-    <ClientOnly 
+    <ClientOnly
       fallback={
         <button
           className={cn(
@@ -49,15 +47,11 @@ function WalletConnectionSection() {
           Connect Wallet
         </button>
       )}
-      
+
       {/* Wallet Connection Modals */}
-      <WalletConnectModal 
-        isOpen={isWalletModalOpen} 
-        onClose={() => setIsWalletModalOpen(false)} 
-      />
-      <CoinDCXConnectModal 
-        isOpen={isCoinDCXModalOpen} 
-        onClose={() => setIsCoinDCXModalOpen(false)} 
+      <WalletConnectModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
       />
     </ClientOnly>
   );
@@ -66,11 +60,10 @@ function WalletConnectionSection() {
 // Mobile wallet connection component
 function MobileWalletConnectionSection() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const [isCoinDCXModalOpen, setIsCoinDCXModalOpen] = useState(false);
   const { isConnected } = useWalletConnection();
 
   return (
-    <ClientOnly 
+    <ClientOnly
       fallback={
         <button
           className={cn(
@@ -99,15 +92,11 @@ function MobileWalletConnectionSection() {
           Connect Wallet
         </button>
       )}
-      
+
       {/* Wallet Connection Modals */}
-      <WalletConnectModal 
-        isOpen={isWalletModalOpen} 
-        onClose={() => setIsWalletModalOpen(false)} 
-      />
-      <CoinDCXConnectModal 
-        isOpen={isCoinDCXModalOpen} 
-        onClose={() => setIsCoinDCXModalOpen(false)} 
+      <WalletConnectModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
       />
     </ClientOnly>
   );
@@ -128,7 +117,7 @@ export function Header() {
       "bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60",
       "border-white/10 dark:border-white/5"
     )}>
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container px-4 flex h-16 items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="h-10 w-10 rounded-xl gradient-bridge flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
@@ -189,7 +178,7 @@ export function Header() {
             <Sun className="h-5 w-5 text-yellow-500 dark:block hidden" />
             <Moon className="h-5 w-5 text-slate-600 dark:hidden block" />
           </button>
-          
+
           {/* Multi-Wallet Connect Button */}
           <WalletConnectionSection />
         </div>
@@ -220,8 +209,8 @@ export function Header() {
         )}>
           <div className="container py-6 space-y-6">
             <nav className="flex flex-col space-y-4">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
                   "py-2 px-4 rounded-lg hover:bg-muted/50",
@@ -231,8 +220,8 @@ export function Header() {
               >
                 Home
               </Link>
-              <Link 
-                href="/bridge" 
+              <Link
+                href="/bridge"
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
                   "py-2 px-4 rounded-lg hover:bg-muted/50",
@@ -242,8 +231,8 @@ export function Header() {
               >
                 Bridge
               </Link>
-              <Link 
-                href="/transactions" 
+              <Link
+                href="/transactions"
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
                   "py-2 px-4 rounded-lg hover:bg-muted/50",
@@ -253,8 +242,8 @@ export function Header() {
               >
                 Transactions
               </Link>
-              <Link 
-                href="/docs" 
+              <Link
+                href="/docs"
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
                   "py-2 px-4 rounded-lg hover:bg-muted/50",
@@ -265,7 +254,7 @@ export function Header() {
                 Docs
               </Link>
             </nav>
-            
+
             <div className="flex flex-col space-y-4 pt-4 border-t border-white/10">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground/70">Theme</span>
@@ -281,7 +270,7 @@ export function Header() {
                   <Moon className="h-5 w-5 text-slate-600 dark:hidden block" />
                 </button>
               </div>
-              
+
               <div className="w-full">
                 <MobileWalletConnectionSection />
               </div>

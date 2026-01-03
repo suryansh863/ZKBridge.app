@@ -76,7 +76,7 @@ router.post('/verify', [
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Bitcoin verification error:', error);
     throw new CustomError('Failed to verify Bitcoin transaction', 500);
   }
@@ -101,7 +101,7 @@ router.post('/proofs/generate', [
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Merkle proof generation error:', error);
     throw new CustomError('Failed to generate Merkle proof', 500);
   }
@@ -119,13 +119,13 @@ router.post('/proofs/verify', [
   logger.info('Merkle proof verification requested', { leaf, root });
 
   try {
-    const merkleProof: MerkleProof = { 
-      merkleRoot: root, 
-      proofPath: path, 
-      proofIndex: indices[0] || 0, 
-      transactionHash: leaf, 
-      blockHeight: 0, 
-      blockHash: '' 
+    const merkleProof: MerkleProof = {
+      merkleRoot: root,
+      proofPath: path,
+      proofIndex: indices[0] || 0,
+      transactionHash: leaf,
+      blockHeight: 0,
+      blockHash: ''
     };
     const isValid = bitcoinTestnetService.verifyMerkleProof(merkleProof);
 
@@ -136,7 +136,7 @@ router.post('/proofs/verify', [
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Merkle proof verification error:', error);
     throw new CustomError('Failed to verify Merkle proof', 500);
   }
@@ -159,7 +159,7 @@ router.get('/transaction/:txid', [
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Bitcoin transaction fetch error:', error);
     throw new CustomError('Failed to get Bitcoin transaction', 500);
   }
@@ -174,8 +174,7 @@ router.get('/balance/:address', [
   logger.info('Bitcoin balance requested', { address });
 
   try {
-    // For testnet, we'll return a mock balance since we don't have a full node
-    const balance = 0.001; // Mock balance for demo
+    const balance = await bitcoinTestnetService.getBalance(address);
 
     const response: ApiResponse<{ balance: number }> = {
       success: true,
@@ -183,7 +182,7 @@ router.get('/balance/:address', [
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Bitcoin balance fetch error:', error);
     throw new CustomError('Failed to get Bitcoin balance', 500);
   }
@@ -194,13 +193,7 @@ router.get('/network-info', asyncHandler(async (req: Request, res: Response) => 
   logger.info('Bitcoin network info requested');
 
   try {
-    const networkInfo = {
-      network: 'testnet',
-      chain: 'bitcoin',
-      blocks: 2500000, // Mock block height
-      difficulty: 1.0,
-      hashrate: '100 TH/s'
-    };
+    const networkInfo = await bitcoinTestnetService.getNetworkInfo();
 
     const response: ApiResponse = {
       success: true,
@@ -208,7 +201,7 @@ router.get('/network-info', asyncHandler(async (req: Request, res: Response) => 
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Bitcoin network info error:', error);
     throw new CustomError('Failed to get Bitcoin network info', 500);
   }
@@ -219,7 +212,7 @@ router.get('/block-count', asyncHandler(async (req: Request, res: Response) => {
   logger.info('Bitcoin block count requested');
 
   try {
-    const blockCount = 2500000; // Mock block count for testnet
+    const blockCount = await bitcoinTestnetService.getBlockCount();
 
     const response: ApiResponse<{ blockCount: number }> = {
       success: true,
@@ -227,7 +220,7 @@ router.get('/block-count', asyncHandler(async (req: Request, res: Response) => {
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Bitcoin block count error:', error);
     throw new CustomError('Failed to get Bitcoin block count', 500);
   }
@@ -246,7 +239,7 @@ router.post('/validate-address', [
 
     const response: ApiResponse<{ isValid: boolean; type?: string }> = {
       success: true,
-      data: { 
+      data: {
         isValid,
         type: isValid ? getAddressType(address) : undefined
       },
@@ -254,28 +247,9 @@ router.post('/validate-address', [
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Bitcoin address validation error:', error);
     throw new CustomError('Failed to validate Bitcoin address', 500);
-  }
-}));
-
-// GET /api/bitcoin/sample-transactions - Get sample transactions for demo
-router.get('/sample-transactions', asyncHandler(async (req: Request, res: Response) => {
-  logger.info('Sample transactions requested');
-
-  try {
-    const sampleTransactions = await bitcoinTestnetService.getSampleTransactions();
-
-    const response: ApiResponse<Array<{txHash: string, description: string}>> = {
-      success: true,
-      data: sampleTransactions
-    };
-
-    res.json(response);
-    } catch (error: any) {
-    logger.error('Sample transactions error:', error);
-    throw new CustomError('Failed to get sample transactions', 500);
   }
 }));
 
@@ -296,7 +270,7 @@ router.get('/detailed-transaction/:txid', [
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Detailed Bitcoin transaction error:', error);
     throw new CustomError('Failed to get detailed Bitcoin transaction', 500);
   }
@@ -319,7 +293,7 @@ router.get('/detailed-merkle-proof/:txid', [
     };
 
     res.json(response);
-    } catch (error: any) {
+  } catch (error: any) {
     logger.error('Detailed Merkle proof error:', error);
     throw new CustomError('Failed to get detailed Merkle proof', 500);
   }
