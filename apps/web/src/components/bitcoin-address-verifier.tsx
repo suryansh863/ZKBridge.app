@@ -5,10 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  Copy, 
+import {
+  CheckCircle,
+  AlertCircle,
+  Copy,
   ExternalLink,
   Loader2,
   Eye,
@@ -51,13 +51,13 @@ export function BitcoinAddressVerifier({ onAddressVerified }: BitcoinAddressVeri
 
   const onSubmit = async (data: AddressFormData) => {
     setIsVerifying(true);
-    
+
     try {
       // Simulate verification process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const isValid = validateBitcoinAddress(data.address);
-      
+
       const result = {
         isValid,
         type: isValid ? getAddressType(data.address) : 'Invalid',
@@ -69,7 +69,7 @@ export function BitcoinAddressVerifier({ onAddressVerified }: BitcoinAddressVeri
           length: data.address.length,
         } : null,
       };
-      
+
       setVerificationResult(result);
       onAddressVerified?.(data.address, isValid);
     } catch (error) {
@@ -114,7 +114,7 @@ export function BitcoinAddressVerifier({ onAddressVerified }: BitcoinAddressVeri
         transition={{ duration: 0.6 }}
         className={cn(
           "p-6 rounded-3xl",
-          "glass-card border border-white/20",
+          "glass-card border border-border/50",
           "shadow-2xl"
         )}
       >
@@ -140,7 +140,7 @@ export function BitcoinAddressVerifier({ onAddressVerified }: BitcoinAddressVeri
                 placeholder="Enter Bitcoin address (1..., 3..., bc1...)"
                 className={cn(
                   "w-full p-4 rounded-2xl font-mono text-sm",
-                  "glass border border-white/10",
+                  "glass border border-border/10",
                   "focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
                   "transition-all duration-300",
                   errors.address && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/20"
@@ -237,7 +237,7 @@ export function BitcoinAddressVerifier({ onAddressVerified }: BitcoinAddressVeri
                   <span className="text-sm text-muted-foreground">Network</span>
                   <span className="font-medium">{verificationResult.network}</span>
                 </div>
-                
+
                 {verificationResult.details && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Address</span>
@@ -264,7 +264,7 @@ export function BitcoinAddressVerifier({ onAddressVerified }: BitcoinAddressVeri
                       {showDetails ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       {showDetails ? 'Hide' : 'Show'} Details
                     </button>
-                    
+
                     <AnimatePresence>
                       {showDetails && (
                         <motion.div

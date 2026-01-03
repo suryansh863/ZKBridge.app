@@ -32,8 +32,16 @@ export function PerformanceMonitor() {
 
       // Monitor page load time
       window.addEventListener('load', () => {
-        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart
-        console.log('Page load time:', loadTime + 'ms')
+        setTimeout(() => {
+          const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+          if (navEntry) {
+            console.log('Page load time:', Math.round(navEntry.loadEventEnd) + 'ms');
+          } else {
+            // Fallback for older browsers
+            const loadTime = performance.now();
+            console.log('Page load time (estimated):', Math.round(loadTime) + 'ms');
+          }
+        }, 0);
       })
 
       // Monitor API response times

@@ -19,7 +19,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative py-12 md:py-20 px-4 overflow-hidden">
+    <section className="relative py-12 md:py-20 px-4 overflow-hidden bg-background">
       {/* Enhanced Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-bitcoin/5 via-transparent to-ethereum/5" />
 
@@ -113,8 +113,8 @@ export function Hero() {
           >
             <div className={cn(
               "inline-flex items-center gap-2 px-4 py-2 rounded-full",
-              "glass-card border border-white/20",
-              "text-xs md:text-sm font-medium text-foreground/80"
+              "glass-card border border-border/20",
+              "text-xs md:text-sm font-medium text-muted-foreground"
             )}>
               <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-primary" />
               <span>Powered by Zero-Knowledge Proofs</span>
@@ -175,29 +175,33 @@ export function Hero() {
               whileTap={{ scale: 0.95 }}
               className="relative"
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 rounded-xl blur-lg opacity-75"
-                animate={{
-                  scale: [1, 1.1, 1],
-                  opacity: [0.5, 0.8, 0.5],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
               <Link
                 href="/bridge"
                 className={cn(
-                  "group relative px-8 py-4 rounded-xl font-semibold text-lg",
+                  "group relative z-10 px-8 py-4 rounded-xl font-semibold text-lg",
+                  "inline-flex items-center justify-center min-w-[200px]",
                   "bg-gradient-to-r from-primary to-primary/80 text-white",
                   "hover:from-primary/90 hover:to-primary/70 transition-all duration-300",
                   "shadow-lg hover:shadow-xl",
-                  "crypto-glow"
+                  "crypto-glow overflow-hidden"
                 )}
               >
-                <span className="flex items-center justify-center gap-2">
+                {/* Background Shimmer Effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent z-0"
+                  animate={{
+                    left: ['-100%', '100%'],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    repeatDelay: 0.5
+                  }}
+                  style={{ width: '100%' }}
+                />
+
+                <span className="relative z-10 flex items-center justify-center gap-2">
                   Start Bridge Demo
                   <motion.div
                     animate={{ x: [0, 4, 0] }}
@@ -220,8 +224,9 @@ export function Hero() {
                 href="/docs"
                 className={cn(
                   "group relative px-8 py-4 rounded-xl font-semibold text-lg",
-                  "glass-card border border-white/20 text-foreground",
-                  "hover:bg-white/5 transition-all duration-300"
+                  "inline-flex items-center justify-center min-w-[200px]",
+                  "glass-card border border-border text-foreground shadow-sm",
+                  "hover:bg-accent hover:shadow-md transition-all duration-300"
                 )}
               >
                 <span className="flex items-center justify-center gap-2">
@@ -250,8 +255,8 @@ export function Hero() {
               whileHover={{ y: -5 }}
               className={cn(
                 "group flex flex-col items-center p-8 rounded-2xl",
-                "glass-card border border-white/20",
-                "hover:border-white/30 transition-all duration-300",
+                "glass-card border border-border/20",
+                "hover:border-primary/30 transition-all duration-300",
                 "interactive"
               )}
             >
@@ -301,8 +306,8 @@ export function Hero() {
               whileHover={{ y: -5 }}
               className={cn(
                 "group flex flex-col items-center p-8 rounded-2xl",
-                "glass-card border border-white/20",
-                "hover:border-white/30 transition-all duration-300",
+                "glass-card border border-border/20",
+                "hover:border-primary/30 transition-all duration-300",
                 "interactive"
               )}
             >

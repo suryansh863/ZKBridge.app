@@ -4,103 +4,21 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Menu, X, Sun, Moon, Wallet, Settings, User } from 'lucide-react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { WalletConnectModal } from '@/components/wallet/WalletConnectModal';
-import { WalletStatusCompact } from '@/components/wallet/WalletStatus';
-import { useWalletConnection } from '@/hooks/useWallet';
 import { ClientOnly } from '@/components/client-only';
+import dynamic from 'next/dynamic';
 
-// Wallet connection component to avoid hydration issues
-function WalletConnectionSection() {
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const { isConnected } = useWalletConnection();
+const WalletConnectionSection = dynamic(() => import('./wallet-sections').then(mod => mod.WalletConnectionSection), {
+  ssr: false,
+  loading: () => <div className="h-10 w-32 bg-muted/20 animate-pulse rounded-lg" />
+});
 
-  return (
-    <ClientOnly
-      fallback={
-        <button
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300",
-            "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
-            "text-white font-medium shadow-lg hover:shadow-xl hover:scale-105"
-          )}
-        >
-          <Wallet className="h-4 w-4" />
-          Connect Wallet
-        </button>
-      }
-    >
-      {isConnected ? (
-        <WalletStatusCompact />
-      ) : (
-        <button
-          onClick={() => setIsWalletModalOpen(true)}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300",
-            "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
-            "text-white font-medium shadow-lg hover:shadow-xl hover:scale-105"
-          )}
-        >
-          <Wallet className="h-4 w-4" />
-          Connect Wallet
-        </button>
-      )}
+const MobileWalletConnectionSection = dynamic(() => import('./wallet-sections').then(mod => mod.MobileWalletConnectionSection), {
+  ssr: false,
+  loading: () => <div className="h-12 w-full bg-muted/20 animate-pulse rounded-lg" />
+});
 
-      {/* Wallet Connection Modals */}
-      <WalletConnectModal
-        isOpen={isWalletModalOpen}
-        onClose={() => setIsWalletModalOpen(false)}
-      />
-    </ClientOnly>
-  );
-}
-
-// Mobile wallet connection component
-function MobileWalletConnectionSection() {
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const { isConnected } = useWalletConnection();
-
-  return (
-    <ClientOnly
-      fallback={
-        <button
-          className={cn(
-            "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-300",
-            "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
-            "text-white font-medium shadow-lg hover:shadow-xl"
-          )}
-        >
-          <Wallet className="h-4 w-4" />
-          Connect Wallet
-        </button>
-      }
-    >
-      {isConnected ? (
-        <WalletStatusCompact />
-      ) : (
-        <button
-          onClick={() => setIsWalletModalOpen(true)}
-          className={cn(
-            "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-300",
-            "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
-            "text-white font-medium shadow-lg hover:shadow-xl"
-          )}
-        >
-          <Wallet className="h-4 w-4" />
-          Connect Wallet
-        </button>
-      )}
-
-      {/* Wallet Connection Modals */}
-      <WalletConnectModal
-        isOpen={isWalletModalOpen}
-        onClose={() => setIsWalletModalOpen(false)}
-      />
-    </ClientOnly>
-  );
-}
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

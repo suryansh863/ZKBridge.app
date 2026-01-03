@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Mail, 
-  MessageCircle, 
-  Send, 
-  Clock, 
+import {
+  Mail,
+  MessageCircle,
+  Send,
+  Clock,
   CheckCircle,
   AlertCircle,
   User,
@@ -73,10 +73,10 @@ export default function ContactPage() {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // In a real implementation, you would send the form data to your backend
       console.log('Form submitted:', form);
-      
+
       setSubmitStatus('success');
       setForm({
         name: '',
@@ -97,12 +97,13 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-background">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         {/* Breadcrumb */}
-        <Breadcrumb 
+        <Breadcrumb
           items={[
             { label: 'Contact Us' }
           ]}

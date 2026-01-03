@@ -136,7 +136,8 @@ export default function NetworkStatusPage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="min-h-screen bg-background">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
         <Header />
         <main className="container mx-auto px-4 py-16">
           <div className="flex items-center justify-center min-h-[400px]">
@@ -149,7 +150,8 @@ export default function NetworkStatusPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-background">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
       <Header />
 
       <main className="container mx-auto px-4 py-16">

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  HelpCircle, 
-  ChevronDown, 
+import {
+  HelpCircle,
+  ChevronDown,
   ChevronUp,
   Search,
   Shield,
@@ -141,14 +141,15 @@ export default function FAQPage() {
 
   const filteredFAQs = faqData.filter(item => {
     const matchesSearch = item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.answer.toLowerCase().includes(searchTerm.toLowerCase());
+      item.answer.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="min-h-screen bg-background">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
         <Header />
         <main className="container mx-auto px-4 py-16">
           <div className="flex items-center justify-center min-h-[400px]">
@@ -161,12 +162,13 @@ export default function FAQPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-background">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         {/* Breadcrumb */}
-        <Breadcrumb 
+        <Breadcrumb
           items={[
             { label: 'FAQ' }
           ]}
@@ -212,11 +214,10 @@ export default function FAQPage() {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex items-center px-4 py-2 rounded-lg border transition-all duration-300 ${
-                  selectedCategory === category.id
+                className={`flex items-center px-4 py-2 rounded-lg border transition-all duration-300 ${selectedCategory === category.id
                     ? 'border-blue-500 bg-blue-500/20 text-blue-400'
                     : 'border-gray-600/50 bg-gray-800/30 text-gray-300 hover:border-gray-500/50'
-                }`}
+                  }`}
               >
                 {category.icon}
                 <span className="ml-2 text-sm font-medium">{category.label}</span>

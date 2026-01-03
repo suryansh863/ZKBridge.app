@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Bitcoin, 
-  ArrowRight, 
-  Shield, 
-  Clock, 
-  DollarSign, 
+import {
+  Bitcoin,
+  ArrowRight,
+  Shield,
+  Clock,
+  DollarSign,
   Network,
   CheckCircle,
   AlertTriangle,
@@ -74,7 +74,8 @@ export default function BridgeAssetsPage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="min-h-screen bg-background">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
         <Header />
         <main className="container mx-auto px-4 py-16">
           <div className="flex items-center justify-center min-h-[400px]">
@@ -109,12 +110,13 @@ export default function BridgeAssetsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-background">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         {/* Breadcrumb */}
-        <Breadcrumb 
+        <Breadcrumb
           items={[
             { label: 'Bridge Assets' }
           ]}
@@ -131,7 +133,7 @@ export default function BridgeAssetsPage() {
             Bridge Assets
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Discover the supported cryptocurrencies and networks for trustless bridging 
+            Discover the supported cryptocurrencies and networks for trustless bridging
             between Bitcoin and Ethereum ecosystems.
           </p>
         </motion.div>
@@ -208,7 +210,7 @@ export default function BridgeAssetsPage() {
           <h2 className="text-3xl font-bold text-white mb-8 text-center">
             Supported Assets
           </h2>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {supportedAssets.map((asset, index) => (
               <motion.div
@@ -225,15 +227,14 @@ export default function BridgeAssetsPage() {
                     <p className="text-gray-400">{asset.symbol}</p>
                   </div>
                   <div className="ml-auto">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      asset.status === 'active' 
-                        ? 'bg-green-500/20 text-green-400' 
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${asset.status === 'active'
+                        ? 'bg-green-500/20 text-green-400'
                         : asset.status === 'maintenance'
-                        ? 'bg-yellow-500/20 text-yellow-400'
-                        : 'bg-blue-500/20 text-blue-400'
-                    }`}>
-                      {asset.status === 'active' ? 'Active' : 
-                       asset.status === 'maintenance' ? 'Maintenance' : 'Coming Soon'}
+                          ? 'bg-yellow-500/20 text-yellow-400'
+                          : 'bg-blue-500/20 text-blue-400'
+                      }`}>
+                      {asset.status === 'active' ? 'Active' :
+                        asset.status === 'maintenance' ? 'Maintenance' : 'Coming Soon'}
                     </span>
                   </div>
                 </div>
@@ -258,7 +259,7 @@ export default function BridgeAssetsPage() {
                       </div>
                       <p className="text-white font-semibold">{asset.minAmount}</p>
                     </div>
-                    
+
                     <div className="bg-gray-700/30 rounded-lg p-4">
                       <div className="flex items-center mb-2">
                         <DollarSign className="h-4 w-4 text-green-500 mr-2" />
@@ -276,7 +277,7 @@ export default function BridgeAssetsPage() {
                       </div>
                       <p className="text-white font-semibold">{asset.fee}</p>
                     </div>
-                    
+
                     <div className="bg-gray-700/30 rounded-lg p-4">
                       <div className="flex items-center mb-2">
                         <Clock className="h-4 w-4 text-blue-500 mr-2" />
@@ -301,7 +302,7 @@ export default function BridgeAssetsPage() {
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Bridge Requirements
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="bg-blue-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -312,7 +313,7 @@ export default function BridgeAssetsPage() {
                 All transactions are secured by Zero-Knowledge proofs and cryptographic verification
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-green-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Network className="h-8 w-8 text-green-400" />
@@ -322,7 +323,7 @@ export default function BridgeAssetsPage() {
                 Compatible with Bitcoin and Ethereum mainnet and testnet networks
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-purple-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <ArrowRight className="h-8 w-8 text-purple-400" />

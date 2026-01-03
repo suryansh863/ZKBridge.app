@@ -81,7 +81,7 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
         reset();
         setStep('input');
         setIsProcessing(false);
-      }, 5000);
+      }, 1000);
     } catch (error) {
       setStep('input');
       setIsProcessing(false);
@@ -121,7 +121,7 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
           transition={{ duration: 0.6, delay: 0.2 }}
           className={cn(
             "relative p-4 md:p-8 rounded-3xl",
-            "glass-card border border-white/20",
+            "glass-card border border-border/50",
             "shadow-2xl"
           )}
         >
@@ -146,7 +146,7 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
                   )}>
                     <div className={cn(
                       "p-3 rounded-xl",
-                      fromChain === 'bitcoin' ? 'bg-bitcoin/20' : 'bg-ethereum/20'
+                      fromChain === 'bitcoin' ? 'bg-bitcoin/10' : 'bg-ethereum/10'
                     )}>
                       {fromChain === 'bitcoin' ? (
                         <div className="w-6 h-6 rounded-full bg-bitcoin" />

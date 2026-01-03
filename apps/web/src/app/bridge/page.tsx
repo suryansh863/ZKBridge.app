@@ -7,8 +7,17 @@ import { CheckCircle, AlertCircle, Clock, ArrowRight, ExternalLink, Copy, Hash, 
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { MerkleTreeVisualizer } from '@/components/merkle-tree-visualizer'
-import { QRScannerSimple } from '@/components/qr-scanner-simple'
+import dynamic from 'next/dynamic'
+
+const MerkleTreeVisualizer = dynamic(() => import('@/components/merkle-tree-visualizer').then(mod => mod.MerkleTreeVisualizer), {
+  loading: () => <div className="animate-pulse bg-muted/20 h-64 rounded-lg flex items-center justify-center">Loading Merkle Visualizer...</div>,
+  ssr: false
+})
+
+const QRScannerSimple = dynamic(() => import('@/components/qr-scanner-simple').then(mod => mod.QRScannerSimple), {
+  loading: () => <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">Loading Scanner...</div>,
+  ssr: false
+})
 
 interface BridgeStep {
   id: number
@@ -282,25 +291,17 @@ export default function BridgePage() {
       // Get real Bitcoin transaction data
       const response = await fetch(`/api/bitcoin/detailed-transaction/${bitcoinTx}`)
 
-      if (!response.ok) {
-        let errorMessage = 'Failed to fetch transaction'
-        try {
-          const errorData = await response.json()
-          errorMessage = errorData.message || errorData.error || errorMessage
-        } catch (parseError) {
-          // If response is not JSON, get the text
-          const errorText = await response.text()
-          errorMessage = errorText || errorMessage
-        }
-        throw new Error(errorMessage)
-      }
-
       let data
+      const responseText = await response.text()
       try {
-        data = await response.json()
+        data = JSON.parse(responseText)
       } catch (jsonError) {
         console.error('Failed to parse JSON response:', jsonError)
-        throw new Error('Invalid response format from server')
+        throw new Error(responseText || 'Invalid response format from server')
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || responseText || 'Failed to fetch transaction')
       }
 
       if (!data.success || !data.data) {
@@ -418,7 +419,7 @@ export default function BridgePage() {
       console.log('Bridge attempt stored:', storeData.data.bridgeId)
 
       // Simulate bridge transaction (in real implementation, this would interact with smart contracts)
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       // Mock bridge transaction hash
       const mockHash = '0x' + Math.random().toString(16).substr(2, 40)
@@ -460,7 +461,8 @@ export default function BridgePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-background">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
       <Header />
 
       <main className="container mx-auto px-4 py-16">
@@ -473,7 +475,7 @@ export default function BridgePage() {
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
             Bitcoin Bridge
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Securely bridge your Bitcoin to Ethereum using Zero-Knowledge proofs.
             Trustless, fast, and secure.
           </p>
@@ -485,7 +487,7 @@ export default function BridgePage() {
             {/* Bridge Steps - Hidden on mobile, shown on desktop */}
             <div className="hidden lg:block lg:col-span-1">
               <div className="glass-card p-6 sticky top-8">
-                <h2 className="text-xl font-semibold mb-6 text-white">Bridge Process</h2>
+                <h2 className="text-xl font-semibold mb-6 text-foreground">Bridge Process</h2>
                 <div className="space-y-4">
                   {steps.map((step, index) => (
                     <motion.div
@@ -494,26 +496,26 @@ export default function BridgePage() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                       className={`flex items-center space-x-3 p-3 rounded-lg transition-all ${step.status === 'active'
-                          ? 'bg-blue-500/20 border border-blue-500/30'
-                          : step.status === 'completed'
-                            ? 'bg-green-500/20 border border-green-500/30'
-                            : 'bg-gray-800/50 border border-gray-700/50'
+                        ? 'bg-blue-500/20 border border-blue-500/30'
+                        : step.status === 'completed'
+                          ? 'bg-green-500/20 border border-green-500/30'
+                          : 'bg-muted/20 border border-border/50'
                         }`}
                     >
                       <div className={`p-2 rounded-full ${step.status === 'active'
-                          ? 'bg-blue-500 text-white'
-                          : step.status === 'completed'
-                            ? 'bg-green-500 text-white'
-                            : 'bg-gray-600 text-gray-300'
+                        ? 'bg-blue-500 text-white'
+                        : step.status === 'completed'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-muted text-muted-foreground'
                         }`}>
                         {step.icon}
                       </div>
                       <div>
-                        <h3 className={`font-medium ${step.status === 'active' ? 'text-blue-400' : 'text-white'
+                        <h3 className={`font-medium ${step.status === 'active' ? 'text-primary' : 'text-foreground'
                           }`}>
                           {step.title}
                         </h3>
-                        <p className="text-sm text-gray-400">{step.description}</p>
+                        <p className="text-sm text-muted-foreground">{step.description}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -527,8 +529,8 @@ export default function BridgePage() {
                 {/* Mobile Progress Indicator */}
                 <div className="lg:hidden mb-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-white">Step {currentStep} of 3</h2>
-                    <span className="text-sm text-gray-400">{Math.round((currentStep / 3) * 100)}% Complete</span>
+                    <h2 className="text-lg font-semibold text-foreground">Step {currentStep} of 3</h2>
+                    <span className="text-sm text-muted-foreground">{Math.round((currentStep / 3) * 100)}% Complete</span>
                   </div>
                   <div className="w-full bg-gray-700 rounded-full h-2">
                     <div
@@ -537,7 +539,7 @@ export default function BridgePage() {
                     />
                   </div>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-300">{steps[currentStep - 1]?.title}</p>
+                    <p className="text-sm text-muted-foreground">{steps[currentStep - 1]?.title}</p>
                   </div>
                 </div>
 
@@ -548,16 +550,16 @@ export default function BridgePage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-6"
                   >
-                    <h2 className="text-2xl font-bold text-white mb-6">Verify Bitcoin Transaction</h2>
+                    <h2 className="text-2xl font-bold text-foreground mb-6">Verify Bitcoin Transaction</h2>
 
                     {/* Sample Transactions */}
                     {/* Bridge Instructions */}
                     <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-4 md:p-6 mb-6">
                       <div className="flex items-center space-x-3 mb-4">
-                        <Info className="w-6 h-6 text-blue-400" />
-                        <h3 className="text-lg font-semibold text-white">How it works</h3>
+                        <Info className="w-6 h-6 text-primary" />
+                        <h3 className="text-lg font-semibold text-foreground">How it works</h3>
                       </div>
-                      <ul className="space-y-3 text-sm text-gray-300">
+                      <ul className="space-y-3 text-sm text-muted-foreground">
                         <li className="flex items-start space-x-2">
                           <span className="text-blue-400 font-bold">1.</span>
                           <span>Send Bitcoin to the vault address on Bitcoin Testnet.</span>
@@ -580,13 +582,13 @@ export default function BridgePage() {
                     <div className="space-y-6">
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="block text-sm font-medium text-gray-300">
+                          <label className="block text-sm font-medium text-muted-foreground">
                             Bitcoin Transaction ID (Testnet)
                           </label>
                           <div className="relative">
                             <button
                               onClick={() => setShowHelpTooltip(!showHelpTooltip)}
-                              className="text-gray-400 hover:text-gray-300 transition-colors"
+                              className="text-muted-foreground hover:text-foreground transition-colors"
                             >
                               <Info className="w-4 h-4" />
                             </button>
@@ -616,9 +618,9 @@ export default function BridgePage() {
                                       <span><strong>✏️ Type manually:</strong> Enter the 64-character transaction ID directly</span>
                                     </li>
                                   </ul>
-                                  <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3 mt-3">
-                                    <p className="text-blue-400 font-medium text-sm">💡 Pro Tip:</p>
-                                    <p className="text-blue-300/80 text-xs mt-1">Copy any Bitcoin explorer URL (like blockstream.info) and paste it - we&apos;ll extract the transaction ID automatically!</p>
+                                  <div className="bg-primary/10 border border-primary/20 rounded p-3 mt-3">
+                                    <p className="text-primary font-medium text-sm">💡 Pro Tip:</p>
+                                    <p className="text-primary/70 text-xs mt-1">Copy any Bitcoin explorer URL (like blockstream.info) and paste it - we&apos;ll extract the transaction ID automatically!</p>
                                   </div>
                                 </div>
                               </div>
@@ -649,7 +651,7 @@ export default function BridgePage() {
                               }, 10)
                             }}
                             placeholder="Paste Bitcoin transaction ID or explorer URL here..."
-                            className="w-full px-4 py-3 pr-20 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base transition-all duration-200"
+                            className="w-full px-4 py-3 pr-20 bg-muted/30 border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base transition-all duration-200"
                           />
                           <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
                             {bitcoinTx ? (
@@ -726,7 +728,7 @@ export default function BridgePage() {
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.001"
-                            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+                            className="w-full px-4 py-3 bg-muted/30 border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
                           />
                           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
                             BTC
@@ -763,7 +765,7 @@ export default function BridgePage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-6"
                   >
-                    <h2 className="text-2xl font-bold text-white mb-6">Transaction Verified</h2>
+                    <h2 className="text-2xl font-bold text-foreground mb-6">Transaction Verified</h2>
 
                     <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4 mb-6">
                       <div className="flex items-center space-x-2">
@@ -774,18 +776,18 @@ export default function BridgePage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       <div className="space-y-6">
-                        <div className="bg-gray-800/30 rounded-lg p-4">
-                          <label className="text-sm text-gray-400 block mb-2">Transaction ID</label>
+                        <div className="bg-muted/10 rounded-lg p-4">
+                          <label className="text-sm text-muted-foreground block mb-2">Transaction ID</label>
                           <div className="flex items-center space-x-2">
-                            <code className="text-xs bg-gray-900 px-3 py-2 rounded text-blue-400 flex-1 break-all">
+                            <code className="text-xs bg-muted/20 px-3 py-2 rounded text-primary flex-1 break-all">
                               {transaction.txid}
                             </code>
                             <button
                               onClick={() => copyToClipboard(transaction.txid)}
-                              className="p-2 hover:bg-gray-700 rounded transition-colors"
+                              className="p-2 hover:bg-muted/50 rounded transition-colors"
                               title="Copy transaction ID"
                             >
-                              <Copy className="w-4 h-4 text-gray-400" />
+                              <Copy className="w-4 h-4 text-muted-foreground" />
                             </button>
                             <a
                               href={`https://blockstream.info/testnet/tx/${transaction.txid}`}
@@ -800,14 +802,14 @@ export default function BridgePage() {
                         </div>
 
                         {transaction.blockHeight && (
-                          <div className="bg-gray-800/30 rounded-lg p-4">
+                          <div className="bg-muted/10 rounded-lg p-4">
                             <label className="text-sm text-gray-400 block mb-2">Block Height</label>
                             <p className="text-white font-mono text-lg">{transaction.blockHeight}</p>
                           </div>
                         )}
 
                         {transaction.blockHash && (
-                          <div className="bg-gray-800/30 rounded-lg p-4">
+                          <div className="bg-muted/10 rounded-lg p-4">
                             <label className="text-sm text-gray-400 block mb-2">Block Hash</label>
                             <div className="flex items-center space-x-2">
                               <code className="text-xs bg-gray-900 px-3 py-2 rounded text-green-400 flex-1 break-all">
@@ -824,20 +826,20 @@ export default function BridgePage() {
                           </div>
                         )}
 
-                        <div className="bg-gray-800/30 rounded-lg p-4">
-                          <label className="text-sm text-gray-400 block mb-2">Amount</label>
-                          <p className="text-white font-medium text-lg">{transaction.amount.toFixed(8)} BTC</p>
+                        <div className="bg-muted/10 rounded-lg p-4">
+                          <label className="text-sm text-muted-foreground block mb-2">Amount</label>
+                          <p className="text-foreground font-medium text-lg">{transaction.amount.toFixed(8)} BTC</p>
                         </div>
 
                         {transaction.fee > 0 && (
-                          <div className="bg-gray-800/30 rounded-lg p-4">
+                          <div className="bg-muted/10 rounded-lg p-4">
                             <label className="text-sm text-gray-400 block mb-2">Transaction Fee</label>
                             <p className="text-white font-medium text-lg">{transaction.fee.toFixed(8)} BTC</p>
                           </div>
                         )}
 
                         {transaction.size > 0 && (
-                          <div className="bg-gray-800/30 rounded-lg p-4">
+                          <div className="bg-muted/10 rounded-lg p-4">
                             <label className="text-sm text-gray-400 block mb-2">Transaction Size</label>
                             <p className="text-white font-medium text-lg">{transaction.size} bytes</p>
                           </div>
@@ -895,7 +897,7 @@ export default function BridgePage() {
                                       <span className="text-white font-medium">{output.value.toFixed(8)} BTC</span>
                                     </div>
                                   </div>
-                                  {index < transaction.outputs.length - 1 && <hr className="border-gray-600 my-3" />}
+                                  {index < transaction.outputs.length - 1 && <hr className="border-border/50 my-3" />}
                                 </div>
                               ))}
                             </div>
@@ -974,7 +976,7 @@ export default function BridgePage() {
                               <span className="text-white">{transaction?.amount} BTC</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Estimated Gas:</span>
+                              <span className="text-muted-foreground">Estimated Gas:</span>
                               <span className="text-white">~$15</span>
                             </div>
                           </div>
@@ -1006,10 +1008,10 @@ export default function BridgePage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center py-8"
                   >
-                    <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-8 mb-6">
-                      <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-                      <h2 className="text-2xl font-bold text-white mb-2">Bridge Successful!</h2>
-                      <p className="text-gray-300">
+                    <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-8 mb-6">
+                      <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                      <h2 className="text-2xl font-bold text-foreground mb-2">Bridge Successful!</h2>
+                      <p className="text-muted-foreground">
                         Your Bitcoin has been successfully bridged to Ethereum
                       </p>
                     </div>
@@ -1047,7 +1049,7 @@ export default function BridgePage() {
                         setProofGenerated(false)
                         setBridgeTxHash('')
                       }}
-                      className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-all"
+                      className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all font-medium"
                     >
                       Start New Bridge
                     </button>

@@ -1,16 +1,18 @@
 "use client"
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiConfig } from 'wagmi';
-import { RainbowKitProvider, darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 import { ThemeProvider as NextThemeProvider } from 'next-themes';
-import { config, chains } from '@/lib/wagmi';
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { BackToTop } from '@/components/back-to-top';
 import { ErrorBoundary } from '@/components/error-boundary';
 import '@/lib/console-suppress';
 
-import '@rainbow-me/rainbowkit/styles.css';
+// Lazy-load the heavy wallet provider
+const WalletProvider = dynamic(() => import('./wallet-provider').then(mod => mod.WalletProvider), {
+  ssr: false,
+  loading: () => null
+});
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -65,45 +67,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ErrorBoundary>
-      <WagmiConfig config={config}>
-        <QueryClientProvider client={queryClient}>
-          <NextThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <RainbowKitProvider
-              chains={chains}
-              theme={{
-                lightMode: lightTheme({
-                  accentColor: '#6366f1',
-                  accentColorForeground: 'white',
-                  borderRadius: 'medium',
-                  fontStack: 'system',
-                  overlayBlur: 'small',
-                }),
-                darkMode: darkTheme({
-                  accentColor: '#6366f1',
-                  accentColorForeground: 'white',
-                  borderRadius: 'medium',
-                  fontStack: 'system',
-                  overlayBlur: 'small',
-                }),
-              }}
-              appInfo={{
-                appName: 'BridgeSpark',
-                learnMoreUrl: 'https://docs.bridgespark.app',
-              }}
-              showRecentTransactions={true}
-              modalSize="compact"
-            >
-              {children}
-            </RainbowKitProvider>
-            <BackToTop />
-          </NextThemeProvider>
-        </QueryClientProvider>
-      </WagmiConfig>
+      <QueryClientProvider client={queryClient}>
+        <NextThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <WalletProvider>
+            {children}
+          </WalletProvider>
+          <BackToTop />
+        </NextThemeProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

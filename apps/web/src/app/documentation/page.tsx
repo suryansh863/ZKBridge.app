@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Book, 
-  Code, 
-  Shield, 
-  Zap, 
-  ArrowRight, 
+import {
+  Book,
+  Code,
+  Shield,
+  Zap,
+  ArrowRight,
   ExternalLink,
   ChevronRight,
   ChevronDown,
@@ -153,7 +153,8 @@ export default function DocumentationPage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="min-h-screen bg-background">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
         <Header />
         <main className="container mx-auto px-4 py-16">
           <div className="flex items-center justify-center min-h-[400px]">
@@ -166,12 +167,13 @@ export default function DocumentationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-background">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         {/* Breadcrumb */}
-        <Breadcrumb 
+        <Breadcrumb
           items={[
             { label: 'Documentation' }
           ]}
@@ -184,10 +186,10 @@ export default function DocumentationPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             Documentation
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Complete technical documentation for developers, integrators, and users of the ZKBridge protocol.
           </p>
         </motion.div>
@@ -201,16 +203,16 @@ export default function DocumentationPage() {
         >
           <a
             href="/api"
-            className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 group"
+            className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border hover:border-primary/50 transition-all duration-300 group"
           >
             <div className="flex items-center mb-4">
-              <Code className="h-6 w-6 text-blue-500 mr-3" />
-              <h3 className="text-lg font-semibold text-white">API Reference</h3>
+              <Code className="h-6 w-6 text-primary mr-3" />
+              <h3 className="text-lg font-semibold text-foreground">API Reference</h3>
             </div>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-muted-foreground text-sm mb-4">
               Complete REST API documentation with interactive examples
             </p>
-            <div className="flex items-center text-blue-400 group-hover:text-blue-300">
+            <div className="flex items-center text-primary group-hover:text-primary/80">
               <span className="text-sm font-medium">View API Docs</span>
               <ArrowRight className="h-4 w-4 ml-2" />
             </div>
@@ -218,16 +220,16 @@ export default function DocumentationPage() {
 
           <a
             href="/guides"
-            className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 group"
+            className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border hover:border-green-500/50 transition-all duration-300 group"
           >
             <div className="flex items-center mb-4">
               <Book className="h-6 w-6 text-green-500 mr-3" />
-              <h3 className="text-lg font-semibold text-white">User Guides</h3>
+              <h3 className="text-lg font-semibold text-foreground">User Guides</h3>
             </div>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-muted-foreground text-sm mb-4">
               Step-by-step tutorials for bridging and wallet integration
             </p>
-            <div className="flex items-center text-green-400 group-hover:text-green-300">
+            <div className="flex items-center text-green-500 group-hover:text-green-400">
               <span className="text-sm font-medium">View Guides</span>
               <ArrowRight className="h-4 w-4 ml-2" />
             </div>
@@ -235,16 +237,16 @@ export default function DocumentationPage() {
 
           <a
             href="/security"
-            className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 group"
+            className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border hover:border-purple-500/50 transition-all duration-300 group"
           >
             <div className="flex items-center mb-4">
               <Shield className="h-6 w-6 text-purple-500 mr-3" />
-              <h3 className="text-lg font-semibold text-white">Security</h3>
+              <h3 className="text-lg font-semibold text-foreground">Security</h3>
             </div>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-muted-foreground text-sm mb-4">
               Security model, audits, and best practices
             </p>
-            <div className="flex items-center text-purple-400 group-hover:text-purple-300">
+            <div className="flex items-center text-purple-500 group-hover:text-purple-400">
               <span className="text-sm font-medium">View Security</span>
               <ArrowRight className="h-4 w-4 ml-2" />
             </div>
@@ -264,24 +266,24 @@ export default function DocumentationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + index * 0.1 }}
-              className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden"
+              className="bg-card/50 backdrop-blur-sm rounded-xl border border-border overflow-hidden"
             >
               <button
                 onClick={() => toggleSection(section.id)}
-                className="w-full p-6 text-left hover:bg-gray-700/30 transition-colors"
+                className="w-full p-6 text-left hover:bg-muted/30 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     {section.icon}
                     <div className="ml-4">
-                      <h3 className="text-xl font-semibold text-white">{section.title}</h3>
-                      <p className="text-gray-400 text-sm">{section.description}</p>
+                      <h3 className="text-xl font-semibold text-foreground">{section.title}</h3>
+                      <p className="text-muted-foreground text-sm">{section.description}</p>
                     </div>
                   </div>
                   {expandedSection === section.id ? (
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
                   ) : (
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
                   )}
                 </div>
               </button>
@@ -291,20 +293,20 @@ export default function DocumentationPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="px-6 pb-6 border-t border-gray-700/50"
+                  className="px-6 pb-6 border-t border-border"
                 >
                   <div className="pt-6">
-                    <p className="text-gray-300 mb-6">{section.content.overview}</p>
+                    <p className="text-muted-foreground mb-6">{section.content.overview}</p>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       {/* Features */}
                       <div>
-                        <h4 className="text-lg font-semibold text-white mb-4">Key Features</h4>
+                        <h4 className="text-lg font-semibold text-foreground mb-4">Key Features</h4>
                         <ul className="space-y-2">
                           {section.content.features.map((feature, idx) => (
                             <li key={idx} className="flex items-start">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0" />
-                              <span className="text-gray-300 text-sm">{feature}</span>
+                              <div className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0" />
+                              <span className="text-muted-foreground text-sm">{feature}</span>
                             </li>
                           ))}
                         </ul>
@@ -312,13 +314,13 @@ export default function DocumentationPage() {
 
                       {/* Links */}
                       <div>
-                        <h4 className="text-lg font-semibold text-white mb-4">Related Resources</h4>
+                        <h4 className="text-lg font-semibold text-foreground mb-4">Related Resources</h4>
                         <div className="space-y-3">
                           {section.content.links.map((link, idx) => (
                             <a
                               key={idx}
                               href={link.href}
-                              className="flex items-center text-blue-400 hover:text-blue-300 transition-colors group"
+                              className="flex items-center text-primary hover:text-primary/80 transition-colors group"
                             >
                               <span className="text-sm font-medium">{link.label}</span>
                               {link.external ? (
@@ -336,10 +338,10 @@ export default function DocumentationPage() {
                     {section.content.codeExample && (
                       <div className="mt-8">
                         <div className="flex items-center justify-between mb-4">
-                          <h4 className="text-lg font-semibold text-white">Code Example</h4>
+                          <h4 className="text-lg font-semibold text-foreground">Code Example</h4>
                           <button
                             onClick={() => copyCode(section.content.codeExample!, section.id)}
-                            className="flex items-center px-3 py-1 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors"
+                            className="flex items-center px-3 py-1 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
                           >
                             {copiedCode === section.id ? (
                               <>
@@ -354,8 +356,8 @@ export default function DocumentationPage() {
                             )}
                           </button>
                         </div>
-                        <pre className="bg-gray-900/50 rounded-lg p-4 overflow-x-auto">
-                          <code className="text-gray-300 text-sm">{section.content.codeExample}</code>
+                        <pre className="bg-muted rounded-lg p-4 overflow-x-auto">
+                          <code className="text-foreground text-sm">{section.content.codeExample}</code>
                         </pre>
                       </div>
                     )}
@@ -371,24 +373,24 @@ export default function DocumentationPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-12 bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50"
+          className="mt-12 bg-card/50 backdrop-blur-sm rounded-xl p-8 border border-border"
         >
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
             Additional Resources
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <a
               href="/faq"
               className="text-center group"
             >
-              <div className="bg-blue-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Book className="h-8 w-8 text-blue-400" />
+              <div className="bg-primary/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Book className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">FAQ</h3>
-              <p className="text-gray-400 text-sm">Common questions and answers</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">FAQ</h3>
+              <p className="text-muted-foreground text-sm">Common questions and answers</p>
             </a>
-            
+
             <a
               href="/contact"
               className="text-center group"
@@ -396,10 +398,10 @@ export default function DocumentationPage() {
               <div className="bg-green-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Shield className="h-8 w-8 text-green-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Support</h3>
-              <p className="text-gray-400 text-sm">Get help from our team</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Support</h3>
+              <p className="text-muted-foreground text-sm">Get help from our team</p>
             </a>
-            
+
             <a
               href="https://github.com/zkbridge"
               target="_blank"
@@ -409,10 +411,10 @@ export default function DocumentationPage() {
               <div className="bg-purple-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Code className="h-8 w-8 text-purple-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">GitHub</h3>
-              <p className="text-gray-400 text-sm">Source code and issues</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">GitHub</h3>
+              <p className="text-muted-foreground text-sm">Source code and issues</p>
             </a>
-            
+
             <a
               href="https://discord.gg/zkbridge"
               target="_blank"
@@ -422,8 +424,8 @@ export default function DocumentationPage() {
               <div className="bg-pink-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Zap className="h-8 w-8 text-pink-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Community</h3>
-              <p className="text-gray-400 text-sm">Join our Discord</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Community</h3>
+              <p className="text-muted-foreground text-sm">Join our Discord</p>
             </a>
           </div>
         </motion.div>

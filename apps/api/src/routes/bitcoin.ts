@@ -271,8 +271,18 @@ router.get('/detailed-transaction/:txid', [
 
     res.json(response);
   } catch (error: any) {
-    logger.error('Detailed Bitcoin transaction error:', error);
-    throw new CustomError('Failed to get detailed Bitcoin transaction', 500);
+    logger.error('Detailed Bitcoin transaction error:', {
+      txid,
+      error: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    });
+    const statusCode = error.message.includes('not found') ? 404 : 500;
+    res.status(statusCode).json({
+      success: false,
+      error: error.message || 'Failed to get detailed Bitcoin transaction',
+      message: error.message || 'Internal server error'
+    });
   }
 }));
 
@@ -295,7 +305,12 @@ router.get('/detailed-merkle-proof/:txid', [
     res.json(response);
   } catch (error: any) {
     logger.error('Detailed Merkle proof error:', error);
-    throw new CustomError('Failed to get detailed Merkle proof', 500);
+    const statusCode = error.message.includes('not found') ? 404 : 500;
+    res.status(statusCode).json({
+      success: false,
+      error: error.message || 'Failed to get detailed Merkle proof',
+      message: error.message || 'Internal server error'
+    });
   }
 }));
 

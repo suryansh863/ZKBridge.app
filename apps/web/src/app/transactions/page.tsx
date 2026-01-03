@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, Download, Eye, Clock, CheckCircle, XCircle, ExternalLink, Copy, RefreshCw } from 'lucide-react'
+import { Search, Filter, Download, Eye, Clock, CheckCircle, XCircle, ExternalLink, Copy, RefreshCw, ChevronDown } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 
@@ -132,7 +132,7 @@ export default function TransactionsPage() {
       case 'failed':
         return 'bg-red-500/20 text-red-400 border-red-500/30'
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+        return 'bg-muted/20 text-muted-foreground border-border/30'
     }
   }
 
@@ -145,7 +145,7 @@ export default function TransactionsPage() {
       case 'deposit':
         return 'bg-green-500/20 text-green-400 border-green-500/30'
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+        return 'bg-muted/20 text-muted-foreground border-border/30'
     }
   }
 
@@ -194,7 +194,7 @@ export default function TransactionsPage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-16">
           <div className="flex items-center justify-center min-h-[400px]">
@@ -207,7 +207,8 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-background transition-colors duration-300">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 pointer-events-none" />
       <Header />
 
       <main className="container mx-auto px-4 py-16">
@@ -217,10 +218,10 @@ export default function TransactionsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent mb-4">
             Transaction History
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Track all your Bitcoin bridge transactions with real-time status updates
           </p>
         </motion.div>
@@ -236,39 +237,45 @@ export default function TransactionsPage() {
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               {/* Search */}
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search transactions..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 bg-muted/30 border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 />
               </div>
 
               {/* Status Filter */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="px-4 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="failed">Failed</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="appearance-none pl-4 pr-10 py-2 bg-muted/30 border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="failed">Failed</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
 
               {/* Type Filter */}
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as any)}
-                className="px-4 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Types</option>
-                <option value="bridge">Bridge</option>
-                <option value="withdraw">Withdraw</option>
-                <option value="deposit">Deposit</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as any)}
+                  className="appearance-none pl-4 pr-10 py-2 bg-muted/30 border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer"
+                >
+                  <option value="all">All Types</option>
+                  <option value="bridge">Bridge</option>
+                  <option value="withdraw">Withdraw</option>
+                  <option value="deposit">Deposit</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -280,7 +287,7 @@ export default function TransactionsPage() {
                 className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
+                <span>{isLoading ? 'Updating...' : 'Refresh'}</span>
               </button>
 
               {/* Export Button */}
@@ -304,30 +311,31 @@ export default function TransactionsPage() {
         >
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-800/50">
+              <thead className="bg-muted/50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Transaction</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Transaction</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700">
+              <tbody className="divide-y divide-border">
                 {currentTransactions.map((transaction, index) => (
                   <motion.tr
                     key={transaction.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="hover:bg-gray-800/30 transition-colors"
+                    viewport={{ once: true }}
+                    className="hover:bg-muted/30 transition-colors border-b border-border/50 last:border-0"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-white">{transaction.id}</div>
-                        <div className="text-sm text-gray-400">
-                          {transaction.bitcoinTx ? 'BTC' : 'ETH'}
+                        <div className="text-sm font-semibold text-foreground">{transaction.id}</div>
+                        <div className="text-xs text-muted-foreground font-mono mt-0.5">
+                          {transaction.bitcoinTx ? 'Bitcoin' : 'Ethereum'}
                         </div>
                       </div>
                     </td>
@@ -344,16 +352,17 @@ export default function TransactionsPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       {transaction.amount} BTC
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {formatDate(transaction.timestamp)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
                         onClick={() => setSelectedTransaction(transaction)}
-                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                        className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-all"
+                        title="View Details"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -366,26 +375,26 @@ export default function TransactionsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 bg-gray-800/30 border-t border-gray-700">
+            <div className="px-6 py-4 bg-muted/20 border-t border-border">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   Showing {startIndex + 1} to {Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} transactions
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 bg-gray-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                    className="px-3 py-1 bg-muted text-foreground border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted/80 transition-colors"
                   >
                     Previous
                   </button>
-                  <span className="px-3 py-1 text-white">
+                  <span className="px-3 py-1 text-foreground font-medium">
                     {currentPage} of {totalPages}
                   </span>
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 bg-gray-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                    className="px-3 py-1 bg-primary text-primary-foreground rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
                   >
                     Next
                   </button>
@@ -404,10 +413,10 @@ export default function TransactionsPage() {
               className="glass-card p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Transaction Details</h2>
+                <h2 className="text-2xl font-bold text-foreground">Transaction Details</h2>
                 <button
                   onClick={() => setSelectedTransaction(null)}
-                  className="text-gray-400 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <XCircle className="w-6 h-6" />
                 </button>
@@ -416,22 +425,23 @@ export default function TransactionsPage() {
               <div className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-sm text-gray-400">Transaction ID</label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <code className="text-xs bg-gray-800 px-2 py-1 rounded text-blue-400 flex-1">
+                    <label className="text-sm text-muted-foreground mb-1 block">Transaction ID</label>
+                    <div className="flex items-center space-x-2">
+                      <code className="text-xs bg-muted border border-border/50 px-3 py-1.5 rounded-lg text-primary flex-1 break-all">
                         {selectedTransaction.id}
                       </code>
                       <button
                         onClick={() => copyToClipboard(selectedTransaction.id)}
-                        className="p-1 hover:bg-gray-700 rounded"
+                        className="p-2 hover:bg-muted rounded-lg transition-colors border border-border/50"
+                        title="Copy ID"
                       >
-                        <Copy className="w-4 h-4 text-gray-400" />
+                        <Copy className="w-4 h-4 text-muted-foreground" />
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-400">Type</label>
+                    <label className="text-sm text-muted-foreground mb-1 block">Type</label>
                     <div className="mt-1">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getTypeColor(selectedTransaction.type)}`}>
                         {selectedTransaction.type}
@@ -440,7 +450,7 @@ export default function TransactionsPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-400">Status</label>
+                    <label className="text-sm text-muted-foreground mb-1 block">Status</label>
                     <div className="mt-1 flex items-center space-x-2">
                       {getStatusIcon(selectedTransaction.status)}
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(selectedTransaction.status)}`}>
@@ -450,74 +460,82 @@ export default function TransactionsPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-400">Amount</label>
-                    <p className="text-white font-medium mt-1">{selectedTransaction.amount} BTC</p>
+                    <label className="text-sm text-muted-foreground mb-1 block">Amount</label>
+                    <p className="text-foreground font-semibold">{selectedTransaction.amount} BTC</p>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-400">Fee</label>
-                    <p className="text-white font-medium mt-1">{selectedTransaction.fee} BTC</p>
+                    <label className="text-sm text-muted-foreground mb-1 block">Fee</label>
+                    <p className="text-foreground font-semibold">{selectedTransaction.fee} BTC</p>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-400">Confirmations</label>
-                    <p className="text-white font-medium mt-1">{selectedTransaction.confirmations}</p>
+                    <label className="text-sm text-muted-foreground mb-1 block">Confirmations</label>
+                    <p className="text-foreground font-semibold">{selectedTransaction.confirmations}</p>
                   </div>
                 </div>
 
                 {selectedTransaction.bitcoinTx && (
                   <div>
-                    <label className="text-sm text-gray-400">Bitcoin Transaction</label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <code className="text-xs bg-gray-800 px-2 py-1 rounded text-orange-400 flex-1 break-all">
+                    <label className="text-sm text-muted-foreground mb-1 block">Bitcoin Transaction</label>
+                    <div className="flex items-center space-x-2">
+                      <code className="text-xs bg-muted border border-border/50 px-3 py-1.5 rounded-lg text-primary flex-1 break-all font-mono">
                         {selectedTransaction.bitcoinTx}
                       </code>
-                      <button
-                        onClick={() => copyToClipboard(selectedTransaction.bitcoinTx!)}
-                        className="p-1 hover:bg-gray-700 rounded"
-                      >
-                        <Copy className="w-4 h-4 text-gray-400" />
-                      </button>
-                      <a
-                        href={`https://blockstream.info/tx/${selectedTransaction.bitcoinTx}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1 hover:bg-gray-700 rounded"
-                      >
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
-                      </a>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => copyToClipboard(selectedTransaction.bitcoinTx!)}
+                          className="p-2 hover:bg-muted rounded-lg transition-colors border border-border/50"
+                          title="Copy TX Hash"
+                        >
+                          <Copy className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        <a
+                          href={`https://blockstream.info/tx/${selectedTransaction.bitcoinTx}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 hover:bg-muted rounded-lg transition-colors border border-border/50"
+                          title="View on Explorer"
+                        >
+                          <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                        </a>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {selectedTransaction.ethereumTx && (
                   <div>
-                    <label className="text-sm text-gray-400">Ethereum Transaction</label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <code className="text-xs bg-gray-800 px-2 py-1 rounded text-blue-400 flex-1 break-all">
+                    <label className="text-sm text-muted-foreground mb-1 block">Ethereum Transaction</label>
+                    <div className="flex items-center space-x-2">
+                      <code className="text-xs bg-muted border border-border/50 px-3 py-1.5 rounded-lg text-primary flex-1 break-all font-mono">
                         {selectedTransaction.ethereumTx}
                       </code>
-                      <button
-                        onClick={() => copyToClipboard(selectedTransaction.ethereumTx!)}
-                        className="p-1 hover:bg-gray-700 rounded"
-                      >
-                        <Copy className="w-4 h-4 text-gray-400" />
-                      </button>
-                      <a
-                        href={`https://etherscan.io/tx/${selectedTransaction.ethereumTx}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1 hover:bg-gray-700 rounded"
-                      >
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
-                      </a>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => copyToClipboard(selectedTransaction.ethereumTx!)}
+                          className="p-2 hover:bg-muted rounded-lg transition-colors border border-border/50"
+                          title="Copy TX Hash"
+                        >
+                          <Copy className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        <a
+                          href={`https://etherscan.io/tx/${selectedTransaction.ethereumTx}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 hover:bg-muted rounded-lg transition-colors border border-border/50"
+                          title="View on Explorer"
+                        >
+                          <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                        </a>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <label className="text-sm text-gray-400">Timestamp</label>
-                  <p className="text-white font-medium mt-1">{formatDate(selectedTransaction.timestamp)}</p>
+                  <label className="text-sm text-muted-foreground">Timestamp</label>
+                  <p className="text-foreground font-medium mt-1">{formatDate(selectedTransaction.timestamp)}</p>
                 </div>
               </div>
             </motion.div>

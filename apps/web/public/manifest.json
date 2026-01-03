@@ -1,0 +1,16 @@
+{
+    "name": "ZKBridge",
+    "short_name": "ZKBridge",
+    "description": "Bitcoin-Ethereum Trustless Bridge using ZK Proofs",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#3b82f6",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

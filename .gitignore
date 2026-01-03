@@ -75,7 +75,7 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public
+# public
 
 # Storybook build outputs
 .out
@@ -87,6 +87,7 @@ temp/
 
 # Editor directories and files
 .vscode/
+!.vscode/settings.json
 .idea/
 *.swp
 *.swo

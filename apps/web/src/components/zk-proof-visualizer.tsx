@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Lock, 
-  Eye, 
-  CheckCircle, 
-  Shield, 
-  Key, 
+import {
+  Lock,
+  Eye,
+  CheckCircle,
+  Shield,
+  Key,
   Zap,
   Info,
   Play,
@@ -52,10 +52,10 @@ interface ZKProofVisualizerProps {
   onProofGenerated?: (proof: ZKProofData) => void;
 }
 
-export function ZKProofVisualizer({ 
-  className, 
+export function ZKProofVisualizer({
+  className,
   proofData,
-  onProofGenerated 
+  onProofGenerated
 }: ZKProofVisualizerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -115,13 +115,13 @@ export function ZKProofVisualizer({
     setIsPlaying(true);
     setCurrentStep(0);
     setProof(null);
-    
+
     const interval = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev >= steps.length - 1) {
           setIsPlaying(false);
           clearInterval(interval);
-          
+
           // TODO: Generate real ZK proof when demo completes
           // For now, show completion state without mock data
           return prev;
@@ -143,12 +143,12 @@ export function ZKProofVisualizer({
 
   const downloadProof = () => {
     if (!proof) return;
-    
+
     const dataStr = JSON.stringify(proof, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
     const exportFileDefaultName = `zk-proof-${Date.now()}.json`;
-    
+
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
@@ -160,8 +160,8 @@ export function ZKProofVisualizer({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">ZK Proof Visualization</h2>
-          <p className="text-gray-300">
+          <h2 className="text-2xl font-bold text-foreground mb-2">ZK Proof Visualization</h2>
+          <p className="text-muted-foreground">
             Interactive demonstration of Zero-Knowledge proof generation and verification
           </p>
         </div>
@@ -170,9 +170,9 @@ export function ZKProofVisualizer({
             onClick={() => setShowRawData(!showRawData)}
             className={cn(
               "p-2 rounded-lg transition-all duration-300",
-              showRawData 
-                ? "bg-blue-500/20 text-blue-400" 
-                : "bg-gray-700/50 text-gray-400 hover:bg-gray-600/50"
+              showRawData
+                ? "bg-primary/20 text-primary"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted"
             )}
             title={showRawData ? "Hide raw data" : "Show raw data"}
           >
@@ -191,7 +191,7 @@ export function ZKProofVisualizer({
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 mb-6 bg-gray-800/50 rounded-lg p-1">
+      <div className="flex space-x-1 mb-6 bg-muted/30 rounded-lg p-1">
         {[
           { id: 'visualization', label: 'Visualization', icon: Zap },
           { id: 'proof', label: 'Proof Data', icon: FileText },
@@ -203,8 +203,8 @@ export function ZKProofVisualizer({
             className={cn(
               "flex items-center px-4 py-2 rounded-md transition-all duration-300",
               activeTab === tab.id
-                ? "bg-blue-500/20 text-blue-400"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                ? "bg-primary/20 text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             )}
           >
             <tab.icon className="h-4 w-4 mr-2" />
@@ -224,9 +224,9 @@ export function ZKProofVisualizer({
             className="space-y-6"
           >
             {/* Demo Controls */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Interactive Demo</h3>
+                <h3 className="text-lg font-semibold text-foreground">Interactive Demo</h3>
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={startDemo}
@@ -234,8 +234,8 @@ export function ZKProofVisualizer({
                     className={cn(
                       "flex items-center px-4 py-2 rounded-lg font-semibold transition-all duration-300",
                       isPlaying
-                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700 text-white hover:scale-105"
+                        ? "bg-muted text-muted-foreground cursor-not-allowed"
+                        : "bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105"
                     )}
                   >
                     {isPlaying ? (
@@ -252,7 +252,7 @@ export function ZKProofVisualizer({
                   </button>
                   <button
                     onClick={resetDemo}
-                    className="flex items-center px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white transition-all duration-300"
+                    className="flex items-center px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-all duration-300"
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset
@@ -261,14 +261,14 @@ export function ZKProofVisualizer({
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Secret Input
                 </label>
                 <input
                   type="text"
                   value={secret}
                   onChange={(e) => setSecret(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
                   placeholder="Enter your secret data"
                 />
               </div>
@@ -280,7 +280,7 @@ export function ZKProofVisualizer({
                 const Icon = step.icon;
                 const isActive = currentStep === index;
                 const isCompleted = currentStep > index;
-                
+
                 return (
                   <motion.div
                     key={step.title}
@@ -292,8 +292,8 @@ export function ZKProofVisualizer({
                       isActive
                         ? `${step.bgColor} ${step.borderColor} border-opacity-50`
                         : isCompleted
-                        ? "bg-green-500/10 border-green-500/30"
-                        : "bg-gray-800/50 border-gray-700/50"
+                          ? "bg-green-500/10 border-green-500/30"
+                          : "bg-card/50 border-border"
                     )}
                   >
                     <div className="flex items-center mb-4">
@@ -302,8 +302,8 @@ export function ZKProofVisualizer({
                         isActive
                           ? `${step.bgColor} ${step.color}`
                           : isCompleted
-                          ? "bg-green-500/20 text-green-400"
-                          : "bg-gray-700/50 text-gray-400"
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-muted/50 text-muted-foreground"
                       )}>
                         {isCompleted ? (
                           <CheckCircle className="h-6 w-6" />
@@ -317,33 +317,33 @@ export function ZKProofVisualizer({
                           isActive
                             ? step.color
                             : isCompleted
-                            ? "text-green-400"
-                            : "text-gray-300"
+                              ? "text-green-400"
+                              : "text-foreground"
                         )}>
                           {step.title}
                         </h4>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                           Step {index + 1} of {steps.length}
                         </p>
                       </div>
                     </div>
-                    
-                    <p className="text-sm text-gray-300 mb-3">
+
+                    <p className="text-sm text-muted-foreground mb-3">
                       {step.description}
                     </p>
-                    
+
                     {showRawData && (
-                      <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
-                        <p className="text-xs text-gray-400 font-mono break-all">
+                      <div className="mt-3 p-3 bg-muted/30 rounded-lg">
+                        <p className="text-xs text-muted-foreground font-mono break-all">
                           {step.data}
                         </p>
                       </div>
                     )}
-                    
+
                     {/* Progress indicator */}
                     {isActive && (
                       <motion.div
-                        className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-b-xl"
+                        className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-primary to-purple-500 rounded-b-xl"
                         initial={{ width: 0 }}
                         animate={{ width: "100%" }}
                         transition={{ duration: 2, ease: "linear" }}
@@ -365,7 +365,7 @@ export function ZKProofVisualizer({
                   <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
                   <h3 className="text-lg font-semibold text-green-400">Proof Generated Successfully!</h3>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-300 mb-2">Public Signals</h4>
@@ -378,7 +378,7 @@ export function ZKProofVisualizer({
                       ))}
                     </div>
                   </div>
-                  
+
                   <div>
                     <h4 className="text-sm font-medium text-gray-300 mb-2">Proof Components</h4>
                     <div className="space-y-2">
@@ -424,7 +424,7 @@ export function ZKProofVisualizer({
                       Copy
                     </button>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-300 mb-2">π_a (Alpha)</h4>
@@ -434,7 +434,7 @@ export function ZKProofVisualizer({
                         </pre>
                       </div>
                     </div>
-                    
+
                     <div>
                       <h4 className="text-sm font-medium text-gray-300 mb-2">π_b (Beta)</h4>
                       <div className="bg-gray-900/50 rounded-lg p-3">
@@ -443,7 +443,7 @@ export function ZKProofVisualizer({
                         </pre>
                       </div>
                     </div>
-                    
+
                     <div>
                       <h4 className="text-sm font-medium text-gray-300 mb-2">π_c (Gamma)</h4>
                       <div className="bg-gray-900/50 rounded-lg p-3">
@@ -458,7 +458,7 @@ export function ZKProofVisualizer({
                 {/* Circuit Inputs */}
                 <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
                   <h3 className="text-lg font-semibold text-white mb-4">Circuit Inputs</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-300 mb-2">Bitcoin Transaction</h4>
@@ -477,7 +477,7 @@ export function ZKProofVisualizer({
                         </div>
                       </div>
                     </div>
-                    
+
                     <div>
                       <h4 className="text-sm font-medium text-gray-300 mb-2">Merkle Proof</h4>
                       <div className="space-y-2">
@@ -523,7 +523,7 @@ export function ZKProofVisualizer({
                 <Shield className="h-6 w-6 text-green-500 mr-3" />
                 <h3 className="text-lg font-semibold text-white">Proof Verification</h3>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
                   <div className="flex items-center">
@@ -535,7 +535,7 @@ export function ZKProofVisualizer({
                   </div>
                   <span className="text-green-400 font-semibold">✓ Verified</span>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-300 mb-2">Verification Details</h4>
@@ -554,7 +554,7 @@ export function ZKProofVisualizer({
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <h4 className="text-sm font-medium text-gray-300 mb-2">Security Properties</h4>
                     <div className="space-y-2">
