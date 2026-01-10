@@ -20,88 +20,28 @@ export function Hero() {
 
   return (
     <section className="relative py-12 md:py-20 px-4 overflow-hidden bg-background">
-      {/* Enhanced Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-bitcoin/5 via-transparent to-ethereum/5" />
+      {/* Lightweight CSS-only Animated Background */}
+      <div className="hero-bg-animation">
+        {/* Connection nodes (dots) */}
+        <div className="hero-node hero-node-1" />
+        <div className="hero-node hero-node-2" />
+        <div className="hero-node hero-node-3" />
+        <div className="hero-node hero-node-4" />
+        <div className="hero-node hero-node-5" />
+        <div className="hero-node hero-node-6" />
+        <div className="hero-node hero-node-7" />
+        <div className="hero-node hero-node-8" />
+        <div className="hero-node hero-node-9" />
+        <div className="hero-node hero-node-10" />
 
-      {/* Optimized floating orbs - only animate when enabled */}
-      {animationsEnabled && (
-        <>
-          <motion.div
-            className="absolute top-20 left-10 w-48 md:w-72 h-48 md:h-72 bg-bitcoin/10 rounded-full blur-3xl"
-            initial={{ opacity: 0 }}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3],
-              x: [0, 50, 0],
-              y: [0, -30, 0],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div
-            className="absolute bottom-20 right-10 w-64 md:w-96 h-64 md:h-96 bg-ethereum/10 rounded-full blur-3xl"
-            initial={{ opacity: 0 }}
-            animate={{
-              scale: [1, 1.3, 1],
-              opacity: [0.2, 0.5, 0.2],
-              x: [0, -40, 0],
-              y: [0, 40, 0],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 2
-            }}
-          />
-
-          {/* Additional floating particles */}
-          <motion.div
-            className="absolute top-1/4 left-1/4 w-4 h-4 bg-primary/20 rounded-full hidden md:block"
-            initial={{ opacity: 0 }}
-            animate={{
-              y: [0, -20, 0],
-              opacity: [0.3, 0.8, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div
-            className="absolute top-1/3 right-1/3 w-6 h-6 bg-bitcoin/30 rounded-full hidden md:block"
-            initial={{ opacity: 0 }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.2, 0.7, 0.2],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1
-            }}
-          />
-          <motion.div
-            className="absolute bottom-1/3 left-1/3 w-3 h-3 bg-ethereum/40 rounded-full hidden md:block"
-            initial={{ opacity: 0 }}
-            animate={{
-              y: [0, -25, 0],
-              opacity: [0.4, 0.9, 0.4],
-            }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 3
-            }}
-          />
-        </>
-      )}
+        {/* Connection lines */}
+        <div className="hero-line hero-line-1" />
+        <div className="hero-line hero-line-2" />
+        <div className="hero-line hero-line-3" />
+        <div className="hero-line hero-line-4" />
+        <div className="hero-line hero-line-5" />
+        <div className="hero-line hero-line-6" />
+      </div>
 
       <div className="container mx-auto text-center relative z-10 px-4">
         <div className="max-w-5xl mx-auto">

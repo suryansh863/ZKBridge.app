@@ -260,3 +260,405 @@
     box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
   }
 }
+
+/* ============================================
+   Hero Background Animation Styles
+   Lightweight CSS-only animations for Web3 theme
+   ============================================ */
+
+/* Animated Background Container */
+.hero-bg-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, #050816 0%, #020617 100%);
+}
+
+/* Connection Nodes (Dots) */
+.hero-node {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #60a5fa;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
+}
+
+/* Individual Node Positioning & Animation */
+.hero-node-1 {
+  top: 15%;
+  left: 10%;
+  animation: float-1 28s ease-in-out infinite alternate;
+}
+
+.hero-node-2 {
+  top: 25%;
+  left: 85%;
+  background: #a78bfa;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+  animation: float-2 32s ease-in-out infinite alternate;
+}
+
+.hero-node-3 {
+  top: 45%;
+  left: 20%;
+  animation: float-3 26s ease-in-out infinite alternate;
+}
+
+.hero-node-4 {
+  top: 60%;
+  left: 75%;
+  background: #a78bfa;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+  animation: float-4 30s ease-in-out infinite alternate;
+}
+
+.hero-node-5 {
+  top: 70%;
+  left: 15%;
+  animation: float-5 34s ease-in-out infinite alternate;
+}
+
+.hero-node-6 {
+  top: 80%;
+  left: 65%;
+  background: #60a5fa;
+  animation: float-6 29s ease-in-out infinite alternate;
+}
+
+.hero-node-7 {
+  top: 35%;
+  left: 50%;
+  background: #818cf8;
+  box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+  animation: float-7 31s ease-in-out infinite alternate;
+}
+
+.hero-node-8 {
+  top: 55%;
+  left: 40%;
+  animation: float-8 27s ease-in-out infinite alternate;
+}
+
+.hero-node-9 {
+  top: 20%;
+  left: 65%;
+  background: #a78bfa;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+  animation: float-9 33s ease-in-out infinite alternate;
+}
+
+.hero-node-10 {
+  top: 85%;
+  left: 90%;
+  background: #818cf8;
+  box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+  animation: float-10 25s ease-in-out infinite alternate;
+}
+
+/* Connection Lines */
+.hero-line {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(96, 165, 250, 0.3) 50%,
+      transparent 100%);
+  transform-origin: left center;
+}
+
+.hero-line-1 {
+  top: 20%;
+  left: 10%;
+  width: 120px;
+  animation: pulse-line-1 24s ease-in-out infinite alternate;
+}
+
+.hero-line-2 {
+  top: 40%;
+  left: 20%;
+  width: 90px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(167, 139, 250, 0.3) 50%,
+      transparent 100%);
+  animation: pulse-line-2 28s ease-in-out infinite alternate;
+}
+
+.hero-line-3 {
+  top: 65%;
+  left: 70%;
+  width: 100px;
+  animation: pulse-line-3 26s ease-in-out infinite alternate;
+}
+
+.hero-line-4 {
+  top: 75%;
+  left: 15%;
+  width: 110px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(129, 140, 248, 0.3) 50%,
+      transparent 100%);
+  animation: pulse-line-4 30s ease-in-out infinite alternate;
+}
+
+.hero-line-5 {
+  top: 30%;
+  left: 50%;
+  width: 85px;
+  animation: pulse-line-5 32s ease-in-out infinite alternate;
+}
+
+.hero-line-6 {
+  top: 55%;
+  left: 40%;
+  width: 95px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(167, 139, 250, 0.3) 50%,
+      transparent 100%);
+  animation: pulse-line-6 27s ease-in-out infinite alternate;
+}
+
+/* Float Animations for Nodes */
+@keyframes float-1 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: translate(20px, -30px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes float-2 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translate(-25px, 35px);
+    opacity: 0.9;
+  }
+}
+
+@keyframes float-3 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate(30px, 20px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes float-4 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: translate(-20px, -25px);
+    opacity: 0.85;
+  }
+}
+
+@keyframes float-5 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translate(15px, -20px);
+    opacity: 0.9;
+  }
+}
+
+@keyframes float-6 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate(-30px, 15px);
+    opacity: 0.75;
+  }
+}
+
+@keyframes float-7 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.45;
+  }
+
+  50% {
+    transform: translate(25px, 30px);
+    opacity: 0.85;
+  }
+}
+
+@keyframes float-8 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.55;
+  }
+
+  50% {
+    transform: translate(-15px, -35px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes float-9 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translate(20px, 25px);
+    opacity: 0.9;
+  }
+}
+
+@keyframes float-10 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate(-25px, -20px);
+    opacity: 0.75;
+  }
+}
+
+/* Pulse Animations for Lines */
+@keyframes pulse-line-1 {
+
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scaleX(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scaleX(1.1);
+  }
+}
+
+@keyframes pulse-line-2 {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleX(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scaleX(1.15);
+  }
+}
+
+@keyframes pulse-line-3 {
+
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scaleX(1);
+  }
+
+  50% {
+    opacity: 0.55;
+    transform: scaleX(1.12);
+  }
+}
+
+@keyframes pulse-line-4 {
+
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scaleX(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scaleX(1.08);
+  }
+}
+
+@keyframes pulse-line-5 {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleX(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scaleX(1.13);
+  }
+}
+
+@keyframes pulse-line-6 {
+
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scaleX(1);
+  }
+
+  50% {
+    opacity: 0.55;
+    transform: scaleX(1.1);
+  }
+}
+
+/* Mobile responsiveness for hero animations */
+@media (max-width: 768px) {
+  .hero-node {
+    width: 2px;
+    height: 2px;
+  }
+
+  .hero-line {
+    width: 60px !important;
+  }
+}
