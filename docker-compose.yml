@@ -13,16 +13,25 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./apps/api/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - zkbridge-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zkbridge -d zkbridge"]
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Redis for caching (optional)
+  # Redis for caching
   redis:
     image: redis:7-alpine
     container_name: zkbridge-redis
@@ -32,16 +41,25 @@ services:
       - redis_data:/data
     networks:
       - zkbridge-network
+    deploy:
+      resources:
+        limits:
+          memory: 64M
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Backend API
   backend:
     build:
-      context: ./backend
+      context: ./apps/api
       dockerfile: Dockerfile
     container_name: zkbridge-backend
     environment:
@@ -53,14 +71,15 @@ services:
       BITCOIN_RPC_PORT: 18332
       BITCOIN_RPC_USER: bitcoin
       BITCOIN_RPC_PASSWORD: password
-      ETHEREUM_RPC_URL: https://sepolia.infura.io/v3/YOUR_PROJECT_ID
-      ETHEREUM_PRIVATE_KEY: your_private_key_here
+      ETHEREUM_RPC_URL: ${ETHEREUM_RPC_URL}
+      ETHEREUM_PRIVATE_KEY: ${ETHEREUM_PRIVATE_KEY}
+      NODE_OPTIONS: "--max-old-space-size=384"
     ports:
       - "3001:3001"
     volumes:
-      - ./backend:/app
+      - ./apps/api:/app
       - /app/node_modules
-      - ./shared:/shared
+      - ./packages:/packages
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,28 +88,47 @@ services:
     networks:
       - zkbridge-network
     command: npm run dev
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Frontend
   frontend:
     build:
-      context: ./frontend
+      context: ./apps/web
       dockerfile: Dockerfile
     container_name: zkbridge-frontend
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_OPTIONS: "--max-old-space-size=384"
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
+      - ./apps/web:/app
       - /app/node_modules
       - /app/.next
-      - ./shared:/shared
+      - ./packages:/packages
     depends_on:
       - backend
     networks:
       - zkbridge-network
     command: npm run dev
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   postgres_data:
@@ -99,4 +137,3 @@ volumes:
 networks:
   zkbridge-network:
     driver: bridge
-
