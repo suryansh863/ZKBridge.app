@@ -1,6 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* stylelint-disable */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 @layer base {
   :root {
@@ -661,4 +662,14 @@
   .hero-line {
     width: 60px !important;
   }
+}
+
+/* QR Scanner Animations */
+@keyframes scan {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(256px); }
+}
+
+.animate-scan-slow {
+  animation: scan 3s linear infinite;
 }

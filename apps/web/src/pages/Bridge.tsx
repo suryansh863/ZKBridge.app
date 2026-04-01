@@ -2,13 +2,14 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { useAccount, useConnect } from 'wagmi'
 import { motion } from 'framer-motion'
-import { CheckCircle, AlertCircle, Clock, ArrowRight, ExternalLink, Copy, Hash, Eye, QrCode, Clipboard, Link, Info } from 'lucide-react'
+import { CheckCircle, AlertCircle, Clock, ArrowRight, ExternalLink, Copy, Hash, Eye, QrCode, Clipboard, Link, Info, RefreshCw, X } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 const MerkleTreeVisualizerLazy = lazy(() => import('@/components/merkle-tree-visualizer').then(mod => ({ default: mod.MerkleTreeVisualizer })))
 const QRScannerSimpleLazy = lazy(() => import('@/components/qr-scanner-simple').then(mod => ({ default: mod.QRScannerSimple })))
+import { useBitcoin } from '@/hooks/useBitcoin'
 
 const MerkleTreeVisualizer = (props: any) => (
   <Suspense fallback={<div className="animate-pulse bg-muted/20 h-64 rounded-lg flex items-center justify-center">Loading Merkle Visualizer...</div>}>
@@ -60,10 +61,14 @@ interface MerkleProof {
 }
 
 export default function BridgePage() {
-  const { address, isConnected } = useAccount()
+  const { address: ethAddress, isConnected: isEthConnected } = useAccount()
+  const { address: btcAddress, isConnected: isBtcConnected, connect: connectBtc, disconnect: disconnectBtc, balance: btcBalance, network: btcNetwork, getTransactions: getBtcTransactions } = useBitcoin()
   const [currentStep, setCurrentStep] = useState(1)
   const [bitcoinTx, setBitcoinTx] = useState('')
   const [bitcoinAddress, setBitcoinAddress] = useState('')
+  const [btcTransactions, setBtcTransactions] = useState<any[]>([])
+  const [isFetchingTxs, setIsFetchingTxs] = useState(false)
+  const [showTxPicker, setShowTxPicker] = useState(false)
   const [amount, setAmount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [transaction, setTransaction] = useState<BitcoinTransaction | null>(null)
@@ -76,14 +81,10 @@ export default function BridgePage() {
   const [clipboardError, setClipboardError] = useState('')
   const [qrScannerError, setQrScannerError] = useState('')
 
-  // Component logic for bridge page
-
-  // Auto-detect Bitcoin transaction IDs from clipboard and URLs
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const text = e.clipboardData?.getData('text') || ''
 
-      // Check if pasted text contains a Bitcoin transaction ID
       const txIdMatch = text.match(/\b[a-fA-F0-9]{64}\b/)
       if (txIdMatch) {
         setBitcoinTx(txIdMatch[0])
@@ -92,7 +93,6 @@ export default function BridgePage() {
         return
       }
 
-      // Check if pasted text is a Bitcoin explorer URL
       const urlPatterns = [
         /blockstream\.info\/testnet\/tx\/([a-fA-F0-9]{64})/,
         /blockchain\.info\/tx\/([a-fA-F0-9]{64})/,
@@ -115,16 +115,13 @@ export default function BridgePage() {
     return () => document.removeEventListener('paste', handlePaste)
   }, [])
 
-  // Function to extract transaction ID from various formats
   const extractTransactionId = (input: string): string | null => {
     if (!input) return null
 
-    // Direct transaction ID
     if (/^[a-fA-F0-9]{64}$/.test(input.trim())) {
       return input.trim()
     }
 
-    // Bitcoin explorer URLs
     const urlPatterns = [
       /blockstream\.info\/testnet\/tx\/([a-fA-F0-9]{64})/,
       /blockchain\.info\/tx\/([a-fA-F0-9]{64})/,
@@ -140,12 +137,10 @@ export default function BridgePage() {
       }
     }
 
-    // Look for transaction ID anywhere in the text
     const txIdMatch = input.match(/\b[a-fA-F0-9]{64}\b/)
     return txIdMatch ? txIdMatch[0] : null
   }
 
-  // Comprehensive clipboard reading function with fallbacks
   const readFromClipboard = async () => {
     try {
       setClipboardError('')
@@ -153,10 +148,8 @@ export default function BridgePage() {
 
       let clipboardText = ''
 
-      // Method 1: Modern Clipboard API (preferred)
       if (navigator.clipboard && navigator.clipboard.readText) {
         try {
-          // Request permission first
           const permission = await navigator.permissions.query({ name: 'clipboard-read' as PermissionName }).catch(() => null)
 
           if (permission && permission.state === 'denied') {
@@ -172,7 +165,6 @@ export default function BridgePage() {
         throw new Error('Clipboard API not available')
       }
 
-      // If we got text from clipboard
       if (clipboardText && clipboardText.trim()) {
         const txId = extractTransactionId(clipboardText)
         if (txId) {
@@ -191,7 +183,6 @@ export default function BridgePage() {
     } catch (error: any) {
       console.error('Clipboard read error:', error)
 
-      // Method 2: Fallback - Create a temporary textarea and use execCommand
       try {
         const textarea = document.createElement('textarea')
         textarea.style.position = 'fixed'
@@ -200,7 +191,6 @@ export default function BridgePage() {
         textarea.style.opacity = '0'
         document.body.appendChild(textarea)
 
-        // Focus and paste
         textarea.focus()
         const success = document.execCommand('paste')
 
@@ -223,14 +213,12 @@ export default function BridgePage() {
       } catch (fallbackError) {
         console.error('Fallback clipboard method failed:', fallbackError)
 
-        // Method 3: Show user-friendly error with manual instructions
         setClipboardError('Please paste manually (Ctrl+V or Cmd+V) into the input field')
         setTimeout(() => setClipboardError(''), 5000)
       }
     }
   }
 
-  // QR Scanner handlers
   const handleQRScan = (result: string) => {
     setBitcoinTx(result)
     setShowQRScanner(false)
@@ -273,13 +261,11 @@ export default function BridgePage() {
   ]
 
   const validateBitcoinAddress = (address: string): boolean => {
-    // Basic Bitcoin address validation
     const btcRegex = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$/
     return btcRegex.test(address)
   }
 
   const validateBitcoinTx = (txid: string): boolean => {
-    // Basic Bitcoin transaction ID validation
     const txRegex = /^[a-fA-F0-9]{64}$/
     return txRegex.test(txid)
   }
@@ -308,12 +294,9 @@ export default function BridgePage() {
 
       const txData = data.data
       
-      // Try to find the output that matches the entered amount
-      // This is better than just picking vout[0] which might be the change output
       const enteredAmountVal = parseFloat(amount)
       let detectedAmount = txData.vout[0].value / 100000000
       
-      // Find exact or closest match in outputs
       const matchingOutput = txData.vout.find((v: any) => 
         Math.abs((v.value / 100000000) - enteredAmountVal) < 0.00000001
       )
@@ -342,7 +325,6 @@ export default function BridgePage() {
         fee: txData.fee / 100000000
       }
 
-      // Get confirmation count
       const confirmResponse = await fetch(`/api/bitcoin/transaction/${cleanTxid}?amount=${amount}`)
       if (confirmResponse.ok) {
         const confirmData = await confirmResponse.json()
@@ -364,12 +346,8 @@ export default function BridgePage() {
 
     setIsLoading(true)
     try {
-      // Simulate cryptographic proof generation time (REALISTIC DELAY)
-      console.info('🛡️ Initializing SNARK constraints for Bitcoin block verification...');
       await new Promise(resolve => setTimeout(resolve, 3000));
-      console.info('⚙️ Generating Merkle inclusion proof for txid...');
       await new Promise(resolve => setTimeout(resolve, 4000));
-      console.info('🔐 Sealing ZK-STARK proof (verification key: 0x7e23...a31b)');
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       const response = await fetch(`/api/bitcoin/detailed-merkle-proof/${transaction.txid}`)
@@ -401,7 +379,7 @@ export default function BridgePage() {
 
 
   const handleBridgeToEthereum = async () => {
-    if (!isConnected) {
+    if (!isEthConnected) {
       alert('Please connect your wallet first')
       return
     }
@@ -413,7 +391,6 @@ export default function BridgePage() {
 
     setIsLoading(true)
     try {
-      // Store bridge attempt in database
       const storeResponse = await fetch('/api/bridge/store-attempt', {
         method: 'POST',
         headers: {
@@ -421,9 +398,9 @@ export default function BridgePage() {
         },
         body: JSON.stringify({
           bitcoinTxId: transaction.txid,
-          ethereumAddress: address,
+          ethereumAddress: ethAddress,
           amount: transaction.amount,
-          userId: address // Using wallet address as user ID for now
+          userId: ethAddress
         })
       })
 
@@ -574,37 +551,80 @@ export default function BridgePage() {
 
                     {/* Sample Transactions */}
                     {/* Bridge Instructions */}
-                    <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-4 md:p-6 mb-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <Info className="w-6 h-6 text-primary" />
-                        <h3 className="text-lg font-semibold text-foreground">How it works</h3>
+                      <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-4 md:p-6 mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <Info className="w-6 h-6 text-primary" />
+                            <h3 className="text-lg font-semibold text-foreground">How it works</h3>
+                          </div>
+                          
+                          {/* Bitcoin Wallet Connection Status */}
+                          <div className="flex items-center space-x-2">
+                            {isBtcConnected ? (
+                              <div className="flex items-center space-x-2 bg-green-500/20 border border-green-500/30 px-3 py-1.5 rounded-full">
+                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                <span className="text-xs font-medium text-green-400">BTC connected: {btcAddress?.slice(0, 4)}...{btcAddress?.slice(-4)}</span>
+                                <button onClick={disconnectBtc} className="text-xs text-green-400/50 hover:text-green-400 ml-1">✕</button>
+                              </div>
+                            ) : (
+                              <button 
+                                onClick={connectBtc}
+                                className="text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-full transition-all shadow-sm flex items-center"
+                              >
+                                <Link className="w-3 h-3 mr-1" />
+                                Connect Bitcoin Wallet
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <ul className="space-y-3 text-sm text-muted-foreground">
+                          <li className="flex items-start space-x-2">
+                            <span className="text-blue-400 font-bold">1.</span>
+                            <span>Send Bitcoin to the vault address on Bitcoin Testnet.</span>
+                          </li>
+                          <li className="flex items-start space-x-2">
+                            <span className="text-blue-400 font-bold">2.</span>
+                            <span>Verify the transaction here using its TXID once it has at least 1 confirmation.</span>
+                          </li>
+                          <li className="flex items-start space-x-2">
+                            <span className="text-blue-400 font-bold">3.</span>
+                            <span>Generate a Zero-Knowledge proof of your transaction and its inclusion in a block.</span>
+                          </li>
+                          <li className="flex items-start space-x-2">
+                            <span className="text-blue-400 font-bold">4.</span>
+                            <span>Submit the proof to the Ethereum bridge contract to release the corresponding tokens.</span>
+                          </li>
+                        </ul>
                       </div>
-                      <ul className="space-y-3 text-sm text-muted-foreground">
-                        <li className="flex items-start space-x-2">
-                          <span className="text-blue-400 font-bold">1.</span>
-                          <span>Send Bitcoin to the vault address on Bitcoin Testnet.</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <span className="text-blue-400 font-bold">2.</span>
-                          <span>Verify the transaction here using its TXID once it has at least 1 confirmation.</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <span className="text-blue-400 font-bold">3.</span>
-                          <span>Generate a Zero-Knowledge proof of your transaction and its inclusion in a block.</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <span className="text-blue-400 font-bold">4.</span>
-                          <span>Submit the proof to the Ethereum bridge contract to release the corresponding tokens.</span>
-                        </li>
-                      </ul>
-                    </div>
 
                     <div className="space-y-6">
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="block text-sm font-medium text-muted-foreground">
-                            Bitcoin Transaction ID (Testnet)
-                          </label>
+                          <div className="flex items-center space-x-3">
+                            <label className="block text-sm font-medium text-muted-foreground">
+                              Bitcoin Transaction ID (Testnet)
+                            </label>
+                            {isBtcConnected && (
+                              <button
+                                onClick={async () => {
+                                  if (!showTxPicker) {
+                                    setIsFetchingTxs(true)
+                                    setShowTxPicker(true)
+                                    const txs = await getBtcTransactions()
+                                    setBtcTransactions(txs || [])
+                                    setIsFetchingTxs(false)
+                                  } else {
+                                    setShowTxPicker(false)
+                                  }
+                                }}
+                                className="text-[10px] bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 px-2 py-0.5 rounded-full border border-blue-500/30 transition-all flex items-center"
+                              >
+                                <RefreshCw className={`w-2.5 h-2.5 mr-1 ${isFetchingTxs ? 'animate-spin' : ''}`} />
+                                {showTxPicker ? 'Close Picker' : 'Pick from Wallet'}
+                              </button>
+                            )}
+                          </div>
                           <div className="relative">
                             <button
                               onClick={() => setShowHelpTooltip(!showHelpTooltip)}
@@ -702,6 +722,73 @@ export default function BridgePage() {
                             )}
                           </div>
                         </div>
+
+                        {/* Transaction Picker Modal/Dropdown */}
+                        {showTxPicker && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-2 bg-gray-900 border border-gray-700 rounded-xl max-h-60 overflow-y-auto z-50 relative backdrop-blur-md shadow-2xl overflow-hidden"
+                          >
+                            <div className="p-3 border-b border-gray-800 flex justify-between items-center sticky top-0 bg-gray-900/95 backdrop-blur-sm">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Recent Transactions</span>
+                              <button onClick={() => setShowTxPicker(false)} className="text-gray-500 hover:text-white p-1">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                            {isFetchingTxs ? (
+                              <div className="p-8 text-center flex flex-col items-center">
+                                <RefreshCw className="w-5 h-5 text-blue-500 animate-spin mb-2" />
+                                <p className="text-[10px] text-gray-500 font-medium">Scanning wallet history...</p>
+                              </div>
+                            ) : btcTransactions.length === 0 ? (
+                              <div className="p-10 text-center text-gray-500 text-xs flex flex-col items-center">
+                                <div className="w-10 h-10 bg-gray-800/50 rounded-full flex items-center justify-center mb-3">
+                                  <Hash className="w-5 h-5 text-gray-600" />
+                                </div>
+                                <p className="font-medium text-gray-400">No transactions found</p>
+                                <p className="mt-1 text-[10px] text-gray-600">Try sending some Bitcoin to the vault first.</p>
+                              </div>
+                            ) : (
+                              <div className="divide-y divide-gray-800/50">
+                                {btcTransactions.map((tx: any, idx: number) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => {
+                                      setBitcoinTx(tx.txid)
+                                      setShowTxPicker(false)
+                                    }}
+                                    className="w-full p-3 hover:bg-blue-500/10 transition-all text-left flex items-start space-x-3 group"
+                                  >
+                                    <div className="w-8 h-8 rounded-lg bg-gray-800/50 group-hover:bg-blue-500/20 flex items-center justify-center flex-shrink-0 border border-gray-700/50 transition-colors">
+                                      <Hash className="w-3.5 h-3.5 text-gray-500 group-hover:text-blue-400" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex justify-between items-baseline mb-0.5">
+                                        <span className="text-xs font-mono text-gray-300 group-hover:text-white truncate">
+                                          {tx.txid.slice(0, 10)}...{tx.txid.slice(-10)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center">
+                                        <div className="flex items-center space-x-2 text-[9px]">
+                                          <span className={`px-1.5 py-0.5 rounded border ${
+                                            (tx.confirmations || 0) >= 1 
+                                              ? "bg-green-500/10 text-green-400 border-green-500/20" 
+                                              : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                                          }`}>
+                                            {(tx.confirmations || 0) >= 1 ? "Confirmed" : "Pending"}
+                                          </span>
+                                          <span className="text-gray-500 capitalize">{btcNetwork || "Bitcoin Testnet"}</span>
+                                        </div>
+                                        <span className="text-[9px] text-blue-400 font-medium group-hover:underline">Use this</span>
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
 
                         {clipboardDetected && (
                           <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg">
@@ -971,9 +1058,9 @@ export default function BridgePage() {
                       </div>
                     )}
 
-                    {!isConnected ? (
+                    {!isEthConnected ? (
                       <div className="text-center py-8">
-                        <p className="text-gray-300 mb-4">Connect your wallet to continue</p>
+                        <p className="text-gray-300 mb-4">Connect your Destination (Ethereum) wallet to receive tokens</p>
                         <ConnectButton />
                       </div>
                     ) : (
@@ -982,12 +1069,18 @@ export default function BridgePage() {
                           <h3 className="text-white font-medium mb-2">Bridge Summary</h3>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-gray-400">From:</span>
+                              <span className="text-gray-400">From (Source):</span>
                               <span className="text-white">{bitcoinAddress.slice(0, 8)}...{bitcoinAddress.slice(-8)}</span>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">To:</span>
-                              <span className="text-white">{address?.slice(0, 8)}...{address?.slice(-8)}</span>
+                            {isBtcConnected && (
+                              <div className="flex justify-between text-[10px] -mt-1 pl-2 text-green-400/70">
+                                <span>Connected Wallet:</span>
+                                <span>{btcAddress}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between mt-2">
+                              <span className="text-gray-400">To (Destination):</span>
+                              <span className="text-white">{ethAddress?.slice(0, 8)}...{ethAddress?.slice(-8)}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-400">Amount:</span>

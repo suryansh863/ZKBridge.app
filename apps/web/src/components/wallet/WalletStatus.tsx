@@ -19,6 +19,7 @@ import {
   X
 } from 'lucide-react';
 import { useWalletConnection, useWalletBalance, useWalletErrors } from '@/hooks/useWallet';
+import { useBitcoin } from '@/hooks/useBitcoin';
 import { formatAddress, formatBalance } from '@/utils/format';
 import { ClientOnly } from '@/components/client-only';
 
@@ -39,6 +40,7 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
 
   const { balance: currentBalance, isRefreshing, refresh } = useWalletBalance();
   const { errors, clearErrors } = useWalletErrors();
+  const { isConnected: isBtcConnected, address: btcAddress, balance: btcBalance } = useBitcoin();
 
   const [isExpanded, setIsExpanded] = useState(showDetails);
   const [copied, setCopied] = useState(false);
@@ -230,6 +232,7 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
 export function WalletStatusCompact({ className = '' }: { className?: string }) {
   const { isConnected, address, network } = useWalletConnection();
   const { balance } = useWalletBalance();
+  const { isConnected: isBtcConnected, address: btcAddress, balance: btcBalance } = useBitcoin();
 
   return (
     <ClientOnly
@@ -254,8 +257,25 @@ export function WalletStatusCompact({ className = '' }: { className?: string }) 
             <p className="text-sm font-medium text-white">
               {balance ? formatBalance(Number(balance.value)) : '0'} ETH
             </p>
-            <p className="text-xs text-gray-400">
-              {formatAddress(address || '')}
+            <p className="text-[10px] text-gray-400">
+              ETH: {formatAddress(address || '')}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Bitcoin Status */}
+      {isBtcConnected && (
+        <div className={`flex items-center gap-3 border-l border-gray-700 ml-3 pl-3 ${className}`}>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <span className="text-white text-xs font-bold font-mono">₿</span>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-medium text-white">
+              {(btcBalance || 0) / 100000000} BTC
+            </p>
+            <p className="text-[10px] text-gray-400">
+              BTC: {btcAddress?.slice(0, 4)}...{btcAddress?.slice(-4)}
             </p>
           </div>
         </div>

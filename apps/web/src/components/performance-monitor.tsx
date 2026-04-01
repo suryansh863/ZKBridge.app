@@ -47,10 +47,16 @@ export function PerformanceMonitor() {
       const originalFetch = window.fetch
       window.fetch = async (...args) => {
         const start = performance.now()
-        const response = await originalFetch(...args)
-        const end = performance.now()
-        console.log(`API call to ${args[0]} took ${end - start}ms`)
-        return response
+        try {
+          const response = await originalFetch(...args)
+          const end = performance.now()
+          console.log(`API call to ${args[0]} took ${Math.round(end - start)}ms`)
+          return response
+        } catch (error) {
+          const end = performance.now()
+          console.error(`API call to ${args[0]} failed after ${Math.round(end - start)}ms`)
+          throw error
+        }
       }
     }
   }, [])

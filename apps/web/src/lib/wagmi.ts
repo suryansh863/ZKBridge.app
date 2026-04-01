@@ -9,8 +9,11 @@ import {
   injectedWallet,
 } from '@rainbow-me/rainbowkit/wallets'
 
+const isDev = import.meta.env.DEV
+const chainsList = isDev ? [hardhat, sepolia, goerli] : [sepolia, goerli]
+
 const { chains: wagmiChains, publicClient, webSocketPublicClient } = configureChains(
-  [hardhat, sepolia, goerli] as any,
+  chainsList as any,
   [publicProvider()]
 )
 
