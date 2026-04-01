@@ -69,22 +69,23 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
     setStep('processing');
 
     try {
-      // In a real production environment, this would call the backend API
-      // which we've already cleaned up to use real on-chain data.
+      // Simulate real processing steps for a better user experience
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       onTransactionStart?.(data);
 
       setStep('success');
-
-      // Reset form after success
-      setTimeout(() => {
-        reset();
-        setStep('input');
-        setIsProcessing(false);
-      }, 1000);
+      setIsProcessing(false);
     } catch (error) {
       setStep('input');
       setIsProcessing(false);
     }
+  };
+
+  const handleReturnToStart = () => {
+    reset();
+    setStep('input');
+    setIsProcessing(false);
   };
 
   const validateAddress = (address: string, chain: string) => {
@@ -95,7 +96,7 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
   };
 
   const addressValidation = validateAddress(recipientAddress, toChain);
-  const estimatedAmount = amount ? (parseFloat(amount) * 0.98).toFixed(6) : '0.00';
+  const estimatedAmount = amount ? parseFloat(amount).toFixed(6) : '0.00';
 
   return (
     <section className="py-12 md:py-20 px-4">
@@ -327,7 +328,7 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
                       <p className="font-medium text-foreground">Bridge Information</p>
                       <ul className="text-muted-foreground space-y-1">
                         <li>• Estimated time: 10-30 minutes</li>
-                        <li>• Bridge fee: 2% (0.02 {fromChain === 'bitcoin' ? 'BTC' : 'ETH'})</li>
+                        <li>• Bridge fee: 0% (Null)</li>
                         <li>• Network fees apply</li>
                         <li>• Transaction is irreversible</li>
                       </ul>
@@ -400,8 +401,15 @@ export function BridgeInterface({ onTransactionStart }: BridgeInterfaceProps) {
                   </div>
                   <div className="flex items-center justify-between p-4 rounded-xl glass border border-white/10">
                     <span className="text-sm font-medium">Amount Received</span>
-                    <span className="font-semibold">{estimatedAmount} {toChain === 'bitcoin' ? 'BTC' : 'ETH'}</span>
+                    <span className="font-semibold text-green-400">{estimatedAmount} {toChain === 'bitcoin' ? 'BTC' : 'ETH'}</span>
                   </div>
+
+                  <button
+                    onClick={handleReturnToStart}
+                    className="w-full mt-6 py-3 px-6 bg-primary/20 border border-primary/30 text-primary font-semibold rounded-xl hover:bg-primary/30 transition-all duration-300"
+                  >
+                    Start New Transaction
+                  </button>
                 </div>
               </motion.div>
             )}

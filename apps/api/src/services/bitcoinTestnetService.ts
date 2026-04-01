@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as crypto from 'crypto';
@@ -86,24 +87,33 @@ export class BitcoinTestnetService {
   }
 
   /**
-   * Get transaction details from Blockstream API
+   * Get transaction details from Blockstream API or fallback
    */
-  async getTransaction(txHash: string): Promise<BitcoinTransaction> {
+  async getTransaction(txHash: string, preferredAmount?: number): Promise<BitcoinTransaction> {
     const cacheKey = `tx_${txHash}`;
     const cached = this.getCached(cacheKey);
     if (cached) return cached;
 
     try {
-      const response = await axios.get(`${BLOCKSTREAM_API_BASE}/tx/${txHash}`);
+      // Primary: Blockstream API
+      let response;
+      try {
+        response = await axios.get(`${BLOCKSTREAM_API_BASE}/tx/${txHash}`, { timeout: 5000 });
+      } catch (err) {
+        // Secondary: Mempool.space API
+        console.warn('Blockstream API failed, trying mempool.space fallback');
+        response = await axios.get(`https://mempool.space/testnet/api/tx/${txHash}`, { timeout: 5000 });
+      }
+      
       const tx = response.data;
-
       this.setCache(cacheKey, tx);
       return tx;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        throw new Error(`Transaction ${txHash} not found on Bitcoin testnet`);
+        throw new Error(`Transaction ${txHash} not found on Bitcoin testnet. Please use a real transaction ID.`);
       }
-      throw new Error(`Failed to fetch transaction: ${error.message}`);
+      
+      throw new Error(`Failed to fetch real Bitcoin data: ${error.message}. Please try again later.`);
     }
   }
 
@@ -125,7 +135,7 @@ export class BitcoinTestnetService {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         throw new Error(`Block ${blockHash} not found`);
       }
-      throw new Error(`Failed to fetch block: ${error.message}`);
+      throw new Error(`Failed to fetch real block data: ${error.message}`);
     }
   }
 
@@ -145,14 +155,14 @@ export class BitcoinTestnetService {
       this.setCache(cacheKey, block);
       return block;
     } catch (error: any) {
-      throw new Error(`Failed to fetch block at height ${height}: ${error.message}`);
+      throw new Error(`Failed to fetch real block by height: ${error.message}`);
     }
   }
 
   /**
    * Get all transaction hashes in a block
    */
-  async getBlockTransactions(blockHash: string): Promise<string[]> {
+  async getBlockTransactions(blockHash: string, includeTxHash?: string): Promise<string[]> {
     const cacheKey = `block_txs_${blockHash}`;
     const cached = this.getCached(cacheKey);
     if (cached) return cached;
@@ -167,7 +177,7 @@ export class BitcoinTestnetService {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         throw new Error(`Block transactions not found for block ${blockHash}`);
       }
-      throw new Error(`Failed to fetch block transactions: ${error.message}`);
+      throw new Error(`Failed to fetch real block transactions: ${error.message}`);
     }
   }
 
@@ -181,7 +191,7 @@ export class BitcoinTestnetService {
         throw new Error('Transaction must be confirmed to generate a Merkle proof');
       }
 
-      const txids = await this.getBlockTransactions(tx.status.block_hash);
+      const txids = await this.getBlockTransactions(tx.status.block_hash, txHash);
       const block = await this.getBlock(tx.status.block_hash);
 
       const txIndex = txids.indexOf(txHash);
@@ -258,7 +268,7 @@ export class BitcoinTestnetService {
       const response = await axios.get(`${BLOCKSTREAM_API_BASE}/blocks/tip/height`);
       return response.data;
     } catch (error: any) {
-      throw new Error(`Failed to get block count: ${error.message}`);
+      throw new Error(`Failed to fetch real block count: ${error.message}`);
     }
   }
 

@@ -182,7 +182,7 @@ export function MerkleTreeVisualizer({
                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold">
                   {index + 1}
                 </div>
-                <code className="text-xs bg-gray-700 px-2 py-1 rounded text-green-400 flex-1">
+                <code className="text-xs bg-gray-700 px-2 py-1 rounded text-green-400 flex-1 break-all">
                   {truncateHash(hash)}
                 </code>
               </div>
@@ -197,13 +197,13 @@ export function MerkleTreeVisualizer({
               <span className="text-gray-400">Block Height:</span>
               <span className="text-white font-mono">{blockHeight}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Block Hash:</span>
-              <span className="text-white font-mono">{truncateHash(blockHash)}</span>
+            <div className="flex flex-col space-y-1">
+              <span className="text-gray-400 text-xs">Block Hash:</span>
+              <span className="text-white font-mono text-xs break-all bg-gray-900/50 p-2 rounded">{truncateHash(blockHash)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Merkle Root:</span>
-              <span className="text-white font-mono">{truncateHash(merkleRoot)}</span>
+            <div className="flex flex-col space-y-1">
+              <span className="text-gray-400 text-xs">Merkle Root:</span>
+              <span className="text-white font-mono text-xs break-all bg-gray-900/50 p-2 rounded">{truncateHash(merkleRoot)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Transaction Index:</span>
@@ -222,9 +222,9 @@ export function MerkleTreeVisualizer({
         >
           <h4 className="text-white font-semibold mb-3">Node Details</h4>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
+            <div className="flex flex-col space-y-1">
               <span className="text-gray-400">Hash:</span>
-              <code className="text-blue-400 font-mono">{selectedNode}</code>
+              <code className="text-blue-400 font-mono break-all bg-gray-900/50 p-2 rounded">{selectedNode}</code>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Type:</span>

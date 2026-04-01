@@ -1,101 +1,45 @@
 import { configureChains, createConfig } from 'wagmi'
 import { sepolia, goerli, hardhat } from 'wagmi/chains'
-import { infuraProvider } from 'wagmi/providers/infura'
 import { publicProvider } from 'wagmi/providers/public'
-import { InjectedConnector } from 'wagmi/connectors/injected'
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
-import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
+import { 
+  getDefaultWallets, 
+  connectorsForWallets,
+} from '@rainbow-me/rainbowkit'
+import {
+  injectedWallet,
+} from '@rainbow-me/rainbowkit/wallets'
 
-const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [hardhat, sepolia, goerli] as any, // Include localhost for testing
-  [
-    publicProvider(), // Use public provider by default to avoid API key issues
-  ],
-  {
-    // Performance optimization: reduce retry attempts
-    retryCount: 2,
-    retryDelay: 1000,
-  }
+const { chains: wagmiChains, publicClient, webSocketPublicClient } = configureChains(
+  [hardhat, sepolia, goerli] as any,
+  [publicProvider()]
 )
 
-// Create connectors array with error handling
-const createConnectors = () => {
-  console.log('🔧 Creating wagmi connectors...');
+const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'b19c0d68780c98ce580cc0b970e9aa4d'
 
-  const connectors: any[] = [
-    new MetaMaskConnector({
-      chains,
-      options: {
-        shimDisconnect: true,
-      }
-    }),
-    new CoinbaseWalletConnector({
-      chains,
-      options: {
-        appName: 'BridgeSpark',
-        appLogoUrl: 'https://bridgespark.app/logo.png',
-      },
-    }),
-  ];
-
-  // Only add WalletConnect if we have a valid project ID
-  const walletConnectProjectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'b19c0d68780c98ce580cc0b970e9aa4d';
-
-  if (walletConnectProjectId && walletConnectProjectId !== 'your-project-id' && walletConnectProjectId.length > 20) {
-    try {
-      const walletConnectConnector = new WalletConnectConnector({
-        chains,
-        options: {
-          projectId: walletConnectProjectId,
-          metadata: {
-            name: 'BridgeSpark',
-            description: 'Bitcoin-Ethereum trustless bridge with ZK proofs',
-            url: 'https://bridgespark.app',
-            icons: ['https://bridgespark.app/logo.png'],
-          },
-          showQrModal: true,
-        },
-      });
-      connectors.push(walletConnectConnector);
-      console.log('✅ WalletConnect connector added');
-    } catch (error) {
-      console.warn('❌ Failed to initialize WalletConnect connector:', error);
-    }
-  } else {
-    console.log('⚠️ WalletConnect disabled - no valid project ID provided');
-  }
-
-  // Add specific injected connectors for different wallets
-  const exodusConnector = new InjectedConnector({
-    chains,
-    options: {
-      name: 'Exodus',
-      shimDisconnect: true,
-    },
-  });
-  connectors.push(exodusConnector);
-
-  console.log('📋 Final connectors:', connectors.map((c, i) => ({
-    index: i,
-    id: c.id,
-    name: c.name,
-    type: c.type
-  })));
-
-  return connectors;
-};
-
-export const config = createConfig({
-  autoConnect: true,
-  connectors: createConnectors(),
-  publicClient,
-  // Disable WebSocket client to prevent connection issues
-  webSocketPublicClient: undefined,
+const { wallets } = getDefaultWallets({
+  appName: 'BridgeSpark',
+  projectId,
+  chains: wagmiChains as any,
 })
 
-// Export chains for RainbowKit
-export { chains }
+const connectors = connectorsForWallets([
+  ...wallets,
+  {
+    groupName: 'Other',
+    wallets: [
+      injectedWallet({ chains: wagmiChains as any }),
+    ],
+  },
+])
+
+const config = createConfig({
+  autoConnect: true,
+  connectors,
+  publicClient,
+  webSocketPublicClient,
+})
+
+export { config, wagmiChains as chains }
 
 // Custom chain configurations
 export const bitcoinTestnet = {

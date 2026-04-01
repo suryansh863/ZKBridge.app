@@ -39,8 +39,8 @@ export function Features() {
     },
     {
       icon: <DollarSign className="h-6 w-6" />,
-      title: "Low Fees",
-      description: "Minimize costs with optimized transaction batching and efficient proof generation."
+      title: "Null Platform Fees",
+      description: "Experience 100% free bridging with zero platform charges. Only standard network gas applies."
     },
     {
       icon: <CheckCircle className="h-6 w-6" />,

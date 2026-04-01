@@ -13,12 +13,17 @@ export function QRScannerSimple({ onScan, onClose, onError }: QRScannerSimplePro
 
   const handleTestScan = () => {
     setIsLoading(true)
-    // Simulate a test scan
+    // Simulate a test scan with valid Bitcoin Testnet transactions
     setTimeout(() => {
-      const testTxId = 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16'
-      onScan(testTxId)
+      const validTxIds = [
+        '9a08f351187c3541e27877d918e4a591f36d649ed5a1202fb04cbc80f2f692b4',
+        '9c638c839218cb5feb683034fb3c33dc68c5c79a83b143f482b88dc9d0be5193',
+        '3bcd2c6e3c6630589c96dea2f5caff1ae9053e6cbd1d3e4f9b65fbf8eeafb452'
+      ]
+      const randomTxId = validTxIds[Math.floor(Math.random() * validTxIds.length)]
+      onScan(randomTxId)
       setIsLoading(false)
-    }, 2000)
+    }, 1000)
   }
 
   return (

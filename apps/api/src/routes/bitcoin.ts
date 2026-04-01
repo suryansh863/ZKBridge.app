@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { body, param, validationResult } from 'express-validator';
+import { body, param, query, validationResult } from 'express-validator';
 import { asyncHandler, CustomError } from '../middleware/errorHandler';
 import { ApiResponse } from '../types';
 import { BitcoinTransaction, MerkleProof } from '../services/bitcoinTestnetService';
@@ -145,13 +145,15 @@ router.post('/proofs/verify', [
 // GET /api/bitcoin/transaction/:txid - Get Bitcoin transaction details
 router.get('/transaction/:txid', [
   param('txid').isString().notEmpty().withMessage('Transaction ID is required'),
+  query('amount').optional().isFloat({ min: 0 }).withMessage('Amount must be positive'),
 ], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txid } = req.params;
+  const { amount } = req.query;
 
-  logger.info('Bitcoin transaction details requested', { txid });
+  logger.info('Bitcoin transaction details requested', { txid, amount });
 
   try {
-    const transaction = await bitcoinTestnetService.getTransaction(txid);
+    const transaction = await bitcoinTestnetService.getTransaction(txid, amount ? Number(amount) : undefined);
 
     const response: ApiResponse<BitcoinTransaction> = {
       success: true,
@@ -256,13 +258,15 @@ router.post('/validate-address', [
 // GET /api/bitcoin/detailed-transaction/:txid - Get detailed transaction information
 router.get('/detailed-transaction/:txid', [
   param('txid').isString().notEmpty().withMessage('Transaction ID is required'),
+  query('amount').optional().isFloat({ min: 0 }).withMessage('Amount must be positive'),
 ], validateRequest, asyncHandler(async (req: Request, res: Response) => {
   const { txid } = req.params;
+  const { amount } = req.query;
 
-  logger.info('Detailed Bitcoin transaction requested', { txid });
+  logger.info('Detailed Bitcoin transaction requested', { txid, amount });
 
   try {
-    const detailedTransaction = await bitcoinTestnetService.getTransaction(txid);
+    const detailedTransaction = await bitcoinTestnetService.getTransaction(txid, amount ? Number(amount) : undefined);
 
     const response: ApiResponse = {
       success: true,

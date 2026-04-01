@@ -60,6 +60,17 @@
     </style>
   </head>
   <body>
+    <!-- Polyfills for wagmi/rainbowkit -->
+    <script>
+      if (typeof window.global === 'undefined') {
+        window.global = window;
+      }
+    </script>
+    <script type="module">
+      import { Buffer } from 'buffer';
+      window.Buffer = Buffer;
+      window.process = { env: { NODE_ENV: 'development' } };
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,0 +1,429 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+}
+
+/* Hero Section */
+.hero {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(180deg, #050816 0%, #020617 100%);
+}
+
+/* Animated Background Container */
+.hero-bg-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Connection Nodes (Dots) */
+.node {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #60a5fa;
+    box-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
+}
+
+/* Individual Node Positioning & Animation */
+.node-1 {
+    top: 15%;
+    left: 10%;
+    animation: float-1 28s ease-in-out infinite alternate;
+}
+
+.node-2 {
+    top: 25%;
+    left: 85%;
+    background: #a78bfa;
+    box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+    animation: float-2 32s ease-in-out infinite alternate;
+}
+
+.node-3 {
+    top: 45%;
+    left: 20%;
+    animation: float-3 26s ease-in-out infinite alternate;
+}
+
+.node-4 {
+    top: 60%;
+    left: 75%;
+    background: #a78bfa;
+    box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+    animation: float-4 30s ease-in-out infinite alternate;
+}
+
+.node-5 {
+    top: 70%;
+    left: 15%;
+    animation: float-5 34s ease-in-out infinite alternate;
+}
+
+.node-6 {
+    top: 80%;
+    left: 65%;
+    background: #60a5fa;
+    animation: float-6 29s ease-in-out infinite alternate;
+}
+
+.node-7 {
+    top: 35%;
+    left: 50%;
+    background: #818cf8;
+    box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+    animation: float-7 31s ease-in-out infinite alternate;
+}
+
+.node-8 {
+    top: 55%;
+    left: 40%;
+    animation: float-8 27s ease-in-out infinite alternate;
+}
+
+.node-9 {
+    top: 20%;
+    left: 65%;
+    background: #a78bfa;
+    box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+    animation: float-9 33s ease-in-out infinite alternate;
+}
+
+.node-10 {
+    top: 85%;
+    left: 90%;
+    background: #818cf8;
+    box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+    animation: float-10 25s ease-in-out infinite alternate;
+}
+
+/* Connection Lines */
+.line {
+    position: absolute;
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(96, 165, 250, 0.3) 50%, 
+        transparent 100%
+    );
+    transform-origin: left center;
+}
+
+.line-1 {
+    top: 20%;
+    left: 10%;
+    width: 120px;
+    animation: pulse-line-1 24s ease-in-out infinite alternate;
+}
+
+.line-2 {
+    top: 40%;
+    left: 20%;
+    width: 90px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(167, 139, 250, 0.3) 50%, 
+        transparent 100%
+    );
+    animation: pulse-line-2 28s ease-in-out infinite alternate;
+}
+
+.line-3 {
+    top: 65%;
+    left: 70%;
+    width: 100px;
+    animation: pulse-line-3 26s ease-in-out infinite alternate;
+}
+
+.line-4 {
+    top: 75%;
+    left: 15%;
+    width: 110px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(129, 140, 248, 0.3) 50%, 
+        transparent 100%
+    );
+    animation: pulse-line-4 30s ease-in-out infinite alternate;
+}
+
+.line-5 {
+    top: 30%;
+    left: 50%;
+    width: 85px;
+    animation: pulse-line-5 32s ease-in-out infinite alternate;
+}
+
+.line-6 {
+    top: 55%;
+    left: 40%;
+    width: 95px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(167, 139, 250, 0.3) 50%, 
+        transparent 100%
+    );
+    animation: pulse-line-6 27s ease-in-out infinite alternate;
+}
+
+/* Float Animations for Nodes */
+@keyframes float-1 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.4;
+    }
+    50% { 
+        transform: translate(20px, -30px); 
+        opacity: 0.8;
+    }
+}
+
+@keyframes float-2 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.5;
+    }
+    50% { 
+        transform: translate(-25px, 35px); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes float-3 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.6;
+    }
+    50% { 
+        transform: translate(30px, 20px); 
+        opacity: 0.8;
+    }
+}
+
+@keyframes float-4 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.4;
+    }
+    50% { 
+        transform: translate(-20px, -25px); 
+        opacity: 0.85;
+    }
+}
+
+@keyframes float-5 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.5;
+    }
+    50% { 
+        transform: translate(15px, -20px); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes float-6 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.6;
+    }
+    50% { 
+        transform: translate(-30px, 15px); 
+        opacity: 0.75;
+    }
+}
+
+@keyframes float-7 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.45;
+    }
+    50% { 
+        transform: translate(25px, 30px); 
+        opacity: 0.85;
+    }
+}
+
+@keyframes float-8 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.55;
+    }
+    50% { 
+        transform: translate(-15px, -35px); 
+        opacity: 0.8;
+    }
+}
+
+@keyframes float-9 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.5;
+    }
+    50% { 
+        transform: translate(20px, 25px); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes float-10 {
+    0%, 100% { 
+        transform: translate(0, 0); 
+        opacity: 0.6;
+    }
+    50% { 
+        transform: translate(-25px, -20px); 
+        opacity: 0.75;
+    }
+}
+
+/* Pulse Animations for Lines */
+@keyframes pulse-line-1 {
+    0%, 100% { 
+        opacity: 0.2; 
+        transform: scaleX(1);
+    }
+    50% { 
+        opacity: 0.5; 
+        transform: scaleX(1.1);
+    }
+}
+
+@keyframes pulse-line-2 {
+    0%, 100% { 
+        opacity: 0.3; 
+        transform: scaleX(1);
+    }
+    50% { 
+        opacity: 0.6; 
+        transform: scaleX(1.15);
+    }
+}
+
+@keyframes pulse-line-3 {
+    0%, 100% { 
+        opacity: 0.25; 
+        transform: scaleX(1);
+    }
+    50% { 
+        opacity: 0.55; 
+        transform: scaleX(1.12);
+    }
+}
+
+@keyframes pulse-line-4 {
+    0%, 100% { 
+        opacity: 0.2; 
+        transform: scaleX(1);
+    }
+    50% { 
+        opacity: 0.5; 
+        transform: scaleX(1.08);
+    }
+}
+
+@keyframes pulse-line-5 {
+    0%, 100% { 
+        opacity: 0.3; 
+        transform: scaleX(1);
+    }
+    50% { 
+        opacity: 0.6; 
+        transform: scaleX(1.13);
+    }
+}
+
+@keyframes pulse-line-6 {
+    0%, 100% { 
+        opacity: 0.25; 
+        transform: scaleX(1);
+    }
+    50% { 
+        opacity: 0.55; 
+        transform: scaleX(1.1);
+    }
+}
+
+/* Hero Content Styling */
+.hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: #fff;
+    max-width: 800px;
+    padding: 2rem;
+}
+
+.hero-content h1 {
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+}
+
+.hero-content p {
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    color: #94a3b8;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+}
+
+.cta-button {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
+}
+
+.cta-button:active {
+    transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .node {
+        width: 2px;
+        height: 2px;
+    }
+    
+    .line {
+        width: 60px !important;
+    }
+    
+    .hero-content {
+        padding: 1rem;
+    }
+}

@@ -15,12 +15,12 @@ declare global {
 }
 
 export function useWallet() {
-  const { address, isConnected, connector } = useAccount();
+  const { address, isConnected, connector: activeConnector } = useAccount();
   const chainId = useChainId();
   const { data: balance } = useBalance({
     address: address,
   });
-  const { connect, connectors, error: connectError } = useConnect();
+  const { connectAsync, connectors, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
 
   // Get ENS name if available
@@ -39,9 +39,9 @@ export function useWallet() {
     isConnected,
     balance,
     ensName,
-    connector,
+    connector: activeConnector,
     chainId,
-    connect,
+    connectAsync,
     disconnect,
     connectors,
     connectError,
@@ -76,105 +76,78 @@ export function useWallet() {
     connectWallet: async (walletId: string) => {
       try {
         console.log('=== WALLET CONNECTION DEBUG ===');
-        console.log('Requested wallet:', walletId);
+        console.log('Requested walletId:', walletId);
         console.log('Available connectors:', connectors.map(c => ({
           id: c.id,
-          name: c.name
+          name: c.name,
+          ready: c.ready
         })));
 
-        // Try multiple approaches to find the right connector
+        // Try to find the right connector with multiple fallback methods
         let targetConnector = null;
 
-        // Approach 1: Direct index-based selection (most reliable)
-        if (walletId === 'metaMask') {
-          targetConnector = connectors[0]; // MetaMask is first
-        } else if (walletId === 'coinbaseWallet') {
-          targetConnector = connectors[1]; // Coinbase is second
-        } else if (walletId === 'walletConnect' || walletId === 'trustWallet' || walletId === 'rainbow') {
-          // WalletConnect is third (if available), otherwise use injected
-          targetConnector = connectors.length > 2 ? connectors[2] : connectors[connectors.length - 1];
-        } else if (walletId === 'exodus') {
-          // Exodus is last
-          targetConnector = connectors[connectors.length - 1];
-        }
-
-        // Approach 2: Try to find by exact ID match
+        const searchId = walletId.toLowerCase();
+        
+        // 1. Precise ID match
+        targetConnector = connectors.find(c => c.id.toLowerCase() === searchId);
+        
+        // 2. Name match (e.g. "MetaMask" -> "metamask")
         if (!targetConnector) {
-          targetConnector = connectors.find(c => c.id === walletId);
+          targetConnector = connectors.find(c => c.name.toLowerCase() === searchId);
         }
-
-        // Approach 3: Try to find by name match
+        
+        // 3. Partial ID or Name match
         if (!targetConnector) {
-          targetConnector = connectors.find(c => c.name === walletId);
-        }
-
-        // Approach 4: Try to find by partial match
-        if (!targetConnector) {
-          targetConnector = connectors.find(c =>
-            c.id.includes(walletId) ||
-            c.name.includes(walletId) ||
-            walletId.includes(c.id) ||
-            walletId.includes(c.name)
+          targetConnector = connectors.find(c => 
+            c.id.toLowerCase().includes(searchId) || 
+            c.name.toLowerCase().includes(searchId) ||
+            searchId.includes(c.id.toLowerCase())
           );
         }
-
-        // Approach 5: For mobile wallets, try WalletConnect
-        if (!targetConnector && (walletId === 'trustWallet' || walletId === 'rainbow')) {
-          targetConnector = connectors.find(c => c.id === 'walletConnect' || c.name === 'WalletConnect');
+        
+        // 4. Manual mapping for popular wallets
+        if (!targetConnector) {
+          if (walletId === 'metaMask') {
+            targetConnector = connectors.find(c => c.id === 'injected' || c.name === 'Injected');
+          } else if (walletId === 'walletConnect' || walletId === 'rainbow' || walletId === 'trustWallet') {
+            targetConnector = connectors.find(c => c.id === 'walletConnect');
+          } else if (walletId === 'coinbaseWallet') {
+            targetConnector = connectors.find(c => c.id === 'coinbaseWallet' || c.name === 'Coinbase Wallet');
+          }
+        }
+        
+        // 5. Hardcoded fallbacks if we still haven't found it
+        if (!targetConnector) {
+          if (walletId === 'metaMask' && connectors[0]) targetConnector = connectors[0];
+          else if (walletId === 'coinbaseWallet' && connectors[1]) targetConnector = connectors[1];
         }
 
         if (targetConnector) {
-          console.log(`✅ Found connector for ${walletId}:`, {
-            id: targetConnector.id,
-            name: targetConnector.name
-          });
+          console.log(`✅ Using connector: ${targetConnector.name} (${targetConnector.id})`);
+          
+          if (!targetConnector.ready) {
+            console.warn('⚠️ Connector is not marked as ready! Attempting connection anyway...');
+          }
 
-          // Use wagmi's connect function directly
-          await connect({ connector: targetConnector });
-          console.log(`🎉 Successfully connected to ${walletId}`);
-
-          // Log network information after connection
-          setTimeout(() => {
-            const networkInfo = {
-              chainId,
-              networkName: {
-                1: 'Ethereum Mainnet',
-                11155111: 'Sepolia Testnet',
-                5: 'Goerli Testnet',
-                137: 'Polygon Mainnet',
-                80001: 'Polygon Mumbai Testnet',
-                56: 'BSC Mainnet',
-                97: 'BSC Testnet',
-                42161: 'Arbitrum One',
-                421614: 'Arbitrum Sepolia',
-                10: 'Optimism',
-                420: 'Optimism Sepolia',
-                8453: 'Base',
-                84532: 'Base Sepolia',
-              }[chainId] || `Unknown Network (${chainId})`,
-              isMainnet: chainId === 1,
-              isTestnet: chainId !== 1,
-            };
-            console.log('🌐 Network Information:', networkInfo);
-          }, 1000);
+          // Use connectAsync to correctly handle the promise-based connection flow
+          const result = await connectAsync({ connector: targetConnector });
+          console.log('🎉 Connection result:', result);
+          
+          return result;
         } else {
-          console.error(`❌ No connector found for ${walletId}`);
-          console.log('Available connectors:', connectors.map(c => `${c.id} (${c.name})`));
-          throw new Error(`Wallet ${walletId} not found. Available connectors: ${connectors.map(c => `${c.id} (${c.name})`).join(', ')}`);
+          console.error(`❌ No connector found for ${walletId}.`);
+          throw new Error(`Wallet ${walletId} not found. Please try another wallet or ensure it is installed.`);
         }
       } catch (error) {
-        console.error('Wallet connection error:', error);
-        // Provide more specific error messages
+        console.error('Wallet connection error details:', error);
+        
         if (error instanceof Error) {
           if (error.message.includes('User rejected')) {
             throw new Error('Connection cancelled by user');
-          } else if (error.message.includes('Unauthorized') || error.message.includes('invalid key')) {
-            throw new Error('Wallet connection service temporarily unavailable. Please try again later.');
-          } else if (error.message.includes('not found')) {
-            throw new Error('Wallet not installed. Please install the wallet extension and try again.');
           }
+          throw error;
         }
-        throw error;
+        throw new Error('An unexpected error occurred during connection');
       }
     },
     getSupportedWallets: () => getSupportedWalletsList(),
