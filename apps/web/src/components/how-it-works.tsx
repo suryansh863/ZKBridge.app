@@ -1,4 +1,3 @@
-"use client"
 
 import { motion } from 'framer-motion';
 import { ArrowRight, Bitcoin, Zap, Shield, CheckCircle, Eye } from 'lucide-react';

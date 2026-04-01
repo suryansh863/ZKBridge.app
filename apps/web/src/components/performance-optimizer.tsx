@@ -1,4 +1,3 @@
-"use client"
 
 import { useEffect } from 'react'
 import { PerformanceMonitor } from './performance-monitor'

@@ -1,29 +1,18 @@
-"use client"
-
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useState, Suspense, lazy } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClientOnly } from '@/components/client-only';
-import dynamic from 'next/dynamic';
 
-const WalletConnectionSection = dynamic(() => import('./wallet-sections').then(mod => mod.WalletConnectionSection), {
-  ssr: false,
-  loading: () => <div className="h-10 w-32 bg-muted/20 animate-pulse rounded-lg" />
-});
-
-const MobileWalletConnectionSection = dynamic(() => import('./wallet-sections').then(mod => mod.MobileWalletConnectionSection), {
-  ssr: false,
-  loading: () => <div className="h-12 w-full bg-muted/20 animate-pulse rounded-lg" />
-});
+const WalletConnectionSection = lazy(() => import('./wallet-sections').then(mod => ({ default: mod.WalletConnectionSection })))
+const MobileWalletConnectionSection = lazy(() => import('./wallet-sections').then(mod => ({ default: mod.MobileWalletConnectionSection })))
 
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const pathname = usePathname();
+  const { pathname } = useLocation();
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -37,7 +26,7 @@ export function Header() {
     )}>
       <div className="container px-4 flex h-16 items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-3 group">
+        <Link to="/" className="flex items-center space-x-3 group">
           <div className="h-10 w-10 rounded-xl gradient-bridge flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
             <span className="text-white font-bold text-lg">BS</span>
           </div>
@@ -48,7 +37,7 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link href="/" className={cn(
+          <Link to="/" className={cn(
             "relative text-foreground/60 hover:text-foreground transition-all duration-300",
             "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500",
             "hover:after:w-full after:transition-all after:duration-300",
@@ -56,7 +45,7 @@ export function Header() {
           )}>
             Home
           </Link>
-          <Link href="/bridge" className={cn(
+          <Link to="/bridge" className={cn(
             "relative text-foreground/60 hover:text-foreground transition-all duration-300",
             "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500",
             "hover:after:w-full after:transition-all after:duration-300",
@@ -64,7 +53,7 @@ export function Header() {
           )}>
             Bridge
           </Link>
-          <Link href="/transactions" className={cn(
+          <Link to="/transactions" className={cn(
             "relative text-foreground/60 hover:text-foreground transition-all duration-300",
             "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500",
             "hover:after:w-full after:transition-all after:duration-300",
@@ -72,7 +61,7 @@ export function Header() {
           )}>
             Transactions
           </Link>
-          <Link href="/docs" className={cn(
+          <Link to="/docs" className={cn(
             "relative text-foreground/60 hover:text-foreground transition-all duration-300",
             "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500",
             "hover:after:w-full after:transition-all after:duration-300",
@@ -98,7 +87,9 @@ export function Header() {
           </button>
 
           {/* Multi-Wallet Connect Button */}
-          <WalletConnectionSection />
+          <Suspense fallback={<div className="h-10 w-32 bg-muted/20 animate-pulse rounded-lg" />}>
+            <WalletConnectionSection />
+          </Suspense>
         </div>
 
         {/* Mobile Menu Button */}
@@ -128,7 +119,7 @@ export function Header() {
           <div className="container py-6 space-y-6">
             <nav className="flex flex-col space-y-4">
               <Link
-                href="/"
+                to="/"
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
                   "py-2 px-4 rounded-lg hover:bg-muted/50",
@@ -139,7 +130,7 @@ export function Header() {
                 Home
               </Link>
               <Link
-                href="/bridge"
+                to="/bridge"
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
                   "py-2 px-4 rounded-lg hover:bg-muted/50",
@@ -150,7 +141,7 @@ export function Header() {
                 Bridge
               </Link>
               <Link
-                href="/transactions"
+                to="/transactions"
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
                   "py-2 px-4 rounded-lg hover:bg-muted/50",
@@ -161,7 +152,7 @@ export function Header() {
                 Transactions
               </Link>
               <Link
-                href="/docs"
+                to="/docs"
                 className={cn(
                   "text-foreground/60 hover:text-foreground transition-all duration-300",
                   "py-2 px-4 rounded-lg hover:bg-muted/50",
@@ -190,7 +181,9 @@ export function Header() {
               </div>
 
               <div className="w-full">
-                <MobileWalletConnectionSection />
+                <Suspense fallback={<div className="h-12 w-full bg-muted/20 animate-pulse rounded-lg" />}>
+                  <MobileWalletConnectionSection />
+                </Suspense>
               </div>
             </div>
           </div>

@@ -4,18 +4,18 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title ProofVerifier
  * @dev Zero-Knowledge proof verification for Bitcoin bridge transactions
  * @notice This contract verifies ZK proofs for Bitcoin transaction validity
  */
-contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
-    using ECDSA for bytes32;
-    using Math for uint256;
+interface IZKVerifier {
+    function verifyProof(bytes memory proof, uint256[] memory publicInputs) external view returns (bool);
+}
 
+contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
+        
     // Roles
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant VERIFIER_ROLE = keccak256("VERIFIER_ROLE");
@@ -24,8 +24,8 @@ contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
     // Constants
     uint256 public constant MAX_PROOF_SIZE = 1024; // Maximum proof size in bytes
     uint256 public constant MAX_PUBLIC_INPUTS = 32; // Maximum number of public inputs
-    uint256 public constant VERIFICATION_TIMEOUT = 300; // 5 minutes timeout for verification
-    uint256 public constant PROOF_COOLDOWN = 60; // 1 minute cooldown between proofs for same transaction
+    uint256 public constant VERIFICATION_TIMEOUT = 86400; // 24 hours timeout for verification
+    uint256 public constant PROOF_COOLDOWN = 3600; // 1 hour cooldown between proofs for same transaction
 
     // Events
     event ProofVerified(
@@ -69,7 +69,7 @@ contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
     }
 
     struct CircuitConfig {
-        bytes32 verificationKey; // Circuit verification key
+        address verifierContract; // Circuit verification contract (IZKVerifier)
         uint256 maxPublicInputs; // Maximum number of public inputs
         uint256 proofSize; // Expected proof size
         bool active; // Whether the circuit is active
@@ -252,7 +252,7 @@ contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
         returns (bool[] memory results) 
     {
         require(proofHashes.length > 0, "ProofVerifier: empty proof array");
-        require(proofHashes.length <= 10, "ProofVerifier: too many proofs in batch");
+        require(proofHashes.length <= 5, "ProofVerifier: too many proofs in batch");
 
         results = new bool[](proofHashes.length);
 
@@ -312,24 +312,25 @@ contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
     /**
      * @dev Update circuit configuration
      * @param circuitId The circuit identifier
-     * @param verificationKey The new verification key
+     * @param verifierContract The new verification contract
      * @param maxPublicInputs The maximum number of public inputs
      * @param proofSize The expected proof size
      * @param active Whether the circuit is active
      */
     function updateCircuit(
         bytes32 circuitId,
-        bytes32 verificationKey,
+        address verifierContract,
         uint256 maxPublicInputs,
         uint256 proofSize,
         bool active
     ) external onlyRole(ADMIN_ROLE) {
-        require(verificationKey != bytes32(0), "ProofVerifier: invalid verification key");
+        require(!circuits[circuitId].active, "ProofVerifier: deactivate circuit first");
+        require(verifierContract != address(0), "ProofVerifier: invalid verification key");
         require(maxPublicInputs > 0 && maxPublicInputs <= MAX_PUBLIC_INPUTS, "ProofVerifier: invalid max public inputs");
         require(proofSize > 0 && proofSize <= MAX_PROOF_SIZE, "ProofVerifier: invalid proof size");
 
         circuits[circuitId] = CircuitConfig({
-            verificationKey: verificationKey,
+            verifierContract: verifierContract,
             maxPublicInputs: maxPublicInputs,
             proofSize: proofSize,
             active: active,
@@ -407,10 +408,8 @@ contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
         // 2. Perform the actual ZK proof verification
         // 3. Return the result
         
-        // For demo purposes, we'll implement a basic check
         CircuitConfig memory circuit = circuits[circuitId];
         
-        // Basic validation checks
         if (proof.length != circuit.proofSize) {
             return false;
         }
@@ -418,17 +417,16 @@ contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
         if (publicInputs.length > circuit.maxPublicInputs) {
             return false;
         }
-        
-        // Simulate proof verification (replace with actual verification logic)
-        // In practice, you would use a library like snarkjs or implement
-        // the verification algorithm directly
-        
-        // For now, we'll use a simple hash-based validation
-        bytes32 proofHash = keccak256(abi.encodePacked(circuitId, proof, publicInputs));
-        uint256 proofValue = uint256(proofHash) % 100;
-        
-        // 90% success rate for demo purposes
-        return proofValue < 90;
+
+        if (circuit.verifierContract == address(0)) {
+            return false;
+        }
+
+        try IZKVerifier(circuit.verifierContract).verifyProof(proof, publicInputs) returns (bool result) {
+            return result;
+        } catch {
+            return false;
+        }
     }
 
     /**
@@ -437,28 +435,28 @@ contract ProofVerifier is AccessControl, Pausable, ReentrancyGuard {
     function _initializeDefaultCircuits() internal {
         // Bitcoin transaction verification circuit
         circuits[keccak256("bitcoin_tx_verify")] = CircuitConfig({
-            verificationKey: keccak256("bitcoin_tx_vk"),
+            verifierContract: address(0),
             maxPublicInputs: 16,
             proofSize: 256,
-            active: true,
+            active: false,
             lastUpdated: block.timestamp
         });
 
         // Merkle proof verification circuit
         circuits[keccak256("merkle_proof_verify")] = CircuitConfig({
-            verificationKey: keccak256("merkle_proof_vk"),
+            verifierContract: address(0),
             maxPublicInputs: 8,
             proofSize: 128,
-            active: true,
+            active: false,
             lastUpdated: block.timestamp
         });
 
         // Bridge transaction circuit
         circuits[keccak256("bridge_tx_verify")] = CircuitConfig({
-            verificationKey: keccak256("bridge_tx_vk"),
+            verifierContract: address(0),
             maxPublicInputs: 24,
             proofSize: 384,
-            active: true,
+            active: false,
             lastUpdated: block.timestamp
         });
     }

@@ -1,7 +1,6 @@
-"use client"
 
 import { Suspense, lazy, useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Hero } from '@/components/hero';
 import { Features } from '@/components/features';
@@ -185,7 +184,7 @@ export default function Home() {
               >
                 {animationsEnabled && (
                   <Link
-                    href="/bridge"
+                    to="/bridge"
                     className="relative z-10 inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl overflow-hidden min-w-[200px]"
                   >
                     {/* Background Shimmer Effect */}
@@ -226,7 +225,7 @@ export default function Home() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Link
-                  href="/docs"
+                  to="/docs"
                   className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-lg glass-card border border-border text-foreground hover:bg-accent shadow-sm hover:shadow-md transition-all duration-300 min-w-[200px]"
                 >
                   {animationsEnabled ? (

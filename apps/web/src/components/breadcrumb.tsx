@@ -1,6 +1,5 @@
-"use client"
 
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +17,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
   return (
     <nav className={cn("flex items-center space-x-2 text-sm", className)} aria-label="Breadcrumb">
       <Link 
-        href="/" 
+        to="/" 
         className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
         aria-label="Home"
       >
@@ -30,7 +29,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
           {item.href ? (
             <Link 
-              href={item.href}
+              to={item.href}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               {item.label}

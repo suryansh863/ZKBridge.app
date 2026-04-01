@@ -3,7 +3,6 @@
  * Provides solutions for common  connection errors
  */
 
-"use client";
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

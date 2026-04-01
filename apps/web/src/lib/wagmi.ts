@@ -40,7 +40,7 @@ const createConnectors = () => {
   ];
 
   // Only add WalletConnect if we have a valid project ID
-  const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'b19c0d68780c98ce580cc0b970e9aa4d';
+  const walletConnectProjectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'b19c0d68780c98ce580cc0b970e9aa4d';
 
   if (walletConnectProjectId && walletConnectProjectId !== 'your-project-id' && walletConnectProjectId.length > 20) {
     try {

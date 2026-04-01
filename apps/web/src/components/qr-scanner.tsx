@@ -1,4 +1,3 @@
-"use client"
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import QrScanner from 'qr-scanner'

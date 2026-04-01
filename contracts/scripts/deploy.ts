@@ -25,7 +25,8 @@ async function main() {
     // 2. Deploy WrappedBTC
     console.log("\n💰 Deploying WrappedBTC...");
     const WrappedBTCFactory = await ethers.getContractFactory("WrappedBTC");
-    const wrappedBTC = await WrappedBTCFactory.deploy(TOKEN_NAME, TOKEN_SYMBOL, deployer.address);
+    const bridgeChangeDelay = 86400; // 24 hours for Mainnet default
+    const wrappedBTC = await WrappedBTCFactory.deploy(TOKEN_NAME, TOKEN_SYMBOL, deployer.address, bridgeChangeDelay);
     await wrappedBTC.waitForDeployment();
     const wrappedBTCAddress = await wrappedBTC.getAddress();
     console.log("✅ WrappedBTC deployed to:", wrappedBTCAddress);
@@ -54,8 +55,13 @@ async function main() {
     console.log("\n⚙️  Configuring contracts...");
     
     // Set bridge contract in WrappedBTC
-    await wrappedBTC.setBridgeContract(bridgeContractAddress);
+    await wrappedBTC.initializeBridgeContractFirstTime(bridgeContractAddress);
     console.log("✅ Set bridge contract in WrappedBTC");
+
+    // Grant MINTER_ROLE and BURNER_ROLE to BridgeContract
+    await wrappedBTC.grantRole(await wrappedBTC.MINTER_ROLE(), bridgeContractAddress);
+    await wrappedBTC.grantRole(await wrappedBTC.BURNER_ROLE(), bridgeContractAddress);
+    console.log("✅ Granted MINTER_ROLE and BURNER_ROLE to BridgeContract");
 
     // Grant necessary roles
     await btcRelay.grantRole(await btcRelay.RELAYER_ROLE(), deployer.address);

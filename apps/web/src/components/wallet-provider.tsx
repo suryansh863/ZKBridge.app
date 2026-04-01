@@ -1,4 +1,3 @@
-"use client"
 
 import { WagmiConfig } from 'wagmi';
 import { RainbowKitProvider, darkTheme, lightTheme } from '@rainbow-me/rainbowkit';

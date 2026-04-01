@@ -261,9 +261,6 @@ app.get('/api/security/status', (req, res) => {
   });
 });
 
-// Error handling
-app.use(errorHandler);
-
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
@@ -272,6 +269,9 @@ app.use('*', (req, res) => {
     message: `Cannot ${req.method} ${req.originalUrl}`,
   });
 });
+
+// Error handling (MUST BE LAST)
+app.use(errorHandler);
 
 // Start server
 async function startServer() {

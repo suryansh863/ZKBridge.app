@@ -1,7 +1,6 @@
-"use client"
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, Zap, Globe, Lock, Eye, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -116,7 +115,7 @@ export function Hero() {
               className="relative"
             >
               <Link
-                href="/bridge"
+                to="/bridge"
                 className={cn(
                   "group relative z-10 px-8 py-4 rounded-xl font-semibold text-lg",
                   "inline-flex items-center justify-center min-w-[200px]",
@@ -161,7 +160,7 @@ export function Hero() {
               whileTap={{ scale: 0.95 }}
             >
               <Link
-                href="/docs"
+                to="/docs"
                 className={cn(
                   "group relative px-8 py-4 rounded-xl font-semibold text-lg",
                   "inline-flex items-center justify-center min-w-[200px]",

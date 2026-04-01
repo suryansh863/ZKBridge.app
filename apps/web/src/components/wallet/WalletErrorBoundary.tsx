@@ -3,7 +3,6 @@
  * Catches and displays wallet-related errors gracefully
  */
 
-"use client";
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';

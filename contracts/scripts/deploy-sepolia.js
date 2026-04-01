@@ -23,10 +23,15 @@ async function main() {
   const deploymentAddresses = {};
   
   try {
+    // Constants for deployment
+    const GENESIS_HASH = "0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
+    const GENESIS_TIMESTAMP = 1231006505;
+    const bridgeChangeDelay = 300; // 5 mins for Sepolia
+
     // 1. Deploy BTCRelay
     console.log("📦 Deploying BTCRelay...");
     const BTCRelay = await ethers.getContractFactory("BTCRelay");
-    const btcRelay = await BTCRelay.deploy();
+    const btcRelay = await BTCRelay.deploy(GENESIS_HASH, GENESIS_TIMESTAMP);
     await btcRelay.deployed();
     deploymentAddresses.BTCRelay = btcRelay.address;
     console.log("✅ BTCRelay deployed to:", btcRelay.address);
@@ -34,7 +39,7 @@ async function main() {
     // 2. Deploy WrappedBTC
     console.log("📦 Deploying WrappedBTC...");
     const WrappedBTC = await ethers.getContractFactory("WrappedBTC");
-    const wrappedBTC = await WrappedBTC.deploy();
+    const wrappedBTC = await WrappedBTC.deploy("ZK Bridge Bitcoin", "ZKBTC", deployer.address, bridgeChangeDelay);
     await wrappedBTC.deployed();
     deploymentAddresses.WrappedBTC = wrappedBTC.address;
     console.log("✅ WrappedBTC deployed to:", wrappedBTC.address);
@@ -58,6 +63,13 @@ async function main() {
     await bridgeContract.deployed();
     deploymentAddresses.BridgeContract = bridgeContract.address;
     console.log("✅ BridgeContract deployed to:", bridgeContract.address);
+    
+    // 5. Configure Contracts
+    console.log("⚙️ Configuring contracts...");
+    await wrappedBTC.initializeBridgeContractFirstTime(bridgeContract.address);
+    await wrappedBTC.grantRole(await wrappedBTC.MINTER_ROLE(), bridgeContract.address);
+    await wrappedBTC.grantRole(await wrappedBTC.BURNER_ROLE(), bridgeContract.address);
+    console.log("✅ Granted MINTER_ROLE and BURNER_ROLE to BridgeContract");
     
     // Display summary
     console.log("\n🎉 DEPLOYMENT COMPLETE!");

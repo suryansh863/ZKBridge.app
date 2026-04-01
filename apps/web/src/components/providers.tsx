@@ -1,18 +1,12 @@
-"use client"
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider as NextThemeProvider } from 'next-themes';
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { BackToTop } from '@/components/back-to-top';
 import { ErrorBoundary } from '@/components/error-boundary';
 import '@/lib/console-suppress';
 
 // Lazy-load the heavy wallet provider
-const WalletProvider = dynamic(() => import('./wallet-provider').then(mod => mod.WalletProvider), {
-  ssr: false,
-  loading: () => null
-});
+const WalletProvider = lazy(() => import('./wallet-provider').then(mod => ({ default: mod.WalletProvider })))
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -74,9 +68,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
           enableSystem
           disableTransitionOnChange
         >
-          <WalletProvider>
-            {children}
-          </WalletProvider>
+          <Suspense fallback={null}>
+            <WalletProvider>
+              {children}
+            </WalletProvider>
+          </Suspense>
           <BackToTop />
         </NextThemeProvider>
       </QueryClientProvider>

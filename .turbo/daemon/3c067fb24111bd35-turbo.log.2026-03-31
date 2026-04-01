@@ -1,0 +1,13 @@
+2026-03-31T22:29:26.870706Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/1.cookie"), AnchoredSystemPathBuf(".turbo/cookies/.turbo-cookie")}
+2026-03-31T22:29:26.870714Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-03-31T22:41:34.297096Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/vite.config.ts.timestamp-1774996894246-c2ac73184ab73.mjs")}
+2026-03-31T22:41:34.300781Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2026-03-31T22:41:34.460638Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/vite.config.ts.timestamp-1774996894331-d442d127fb777.mjs"), AnchoredSystemPathBuf("apps/web/vite.config.ts.timestamp-1774996894246-c2ac73184ab73.mjs"), AnchoredSystemPathBuf("apps/web/vite.config.ts.timestamp-1774996894261-6fbc71979f615.mjs")}
+2026-03-31T22:41:34.460648Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2026-03-31T22:41:34.460840Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-03-31T22:41:45.775077Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/vite.config.ts")}
+2026-03-31T22:41:45.775170Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2026-03-31T22:41:45.973357Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/vite.config.ts.timestamp-1774996905920-a0e7771af3167.mjs"), AnchoredSystemPathBuf("apps/web/vite.config.ts.timestamp-1774996905919-f677795f2d8b7.mjs")}
+2026-03-31T22:41:45.973368Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2026-03-31T22:41:46.073425Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/vite.config.ts.timestamp-1774996905978-03964d1811c1c8.mjs")}
+2026-03-31T22:41:46.073440Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@zkbridge/web"), path: AnchoredSystemPathBuf("apps/web") }}))

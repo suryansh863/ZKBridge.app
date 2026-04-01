@@ -4,28 +4,22 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title BTCRelay
  * @dev Bitcoin header verification using SPV (Simplified Payment Verification) proofs
- * @notice This contract maintains a chain of Bitcoin block headers and verifies Merkle proofs
  */
 contract BTCRelay is AccessControl, Pausable, ReentrancyGuard {
-    using Math for uint256;
-
-    // Roles
+    
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
     bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
 
-    // Constants
     uint256 public constant DIFFICULTY_ADJUSTMENT_INTERVAL = 2016;
     uint256 public constant TARGET_TIMESPAN = 14 * 24 * 60 * 60; // 2 weeks in seconds
     uint256 public constant MIN_CONFIRMATIONS = 6;
     uint256 public constant MAX_FUTURE_BLOCK_TIME = 2 * 60 * 60; // 2 hours
 
-    // Events
     event BlockHeaderAdded(
         uint256 indexed height,
         bytes32 indexed blockHash,
@@ -40,19 +34,21 @@ contract BTCRelay is AccessControl, Pausable, ReentrancyGuard {
         uint256 index
     );
 
-    event DifficultyAdjusted(
-        uint256 oldDifficulty,
-        uint256 newDifficulty,
-        uint256 height
+    event ChainReorganized(
+        bytes32 indexed oldTip,
+        bytes32 indexed newTip,
+        bytes32 commonAncestor
     );
 
-    // Structs
     struct BlockHeader {
         bytes32 hash;
+        bytes32 merkleRoot;
         bytes32 prevHash;
         uint256 timestamp;
         uint256 difficulty;
         uint256 height;
+        uint256 chainWork;
+        bool isMainChain;
         bool exists;
     }
 
@@ -64,32 +60,24 @@ contract BTCRelay is AccessControl, Pausable, ReentrancyGuard {
         bytes32[] siblings;
     }
 
-    // State variables
-    mapping(uint256 => BlockHeader) public blockHeaders; // height => BlockHeader
-    mapping(bytes32 => bool) public verifiedTransactions;
-    
+    mapping(bytes32 => BlockHeader) public blockHeaders;
+    bytes32 public bestKnownDigest; 
     uint256 public currentHeight;
+    mapping(bytes32 => bytes32) public verifiedTransactions; // txHash => blockHash
+    
     bytes32 public genesisHash;
     uint256 public genesisTimestamp;
     
-    // Circuit breaker
-    bool public emergencyMode = false;
     uint256 public lastEmergencyCheck;
-    uint256 public constant EMERGENCY_CHECK_INTERVAL = 24 * 60 * 60; // 24 hours
+    uint256 public constant EMERGENCY_CHECK_INTERVAL = 24 * 60 * 60;
 
-    // Modifiers
     modifier onlyRelayer() {
-        require(hasRole(RELAYER_ROLE, msg.sender), "BTCRelay: caller is not a relayer");
+        require(hasRole(RELAYER_ROLE, msg.sender), "BTCRelay: not relayer");
         _;
     }
 
     modifier onlyOperator() {
-        require(hasRole(OPERATOR_ROLE, msg.sender), "BTCRelay: caller is not an operator");
-        _;
-    }
-
-    modifier notEmergency() {
-        require(!emergencyMode, "BTCRelay: emergency mode active");
+        require(hasRole(OPERATOR_ROLE, msg.sender), "BTCRelay: not operator");
         _;
     }
 
@@ -101,118 +89,142 @@ contract BTCRelay is AccessControl, Pausable, ReentrancyGuard {
         genesisHash = _genesisHash;
         genesisTimestamp = _genesisTimestamp;
         
-        // Initialize genesis block
-        blockHeaders[0] = BlockHeader({
+        blockHeaders[_genesisHash] = BlockHeader({
             hash: _genesisHash,
             prevHash: bytes32(0),
+            merkleRoot: bytes32(0),
             timestamp: _genesisTimestamp,
-            difficulty: 0x1d00ffff, // Bitcoin genesis difficulty
+            difficulty: 0x1d00ffff,
             height: 0,
+            chainWork: 0x1d00ffff, 
+            isMainChain: true,
             exists: true
         });
-        
+        bestKnownDigest = _genesisHash;
         currentHeight = 0;
         lastEmergencyCheck = block.timestamp;
-        
-        emit BlockHeaderAdded(0, _genesisHash, _genesisTimestamp, 0x1d00ffff);
+    }
+
+    function extractBytes32(bytes memory data, uint256 offset) internal pure returns (bytes32 result) {
+        assembly {
+            result := mload(add(add(data, 32), offset))
+        }
+    }
+
+    function extractUint32LE(bytes memory data, uint256 offset) internal pure returns (uint32) {
+        return uint32(uint8(data[offset])) |
+               (uint32(uint8(data[offset+1])) << 8) |
+               (uint32(uint8(data[offset+2])) << 16) |
+               (uint32(uint8(data[offset+3])) << 24);
     }
 
     /**
-     * @dev Add a new Bitcoin block header
-     * @param blockHash The hash of the Bitcoin block
-     * @param prevHash The hash of the previous block
-     * @param timestamp The timestamp of the block
-     * @param difficulty The difficulty target of the block
+     * @dev Add a new Bitcoin block header via exact 80 byte parsing
      */
-    function addBlockHeader(
-        bytes32 blockHash,
-        bytes32 prevHash,
-        uint256 timestamp,
-        uint256 difficulty
-    ) external onlyRelayer whenNotPaused notEmergency {
-        require(blockHash != bytes32(0), "BTCRelay: invalid block hash");
-        require(prevHash != bytes32(0) || currentHeight == 0, "BTCRelay: invalid previous hash");
-        require(timestamp > 0, "BTCRelay: invalid timestamp");
-        require(difficulty > 0, "BTCRelay: invalid difficulty");
+    function addBlockHeader(bytes memory rawHeader) external onlyRelayer whenNotPaused {
+        require(rawHeader.length == 80, "BTCRelay: invalid raw header length");
 
-        // Verify block hash
-        require(verifyBlockHash(blockHash, prevHash, timestamp, difficulty), "BTCRelay: invalid block hash");
+        // C4: Bitcoin specifically double hashes the 80 byte header
+        bytes32 blockHash = sha256(abi.encodePacked(sha256(rawHeader)));
+        require(!blockHeaders[blockHash].exists, "BTCRelay: block already exists");
 
-        uint256 newHeight = currentHeight + 1;
-        
-        // Verify continuity
-        if (currentHeight > 0) {
-            require(blockHeaders[currentHeight].hash == prevHash, "BTCRelay: block chain broken");
-        }
+        // Extract Standard Fields via slicing assembly
+        bytes32 prevHash = extractBytes32(rawHeader, 4);
+        bytes32 merkleRoot = extractBytes32(rawHeader, 36);
+        uint256 timestamp = extractUint32LE(rawHeader, 68);
+        uint256 bits = extractUint32LE(rawHeader, 72);
 
-        // Check timestamp is not too far in the future
-        require(timestamp <= block.timestamp + MAX_FUTURE_BLOCK_TIME, "BTCRelay: block timestamp too far in future");
+        require(prevHash != bytes32(0) || currentHeight == 0, "BTCRelay: invalid prev hash");
+        BlockHeader memory prevBlock = blockHeaders[prevHash];
+        require(prevBlock.exists, "BTCRelay: previous block missing");
+        require(timestamp <= block.timestamp + MAX_FUTURE_BLOCK_TIME, "BTCRelay: future timestamp");
 
-        // Difficulty adjustment
-        uint256 adjustedDifficulty = difficulty;
+        uint256 newHeight = prevBlock.height + 1;
+        uint256 adjustedDifficulty = bits; // Default to provided bits
+
         if (newHeight % DIFFICULTY_ADJUSTMENT_INTERVAL == 0 && newHeight > 0) {
-            adjustedDifficulty = adjustDifficulty(newHeight);
+            adjustedDifficulty = adjustDifficulty(prevHash, newHeight, timestamp);
+            require(adjustedDifficulty == bits, "BTCRelay: invalid difficulty submitted");
         }
 
-        blockHeaders[newHeight] = BlockHeader({
+        uint256 newChainWork = prevBlock.chainWork + adjustedDifficulty;
+
+        blockHeaders[blockHash] = BlockHeader({
             hash: blockHash,
             prevHash: prevHash,
+            merkleRoot: merkleRoot,
             timestamp: timestamp,
             difficulty: adjustedDifficulty,
             height: newHeight,
+            chainWork: newChainWork,
+            isMainChain: false,
             exists: true
         });
 
-        currentHeight = newHeight;
+        // H1 Fork and Reorg Resolution
+        if (newChainWork > blockHeaders[bestKnownDigest].chainWork) {
+            if (prevHash != bestKnownDigest) {
+                _handleReorg(blockHash, bestKnownDigest);
+            } else {
+                blockHeaders[blockHash].isMainChain = true;
+            }
+            bestKnownDigest = blockHash;
+            currentHeight = newHeight;
+        }
 
         emit BlockHeaderAdded(newHeight, blockHash, timestamp, adjustedDifficulty);
     }
 
-    /**
-     * @dev Verify a Merkle proof for a Bitcoin transaction
-     * @param proof The Merkle proof structure
-     * @return isValid True if the proof is valid
-     */
-    function verifyMerkleProof(MerkleProof memory proof) 
-        public 
-        view 
-        returns (bool isValid) 
-    {
-        require(proof.height <= currentHeight, "BTCRelay: block height too high");
-        require(blockHeaders[proof.height].exists, "BTCRelay: block does not exist");
-        require(blockHeaders[proof.height].hash == proof.blockHash, "BTCRelay: block hash mismatch");
-
-        // Calculate Merkle root from proof
-        bytes32 merkleRoot = calculateMerkleRoot(proof.txHash, proof.siblings, proof.index);
+    function _handleReorg(bytes32 newTip, bytes32 oldTip) internal {
+        bytes32 walkNew = newTip;
+        bytes32 walkOld = oldTip;
         
-        // In Bitcoin, the Merkle root is part of the block header
-        // For simplicity, we assume the calculated root matches the expected root
-        // In a real implementation, you would need to extract the Merkle root from the block header
+        // Find common ancestor, cap reorg at ~144 blocks
+        for (uint256 i = 0; i < 144; i++) {
+            if (walkNew == walkOld) {
+                emit ChainReorganized(oldTip, newTip, walkNew);
+                return;
+            }
+            
+            if (blockHeaders[walkNew].height > blockHeaders[walkOld].height) {
+                blockHeaders[walkNew].isMainChain = true;
+                walkNew = blockHeaders[walkNew].prevHash;
+            } else if (blockHeaders[walkOld].height > blockHeaders[walkNew].height) {
+                blockHeaders[walkOld].isMainChain = false;
+                walkOld = blockHeaders[walkOld].prevHash;
+            } else {
+                blockHeaders[walkNew].isMainChain = true;
+                blockHeaders[walkOld].isMainChain = false;
+                walkNew = blockHeaders[walkNew].prevHash;
+                walkOld = blockHeaders[walkOld].prevHash;
+            }
+        }
         
-        return merkleRoot != bytes32(0);
+        revert("BTCRelay: reorg too deep");
     }
 
-    /**
-     * @dev Verify and record a Bitcoin transaction
-     * @param proof The Merkle proof structure
-     * @return isValid True if the transaction is verified and recorded
-     */
+    function verifyMerkleProof(MerkleProof memory proof) public view returns (bool isValid) {
+        require(blockHeaders[proof.blockHash].exists, "BTCRelay: block does not exist");
+        bytes32 merkleRoot = calculateMerkleRoot(proof.txHash, proof.siblings, proof.index);
+        return merkleRoot == blockHeaders[proof.blockHash].merkleRoot;
+    }
+
     function verifyAndRecordTransaction(MerkleProof memory proof)
         external
         onlyOperator
         whenNotPaused
-        notEmergency
         returns (bool isValid)
     {
-        require(!verifiedTransactions[proof.txHash], "BTCRelay: transaction already verified");
+        require(verifiedTransactions[proof.txHash] == bytes32(0), "BTCRelay: transaction already verified");
         
-        // Check minimum confirmations
-        require(currentHeight >= proof.height + MIN_CONFIRMATIONS, "BTCRelay: insufficient confirmations");
+        BlockHeader memory header = blockHeaders[proof.blockHash];
+        require(header.isMainChain, "BTCRelay: block is not on main chain");
+        require(currentHeight >= header.height + MIN_CONFIRMATIONS, "BTCRelay: insufficient confirmations");
         
         isValid = verifyMerkleProof(proof);
         
         if (isValid) {
-            verifiedTransactions[proof.txHash] = true;
+            verifiedTransactions[proof.txHash] = proof.blockHash;
             emit MerkleProofVerified(proof.txHash, proof.blockHash, proof.height, proof.index);
         }
         
@@ -220,72 +232,32 @@ contract BTCRelay is AccessControl, Pausable, ReentrancyGuard {
     }
 
     /**
-     * @dev Check if a transaction is verified
-     * @param txHash The transaction hash to check
-     * @return isVerified True if the transaction is verified
+     * @dev Check if a transaction is verified and STILL securely on the active tip
      */
     function isTransactionVerified(bytes32 txHash) external view returns (bool isVerified) {
-        return verifiedTransactions[txHash];
+        bytes32 blockHash = verifiedTransactions[txHash];
+        if (blockHash == bytes32(0)) return false;
+        
+        // If a reorg happens, old verified Txs will dynamically revert their validity
+        return blockHeaders[blockHash].isMainChain;
     }
 
-    /**
-     * @dev Get block header information
-     * @param height The block height
-     * @return header The block header struct
-     */
-    function getBlockHeader(uint256 height) external view returns (BlockHeader memory header) {
-        require(blockHeaders[height].exists, "BTCRelay: block does not exist");
-        return blockHeaders[height];
+    function getBlockHeader(bytes32 blockHash) external view returns (BlockHeader memory header) {
+        require(blockHeaders[blockHash].exists, "BTCRelay: block does not exist");
+        return blockHeaders[blockHash];
     }
 
-    /**
-     * @dev Emergency pause function
-     */
     function emergencyPause() external onlyRole(ADMIN_ROLE) {
-        emergencyMode = true;
+        lastEmergencyCheck = block.timestamp;
         _pause();
     }
 
-    /**
-     * @dev Resume from emergency mode
-     */
     function resume() external onlyRole(ADMIN_ROLE) {
-        require(emergencyMode, "BTCRelay: not in emergency mode");
         require(block.timestamp >= lastEmergencyCheck + EMERGENCY_CHECK_INTERVAL, "BTCRelay: emergency check interval not met");
-        
-        emergencyMode = false;
         _unpause();
         lastEmergencyCheck = block.timestamp;
     }
 
-    /**
-     * @dev Internal function to verify Bitcoin block hash
-     * @param blockHash The block hash to verify
-     * @return isValid True if the block hash is valid
-     */
-    function verifyBlockHash(
-        bytes32 blockHash,
-        bytes32 /* prevHash */,
-        uint256 /* timestamp */,
-        uint256 /* difficulty */
-    ) internal pure returns (bool isValid) {
-        // This is a simplified verification
-        // In a real implementation, you would need to:
-        // 1. Reconstruct the block header
-        // 2. Calculate the hash
-        // 3. Verify it meets the difficulty target
-        
-        // For now, we just check that the hash is not zero
-        return blockHash != bytes32(0);
-    }
-
-    /**
-     * @dev Internal function to calculate Merkle root from proof
-     * @param leaf The leaf hash (transaction hash)
-     * @param siblings Array of sibling hashes
-     * @param index The index of the leaf in the tree
-     * @return root The calculated Merkle root
-     */
     function calculateMerkleRoot(
         bytes32 leaf,
         bytes32[] memory siblings,
@@ -295,9 +267,9 @@ contract BTCRelay is AccessControl, Pausable, ReentrancyGuard {
         
         for (uint256 i = 0; i < siblings.length; i++) {
             if (index % 2 == 0) {
-                current = keccak256(abi.encodePacked(current, siblings[i]));
+                current = sha256(abi.encodePacked(sha256(abi.encodePacked(current, siblings[i]))));
             } else {
-                current = keccak256(abi.encodePacked(siblings[i], current));
+                current = sha256(abi.encodePacked(sha256(abi.encodePacked(siblings[i], current))));
             }
             index = index / 2;
         }
@@ -305,21 +277,15 @@ contract BTCRelay is AccessControl, Pausable, ReentrancyGuard {
         return current;
     }
 
-    /**
-     * @dev Internal function to adjust difficulty based on Bitcoin rules
-     * @param height The current block height
-     * @return newDifficulty The adjusted difficulty
-     */
-    function adjustDifficulty(uint256 height) internal returns (uint256 newDifficulty) {
-        require(height >= DIFFICULTY_ADJUSTMENT_INTERVAL, "BTCRelay: height too low for difficulty adjustment");
+    function adjustDifficulty(bytes32 prevHash, uint256 /* height */, uint256 currentTimestamp) internal view returns (uint256 newDifficulty) {
+        bytes32 walkBack = prevHash;
+        for (uint256 i = 1; i < DIFFICULTY_ADJUSTMENT_INTERVAL; i++) {
+            walkBack = blockHeaders[walkBack].prevHash;
+        }
         
-        uint256 previousAdjustmentHeight = height - DIFFICULTY_ADJUSTMENT_INTERVAL;
-        BlockHeader memory previousAdjustment = blockHeaders[previousAdjustmentHeight];
-        BlockHeader memory currentBlock = blockHeaders[height];
+        BlockHeader memory previousAdjustment = blockHeaders[walkBack];
+        uint256 timeSpan = currentTimestamp - previousAdjustment.timestamp;
         
-        uint256 timeSpan = currentBlock.timestamp - previousAdjustment.timestamp;
-        
-        // Limit the adjustment factor
         if (timeSpan < TARGET_TIMESPAN / 4) {
             timeSpan = TARGET_TIMESPAN / 4;
         } else if (timeSpan > TARGET_TIMESPAN * 4) {
@@ -327,24 +293,13 @@ contract BTCRelay is AccessControl, Pausable, ReentrancyGuard {
         }
         
         newDifficulty = (previousAdjustment.difficulty * TARGET_TIMESPAN) / timeSpan;
-        
-        emit DifficultyAdjusted(previousAdjustment.difficulty, newDifficulty, height);
-        
         return newDifficulty;
     }
 
-    /**
-     * @dev Grant relayer role to an address
-     * @param relayer The address to grant relayer role to
-     */
     function addRelayer(address relayer) external onlyRole(ADMIN_ROLE) {
         _grantRole(RELAYER_ROLE, relayer);
     }
 
-    /**
-     * @dev Revoke relayer role from an address
-     * @param relayer The address to revoke relayer role from
-     */
     function removeRelayer(address relayer) external onlyRole(ADMIN_ROLE) {
         _revokeRole(RELAYER_ROLE, relayer);
     }

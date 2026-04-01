@@ -1,4 +1,3 @@
-"use client"
 
 import { useState, useEffect } from 'react';
 import { CheckCircle, ArrowRightLeft, Lock, Eye, Clock, DollarSign } from 'lucide-react';

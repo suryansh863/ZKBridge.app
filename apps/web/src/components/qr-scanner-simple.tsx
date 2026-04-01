@@ -1,4 +1,3 @@
-"use client"
 
 import { useState } from 'react'
 import { Camera, X } from 'lucide-react'

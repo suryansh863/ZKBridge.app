@@ -3,7 +3,6 @@
  * Shows current wallet connection status and account information
  */
 
-"use client";
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';

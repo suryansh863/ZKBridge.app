@@ -1,6 +1,5 @@
-"use client"
 
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { Github, Twitter, MessageCircle, Mail } from 'lucide-react';
 
 export function Footer() {
@@ -10,7 +9,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1 space-y-4">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg gradient-bridge flex items-center justify-center">
                 <span className="text-white font-bold text-sm">BS</span>
               </div>
@@ -40,22 +39,22 @@ export function Footer() {
             <h3 className="font-semibold">Product</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/bridge" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/bridge" className="text-muted-foreground hover:text-foreground transition-colors">
                   Bridge Assets
                 </Link>
               </li>
               <li>
-                <Link href="/transactions" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/transactions" className="text-muted-foreground hover:text-foreground transition-colors">
                   Transaction History
                 </Link>
               </li>
               <li>
-                <Link href="/status" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/status" className="text-muted-foreground hover:text-foreground transition-colors">
                   Network Status
                 </Link>
               </li>
               <li>
-                <Link href="/fees" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/fees" className="text-muted-foreground hover:text-foreground transition-colors">
                   Fee Calculator
                 </Link>
               </li>
@@ -67,22 +66,22 @@ export function Footer() {
             <h3 className="font-semibold">Resources</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/docs" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/docs" className="text-muted-foreground hover:text-foreground transition-colors">
                   Documentation
                 </Link>
               </li>
               <li>
-                <Link href="/api" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/api" className="text-muted-foreground hover:text-foreground transition-colors">
                   API Reference
                 </Link>
               </li>
               <li>
-                <Link href="/guides" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/guides" className="text-muted-foreground hover:text-foreground transition-colors">
                   User Guides
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/faq" className="text-muted-foreground hover:text-foreground transition-colors">
                   FAQ
                 </Link>
               </li>
@@ -94,22 +93,22 @@ export function Footer() {
             <h3 className="font-semibold">Support</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/security" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/security" className="text-muted-foreground hover:text-foreground transition-colors">
                   Security
                 </Link>
               </li>
               <li>
-                <Link href="/audit" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/audit" className="text-muted-foreground hover:text-foreground transition-colors">
                   Audit Report
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
                   Terms of Service
                 </Link>
               </li>
@@ -122,13 +121,13 @@ export function Footer() {
             © 2024 BridgeSpark. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Terms of Service
             </Link>
-            <Link href="/cookies" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/cookies" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Cookie Policy
             </Link>
           </div>

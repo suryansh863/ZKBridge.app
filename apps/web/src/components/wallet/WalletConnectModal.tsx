@@ -3,7 +3,6 @@
  * zkBridge-style modern wallet connection interface
  */
 
-"use client";
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

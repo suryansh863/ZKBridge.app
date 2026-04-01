@@ -1,23 +1,26 @@
-"use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { useAccount, useConnect } from 'wagmi'
 import { motion } from 'framer-motion'
 import { CheckCircle, AlertCircle, Clock, ArrowRight, ExternalLink, Copy, Hash, Eye, QrCode, Clipboard, Link, Info } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import dynamic from 'next/dynamic'
 
-const MerkleTreeVisualizer = dynamic(() => import('@/components/merkle-tree-visualizer').then(mod => mod.MerkleTreeVisualizer), {
-  loading: () => <div className="animate-pulse bg-muted/20 h-64 rounded-lg flex items-center justify-center">Loading Merkle Visualizer...</div>,
-  ssr: false
-})
+const MerkleTreeVisualizerLazy = lazy(() => import('@/components/merkle-tree-visualizer').then(mod => ({ default: mod.MerkleTreeVisualizer })))
+const QRScannerSimpleLazy = lazy(() => import('@/components/qr-scanner-simple').then(mod => ({ default: mod.QRScannerSimple })))
 
-const QRScannerSimple = dynamic(() => import('@/components/qr-scanner-simple').then(mod => mod.QRScannerSimple), {
-  loading: () => <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">Loading Scanner...</div>,
-  ssr: false
-})
+const MerkleTreeVisualizer = (props: any) => (
+  <Suspense fallback={<div className="animate-pulse bg-muted/20 h-64 rounded-lg flex items-center justify-center">Loading Merkle Visualizer...</div>}>
+    <MerkleTreeVisualizerLazy {...props} />
+  </Suspense>
+)
+
+const QRScannerSimple = (props: any) => (
+  <Suspense fallback={<div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">Loading Scanner...</div>}>
+    <QRScannerSimpleLazy {...props} />
+  </Suspense>
+)
 
 interface BridgeStep {
   id: number
